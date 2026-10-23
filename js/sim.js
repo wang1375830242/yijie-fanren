@@ -130,6 +130,8 @@
         flags: {},
         seen: {},
         textUse: {},
+        sceneTotal: {},
+        sceneUses: {},
         choiceTrace: [],
         legacy: null,
         focus: "cultivate",
@@ -978,6 +980,7 @@
       const fresh = pool.filter((e) => !(e.sceneKey && recentScenes.has(e.sceneKey)));
       const unused = fresh.filter((e) => {
         try {
+          if (e.sceneKey && ((s.sceneTotal && s.sceneTotal[e.sceneKey]) || 0) >= 3) return false;
           const text = typeof e.text === "function" ? e.text(s) : e.text;
           return (s.textUse && s.textUse[text] ? s.textUse[text] : 0) < 2;
         } catch (err) {
@@ -1076,6 +1079,10 @@
       const recentScenes = new Set(s.recentScenes || []);
       const fresh = pool.filter((e) => !(e.sceneKey && recentScenes.has(e.sceneKey)));
       if (fresh.length) pool = fresh;
+      const sceneFresh = pool.filter(
+        (e) => !e.sceneKey || (s.sceneTotal && s.sceneTotal[e.sceneKey] || 0) < 3
+      );
+      if (sceneFresh.length) pool = sceneFresh;
       return this.rng.weighted(pool, (e) => {
         const trait = e.tone && s.traits ? s.traits[e.tone] || 0 : 0;
         return (e.w || 1) * (1 + Math.min(0.75, trait * 0.06));
@@ -1099,6 +1106,7 @@
         id,
         title: ev.title,
         text,
+        sceneKey: ev.sceneKey || "",
         choices:
           typeof ev.choices === "function" ? ev.choices(s) : ev.choices,
         major: !!ev.major,
@@ -1106,8 +1114,29 @@
     }
 
     /* ---------------- 抉择 ---------------- */
-    choose(index, opts) {
+    sceneResultType(choice) {
+      if (!choice) return "normal";
+      if (choice.resultType) return choice.resultType;
+      if (choice.risk) return "risk";
+      const e = choice.effects || {};
+      if (e.flag) return "flag";
+      if (e.partner) return "bond";
+      if (e.sect) return "sect";
+      if (e.death || e.cult < 0) return "loss";
+      return "normal";
+    }
+
+    noteSceneUse(sceneKey, choice) {
+      if (!sceneKey) return;
       const s = this.state;
+      s.sceneTotal = s.sceneTotal || {};
+      s.sceneUses = s.sceneUses || {};
+      s.sceneTotal[sceneKey] = (s.sceneTotal[sceneKey] || 0) + 1;
+      const key = `${sceneKey}|${this.sceneResultType(choice)}`;
+      s.sceneUses[key] = (s.sceneUses[key] || 0) + 1;
+    }
+
+    choose(index, opts) {      const s = this.state;
       if (!s.pending || s.pending.kind !== "event") return null;
       const choice = s.pending.choices[index];
       if (!choice) return null;
@@ -1133,6 +1162,8 @@
         const wanted = Number(opts && opts.donateAmount);
         donateAmount = Math.max(min, Math.min(max, Math.floor(Number.isFinite(wanted) ? wanted : min)));
       }
+
+      this.noteSceneUse(s.pending.sceneKey, choice);
 
       const result = { text: "", effects: choice.effects || {}, died: false };
       let effects = Object.assign({}, choice.effects || {});

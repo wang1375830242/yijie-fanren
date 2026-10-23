@@ -935,5 +935,19 @@ ok(
 );
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
 ok(XD.EVENTS.length === 3090, `事件总数应为 3090，实际 ${XD.EVENTS.length}`);
+const sceneCounts = Object.fromEntries(
+  Object.entries(XD.SCENE_POOLS || {}).map(([key, pool]) => [key, pool.scenes.length])
+);
+ok(sceneCounts.child === 60, `童年场景应为 60，实际 ${sceneCounts.child}`);
+["home", "sect", "wild", "market", "war", "spirit", "immortal", "partner"].forEach((key) => {
+  ok(sceneCounts[key] >= 20, `${key} 场景至少 20，实际 ${sceneCounts[key]}`);
+});
+const sceneSim = new Sim({ seed: 951, world: "human" });
+sceneSim.noteSceneUse("test-scene", { risk: { p: 0.2 } });
+ok(
+  sceneSim.state.sceneTotal["test-scene"] === 1 &&
+    sceneSim.state.sceneUses["test-scene|risk"] === 1,
+  "场景去重应同时记录 sceneKey 与结果类型"
+);
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; natural-ascensions=${naturalAscensions}; worst-repeat=${worstRepeat}`);
