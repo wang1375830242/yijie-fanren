@@ -30,6 +30,7 @@
   let releasePromptTrap = null;
   let releaseShopTrap = null;
   let runSaveWarned = false;
+  let choicePeek = false;
 
   /* ======================================================================
      通用
@@ -226,6 +227,7 @@
     }
     sim = restored;
     state = sim.state;
+    resetPromptChrome();
     endSummary = null;
     saved = false;
     runSaveWarned = false;
@@ -289,6 +291,53 @@
       area.remove();
     }
     return Promise.resolve();
+  }
+
+  function resetPromptChrome() {
+    choicePeek = false;
+    const resume = $("choiceResume");
+    if (resume) resume.hidden = true;
+  }
+
+  function trapChoicePrompt() {
+    if (releasePromptTrap) {
+      releasePromptTrap();
+      releasePromptTrap = null;
+    }
+    releasePromptTrap = U.trapFocus($("choiceOverlay"), () =>
+      U.toast("这一世的事，总得有个了断")
+    );
+  }
+
+  function minimizeChoice() {
+    if (!state || !state.pending || choicePeek) return;
+    choicePeek = true;
+    clearTimeout(autoTimer);
+    stopWhisper();
+    if (releasePromptTrap) {
+      releasePromptTrap();
+      releasePromptTrap = null;
+    }
+    $("choiceOverlay").hidden = true;
+    const resume = $("choiceResume");
+    if (resume) resume.hidden = false;
+    const log = $("log");
+    if (log) log.focus({ preventScroll: true });
+  }
+
+  function resumeChoice() {
+    if (!state || !state.pending) {
+      resetPromptChrome();
+      return;
+    }
+    choicePeek = false;
+    const resume = $("choiceResume");
+    if (resume) resume.hidden = true;
+    $("choiceOverlay").hidden = false;
+    startWhisper();
+    trapChoicePrompt();
+    const title = $("choiceTitle");
+    if (title) title.focus({ preventScroll: true });
   }
 
   function renderFateCard() {
@@ -708,6 +757,7 @@
 
   function openDanger() {
     clearTimeout(autoTimer);
+    resetPromptChrome();
     const p = state.pending;
     if (!p || p.kind !== "danger") return;
     $("choiceKicker").textContent = "濒 死";
@@ -745,10 +795,7 @@
     });
     $("choiceOverlay").hidden = false;
     startWhisper();
-    if (releasePromptTrap) releasePromptTrap();
-    releasePromptTrap = U.trapFocus($("choiceOverlay"), () =>
-      U.toast("这一世的事，总得有个了断")
-    );
+    trapChoicePrompt();
     const first = $("choiceOpts").querySelector(".opt:not([disabled])");
     if (first) first.focus();
     if (auto) {
@@ -774,6 +821,7 @@
 
   function openPrompt() {
     clearTimeout(autoTimer);
+    resetPromptChrome();
     if (!state.pending) return;
     if (state.pending.kind === "break") return openBreak();
     if (state.pending.kind === "danger") return openDanger();
@@ -874,10 +922,7 @@
     });
     $("choiceOverlay").hidden = false;
     startWhisper();
-    if (releasePromptTrap) releasePromptTrap();
-    releasePromptTrap = U.trapFocus($("choiceOverlay"), () =>
-      U.toast("这一世的事，总得有个了断")
-    );
+    trapChoicePrompt();
     const first = $("choiceOpts").querySelector(".opt:not([disabled]):not(.is-disabled)");
     if (first) {
       const focusEl = first.classList.contains("opt--donate")
@@ -920,6 +965,7 @@
   function choose(i, opts) {
     clearTimeout(autoTimer);
     stopWhisper();
+    resetPromptChrome();
     if (releasePromptTrap) {
       releasePromptTrap();
       releasePromptTrap = null;
@@ -946,6 +992,7 @@
 
   function openBreak() {
     stopWhisper();
+    resetPromptChrome();
     const p = state.pending;
     const target = D.REALMS[state.tier + 1];
     $("choiceKicker").textContent = "冲 关";
@@ -968,6 +1015,7 @@
           releasePromptTrap = null;
         }
         $("choiceOverlay").hidden = true;
+        resetPromptChrome();
         const act = b.dataset.act;
         const before = state.log.length;
         const res = sim.chooseBreak(act);
@@ -983,8 +1031,7 @@
       });
     });
     $("choiceOverlay").hidden = false;
-    if (releasePromptTrap) releasePromptTrap();
-    releasePromptTrap = U.trapFocus($("choiceOverlay"), null);
+    trapChoicePrompt();
     const first = $("choiceOpts").querySelector(".opt:not([disabled])");
     if (first) first.focus();
 
@@ -1083,6 +1130,8 @@
     stopWhisper();
     clearTimeout(timer);
     clearTimeout(autoTimer);
+    resetPromptChrome();
+    $("choiceOverlay").hidden = true;
     if (XD.Audio) XD.Audio.bell(state.legendary ? "ascend" : "death");
     const s = state;
     endSummary = sim.summary();
@@ -1374,6 +1423,8 @@
     $("btnAuto").addEventListener("click", () => setAuto(!auto));
     $("menuAuto").addEventListener("click", () => setAuto(!auto));
     $("menuSoft").addEventListener("click", () => setSoft(!soft));
+    $("choicePeek").addEventListener("click", minimizeChoice);
+    $("choiceResume").addEventListener("click", resumeChoice);
     $("menuReport").addEventListener("click", () => {
       $("moreMenu").classList.remove("is-open");
       $("btnMore").setAttribute("aria-expanded", "false");
@@ -1439,6 +1490,14 @@
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
+        if (choicePeek) {
+          resumeChoice();
+          return;
+        }
+        if (state && state.pending && !$("choiceOverlay").hidden) {
+          minimizeChoice();
+          return;
+        }
         if (!$("shopOverlay").hidden) {
           closeShop();
           return;

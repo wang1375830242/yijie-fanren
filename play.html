@@ -229,7 +229,7 @@
           <b>人生录</b>
           <span id="logHint">逐年记录 · 最新的在最下面</span>
         </div>
-        <div class="log" id="log" aria-live="polite"></div>
+        <div class="log" id="log" tabindex="0" aria-label="人生录，可用方向键滚动查看前情"></div>
       </div>
     </section>
 
@@ -304,13 +304,17 @@
 ====================================================================== -->
 <div class="overlay" id="choiceOverlay" hidden>
   <div class="prompt" role="dialog" aria-modal="true" aria-labelledby="choiceTitle">
-    <p class="prompt-kicker" id="choiceKicker">抉择</p>
-    <h3 id="choiceTitle"></h3>
+    <div class="prompt-head">
+      <p class="prompt-kicker" id="choiceKicker">抉择</p>
+      <button class="prompt-peek" id="choicePeek" type="button">先看前情</button>
+    </div>
+    <h3 id="choiceTitle" tabindex="-1"></h3>
     <p id="choiceText"></p>
     <p id="choiceWhisper" class="choice-whisper" aria-live="polite"></p>
     <div class="opts" id="choiceOpts"></div>
   </div>
 </div>
+<button class="choice-resume" id="choiceResume" type="button" aria-label="继续当前抉择" hidden>继续抉择</button>
 
 <div class="overlay" id="shopOverlay" hidden>
   <div class="prompt" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
@@ -345,13 +349,13 @@
 
 <canvas id="shareCanvas" width="1080" height="1350" hidden></canvas>
 
-<script src="js/common.js?v=20261023dd"></script>
-<script src="js/data.js?v=20261023dd"></script>
-<script src="js/events.js?v=20261023dd"></script>
-<script src="js/events-expanded.js?v=20261023dd"></script>
-<script src="js/art.js?v=20261023dd"></script>
-<script src="js/sim.js?v=20261023dd"></script>
-<script src="js/audio.js?v=20261023dd"></script>
-<script src="js/game.js?v=20261023dd"></script>
+<script src="js/common.js?v=20261023ee"></script>
+<script src="js/data.js?v=20261023ee"></script>
+<script src="js/events.js?v=20261023ee"></script>
+<script src="js/events-expanded.js?v=20261023ee"></script>
+<script src="js/art.js?v=20261023ee"></script>
+<script src="js/sim.js?v=20261023ee"></script>
+<script src="js/audio.js?v=20261023ee"></script>
+<script src="js/game.js?v=20261023ee"></script>
 </body>
 </html>

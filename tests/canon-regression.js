@@ -494,6 +494,11 @@ ok(
   "游戏应接入自动保存与续存提示"
 );
 ok(
+  fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("choicePeek") &&
+    fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("choiceResume"),
+  "抉择弹框应提供看前情与继续抉择入口"
+);
+ok(
   !gameSource.includes("aliveDisciples[aliveDisciples.length - 1]") &&
     gameSource.includes("bondStatus"),
   "关系面板应显示全部羁绊而不是最后一个徒弟"

@@ -1203,6 +1203,15 @@ body:not(.in-life) #btnAuto {
   backdrop-filter: blur(6px);
   animation: fade-in 220ms var(--ease);
 }
+#choiceOverlay {
+  background: rgba(5, 8, 5, 0.3);
+  backdrop-filter: blur(2px);
+}
+@media (max-width: 760px) {
+  #choiceOverlay {
+    backdrop-filter: none;
+  }
+}
 .overlay[hidden] {
   display: none !important;
 }
@@ -1239,11 +1248,56 @@ body:not(.in-life) #btnAuto {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin: 0 0 14px;
+  color: var(--paper-muted);
   font-family: var(--kai);
   font-size: 11px;
-  letter-spacing: 0.3em;
-  color: var(--cinnabar);
+  letter-spacing: 0.28em;
+}
+.prompt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.prompt-head .prompt-kicker {
+  margin: 0 0 14px;
+}
+.prompt-peek {
+  min-height: 44px;
   margin-bottom: 14px;
+  padding: 0 12px;
+  border: 1px solid rgba(25, 29, 23, 0.22);
+  background: transparent;
+  color: var(--paper-muted);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+.prompt-peek:hover,
+.prompt-peek:focus-visible {
+  color: var(--paper-ink);
+  border-color: var(--paper-ink);
+}
+.choice-resume {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 140;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--gold-2);
+  background: var(--paper);
+  color: var(--paper-ink);
+  box-shadow: var(--shadow-3);
+  font-family: var(--kai);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+.choice-resume[hidden] {
+  display: none !important;
 }
 .prompt-kicker::after {
   content: "";
