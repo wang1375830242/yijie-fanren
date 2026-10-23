@@ -62,6 +62,8 @@ python server.py
 | `docs/late-mainlines.md` | 灵界天渊西线与仙界北寒灰线设计 |
 | `docs/canon-event-policy.md` | 致敬事件包的版权边界、字段与开关 |
 | `docs/breakthrough-freeze-fix.md` | 大境界突破后遮罩未关闭的修复说明 |
+| `docs/economy-table.md` | 1–13 境年收入、年支出与净额基准表 |
+| `docs/qa-320-a11y.md` | 320px、浏览器可访问性树与人生录验收记录 |
 
 ## 这一世怎么算
 

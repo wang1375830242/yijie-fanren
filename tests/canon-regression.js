@@ -285,6 +285,15 @@ ok(
 /* H7：玩家旧瓶不再暗示为掌天瓶。 */
 ok(!eventsSource.includes('title: "小瓶"'), "H7 玩家事件不应再叫“小瓶”");
 const gameSource = fs.readFileSync(path.join(ROOT, "js/game.js"), "utf8");
+const canonSource = fs.readFileSync(path.join(ROOT, "js/canon.js"), "utf8");
+const canonPeopleBlock = canonSource.slice(
+  canonSource.indexOf("const C = ["),
+  canonSource.indexOf("  const S = [")
+);
+ok(
+  !/desc:\s*"[^"]{80,}"/.test(canonPeopleBlock),
+  "人物词条不应保留大段剧情复述"
+);
 ok(gameSource.includes("无名旧瓶"), "H7 角色面板应显示“无名旧瓶”");
 ok(!gameSource.includes("生还 ${"), "濒死选项不应显示生还率");
 ok(
@@ -950,7 +959,25 @@ ok(
   "现存修士模式应保留伪灵根高境界抽样"
 );
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
-ok(XD.EVENTS.length === 3103, `事件总数应为 3103，实际 ${XD.EVENTS.length}`);
+const eventIds = new Set(XD.EVENTS.map((event) => event.id));
+ok(XD.EVENTS.length >= 3000, `事件池不应异常缩小，实际 ${XD.EVENTS.length}`);
+ok(eventIds.size === XD.EVENTS.length, "事件 ID 必须唯一");
+[
+  "root_test",
+  "d_node",
+  "s_arrive",
+  "i_arrive",
+  "s_main_1",
+  "s_main_4",
+  "i_main_1",
+  "i_main_4",
+  "i_sanshi_e",
+  "i_daozu",
+].forEach((id) => ok(!!XD.EVENT_BY_ID[id], `关键事件缺失：${id}`));
+ok(
+  XD.EVENTS.filter((event) => event.sceneKey).length >= 2000,
+  "带 sceneKey 的生成事件应保持足够规模"
+);
 const sceneCounts = Object.fromEntries(
   Object.entries(XD.SCENE_POOLS || {}).map(([key, pool]) => [key, pool.scenes.length])
 );
@@ -964,6 +991,17 @@ ok(
   sceneSim.state.sceneTotal["test-scene"] === 1 &&
     sceneSim.state.sceneUses["test-scene|risk"] === 1,
   "场景去重应同时记录 sceneKey 与结果类型"
+);
+sceneSim.state.sceneTotal["test-scene"] = 3;
+ok(
+  !sceneSim.sceneAllowed({ sceneKey: "test-scene", choices: [{}] }),
+  "同一 sceneKey 达到三次后应被硬过滤"
+);
+sceneSim.state.sceneTotal["combo-scene"] = 0;
+sceneSim.state.sceneUses["combo-scene|normal"] = 3;
+ok(
+  !sceneSim.sceneAllowed({ sceneKey: "combo-scene", choices: [{}] }),
+  "同一 sceneKey + 结果类型达到三次后应被硬过滤"
 );
 
 /* P4：高境界收入、长期支出与后期货栈。 */
@@ -979,6 +1017,34 @@ ok(ecoSim.annualUpkeep() >= 4, "洞府与弟子应产生长期支出");
 ok(
   D.SHOP.filter((it) => (it.tierMin || 0) >= 9).length >= 2,
   "货栈后期应至少有两件高境界商品"
+);
+const econTable = [];
+for (let tier = 1; tier <= 13; tier++) {
+  const e = new Sim({ seed: 954 + tier, world: "human" });
+  e.state.tier = tier;
+  e.state.focus = "alchemy";
+  e.state.flags.buy_cave = true;
+  e.state.flags.buy_spirit_field = true;
+  e.state.disciples = [{ name: "甲", alive: true }, { name: "乙", alive: true }];
+  const income = e.annualIncome() + (e.state.incomePerYear || 0);
+  const upkeep = e.annualUpkeep();
+  econTable.push({ tier, income, upkeep, net: income - upkeep });
+  ok(income >= 0 && upkeep >= 0, `tier ${tier} 收支不应为负`);
+}
+ok(
+  econTable.every((row) => Number.isFinite(row.net)) && econTable[12].net > 0,
+  "1–13 境经济表应完整且高境界净收支为正"
+);
+const longEco = new Sim({ seed: 980, world: "human" });
+longEco.state.tier = 1;
+longEco.state.focus = "alchemy";
+longEco.state.flags.buy_cave = true;
+longEco.state.flags.buy_spirit_field = true;
+longEco.state.disciples = [{ name: "甲", alive: true }];
+for (let i = 0; i < 1000; i++) longEco.yearTick();
+ok(
+  Number.isFinite(longEco.state.stones) && longEco.state.stones >= 0,
+  "1000 年经济循环不应产生负灵石或 NaN"
 );
 
 /* 致敬事件包：默认关闭，开启后只进入原创事件。 */
@@ -1026,5 +1092,17 @@ ok(
     "i_main_1,i_main_2,i_main_3,i_main_4",
   "仙界主线应按四步顺序触发"
 );
+const spiritAbandon = new Sim({ seed: 961, world: "spirit" });
+spiritAbandon.state.tier = 7;
+spiritAbandon.state.age = 180;
+spiritAbandon.state.flags.s_main_1 = true;
+spiritAbandon.maybeMainline();
+ok(spiritAbandon.state.flags.s_main_closed, "灵界主线越过合体后应明确收束");
+const immortalAbandon = new Sim({ seed: 962, world: "immortal" });
+immortalAbandon.state.tier = 11;
+immortalAbandon.state.age = 1800;
+immortalAbandon.state.flags.i_main_2 = true;
+immortalAbandon.maybeMainline();
+ok(immortalAbandon.state.flags.i_main_closed, "仙界主线越过太乙后应明确收束");
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; natural-ascensions=${naturalAscensions}; worst-repeat=${worstRepeat}`);

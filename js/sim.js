@@ -492,42 +492,74 @@
           return true;
         }
       }
-      if (
-        s.world === "spirit" &&
-        !s.flags.s_main_closed &&
-        s.tier >= 5 &&
-        s.tier <= 6 &&
-        s.age >= 80
-      ) {
-        const next = !s.flags.s_main_1
-          ? "s_main_1"
-          : !s.flags.s_main_2
-          ? "s_main_2"
-          : !s.flags.s_main_3
-          ? "s_main_3"
-          : "s_main_4";
-        if (!s.seen[next]) {
-          this.trigger(next);
+      if (s.world === "spirit") {
+        // 已经拿到最后一步资格时，即使突破到合体，也允许把余波走完。
+        if (s.flags.s_main_3 && !s.flags.s_main_closed && !s.seen.s_main_4) {
+          this.trigger("s_main_4");
           return true;
         }
+        if (
+          !s.flags.s_main_closed &&
+          s.tier >= 7 &&
+          (s.flags.s_main_1 || s.flags.s_main_2 || s.flags.s_main_3)
+        ) {
+          s.flags.s_main_closed = true;
+          s.flags.s_main_forfeited = true;
+          this.pushLog("system", "你离开了西线。那面令旗后来被风扯碎，西线主线到此收束。");
+          return false;
+        }
+        if (
+          !s.flags.s_main_closed &&
+          s.tier >= 5 &&
+          s.tier <= 6 &&
+          s.age >= 80
+        ) {
+          const next = !s.flags.s_main_1
+            ? "s_main_1"
+            : !s.flags.s_main_2
+            ? "s_main_2"
+            : !s.flags.s_main_3
+            ? "s_main_3"
+            : "s_main_4";
+          if (!s.seen[next]) {
+            this.trigger(next);
+            return true;
+          }
+        }
       }
-      if (
-        s.world === "immortal" &&
-        !s.flags.i_main_closed &&
-        s.tier >= 9 &&
-        s.tier <= 10 &&
-        s.age >= 500
-      ) {
-        const next = !s.flags.i_main_1
-          ? "i_main_1"
-          : !s.flags.i_main_2
-          ? "i_main_2"
-          : !s.flags.i_main_3
-          ? "i_main_3"
-          : "i_main_4";
-        if (!s.seen[next]) {
-          this.trigger(next);
+      if (s.world === "immortal") {
+        // 已经拿到最后一步资格时，即使突破到太乙，也允许把断界海走完。
+        if (s.flags.i_main_3 && !s.flags.i_main_closed && !s.seen.i_main_4) {
+          this.trigger("i_main_4");
           return true;
+        }
+        if (
+          !s.flags.i_main_closed &&
+          s.tier >= 11 &&
+          (s.flags.i_main_1 || s.flags.i_main_2 || s.flags.i_main_3)
+        ) {
+          s.flags.i_main_closed = true;
+          s.flags.i_main_forfeited = true;
+          this.pushLog("system", "你没有再回北寒雪线。灰界主线到此收束。");
+          return false;
+        }
+        if (
+          !s.flags.i_main_closed &&
+          s.tier >= 9 &&
+          s.tier <= 10 &&
+          s.age >= 500
+        ) {
+          const next = !s.flags.i_main_1
+            ? "i_main_1"
+            : !s.flags.i_main_2
+            ? "i_main_2"
+            : !s.flags.i_main_3
+            ? "i_main_3"
+            : "i_main_4";
+          if (!s.seen[next]) {
+            this.trigger(next);
+            return true;
+          }
         }
       }
       return false;
@@ -1040,14 +1072,16 @@
       const fresh = pool.filter((e) => !(e.sceneKey && recentScenes.has(e.sceneKey)));
       const unused = fresh.filter((e) => {
         try {
-          if (e.sceneKey && ((s.sceneTotal && s.sceneTotal[e.sceneKey]) || 0) >= 3) return false;
+          if (!this.sceneAllowed(e)) return false;
           const text = typeof e.text === "function" ? e.text(s) : e.text;
           return (s.textUse && s.textUse[text] ? s.textUse[text] : 0) < 2;
         } catch (err) {
           return true;
         }
       });
-      this.trigger(this.rng.pick(unused.length ? unused : fresh.length ? fresh : pool).id);
+      const eligible = unused.length ? unused : fresh.filter((e) => this.sceneAllowed(e));
+      if (!eligible.length) return false;
+      this.trigger(this.rng.pick(eligible).id);
       return true;
     }
 
@@ -1139,10 +1173,10 @@
       const recentScenes = new Set(s.recentScenes || []);
       const fresh = pool.filter((e) => !(e.sceneKey && recentScenes.has(e.sceneKey)));
       if (fresh.length) pool = fresh;
-      const sceneFresh = pool.filter(
-        (e) => !e.sceneKey || (s.sceneTotal && s.sceneTotal[e.sceneKey] || 0) < 3
-      );
+      const sceneFresh = pool.filter((e) => this.sceneAllowed(e));
       if (sceneFresh.length) pool = sceneFresh;
+      else if (pool.some((e) => !e.sceneKey)) pool = pool.filter((e) => !e.sceneKey);
+      else return null;
       return this.rng.weighted(pool, (e) => {
         const trait = e.tone && s.traits ? s.traits[e.tone] || 0 : 0;
         return (e.w || 1) * (1 + Math.min(0.75, trait * 0.06));
@@ -1184,6 +1218,28 @@
       if (e.sect) return "sect";
       if (e.death || e.cult < 0) return "loss";
       return "normal";
+    }
+
+    eventResultTypes(event) {
+      try {
+        const choices =
+          typeof event.choices === "function" ? event.choices(this.state) : event.choices;
+        if (!Array.isArray(choices) || !choices.length) return ["normal"];
+        return Array.from(new Set(choices.map((choice) => this.sceneResultType(choice))));
+      } catch (err) {
+        return ["normal"];
+      }
+    }
+
+    sceneAllowed(event) {
+      if (!event || !event.sceneKey) return true;
+      const s = this.state;
+      if ((s.sceneTotal && s.sceneTotal[event.sceneKey] || 0) >= 3) return false;
+      const types = this.eventResultTypes(event);
+      const uses = s.sceneUses || {};
+      return types.some(
+        (type) => ((uses[`${event.sceneKey}|${type}`] || 0) < 3)
+      );
     }
 
     noteSceneUse(sceneKey, choice) {
