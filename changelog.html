@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-Hans" data-realm="human">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>更新纪事 · 一介凡人</title>
+<meta name="description" content="一介凡人的版本更新记录：存档、残图、姓名、旧梦、斩三尸与可靠性修复。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="更新纪事 · 一介凡人">
+<meta property="og:description" content="每一次改动，都在道上留一道刻痕。">
+<meta property="og:image" content="assets/og.png">
+<meta name="theme-color" content="#0b0f0b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/hall.css">
+<link rel="stylesheet" href="css/changelog.css">
+</head>
+<body class="changelog-page">
+<noscript><div class="noscript">更新纪事需要 JavaScript 才能展开。请开启后刷新。</div></noscript>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="seal">凡</span><span class="brand-name">一介凡人<em>纪年</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="codex.html">图鉴</a>
+      <a href="hall.html">碑林</a>
+      <a href="changelog.html" aria-current="page">更新</a>
+      <a href="about.html">关于</a>
+      <a class="btn btn--sm nav-cta" href="play.html">推演一世</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="菜单" aria-expanded="false">☰</button>
+  </div>
+</nav>
+<div class="nav-drawer">
+  <a href="index.html">首页</a>
+  <a href="codex.html">图鉴</a>
+  <a href="hall.html">碑林</a>
+  <a href="changelog.html" aria-current="page">更新</a>
+  <a href="about.html">关于</a>
+  <a href="play.html">推演一世</a>
+</div>
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="chapter-no">卷外 · 纪年</p>
+    <h1>更新</h1>
+    <p class="page-lede">
+      每一次改动，都在道上留一道刻痕。这里记下已经走到哪里，也记下哪些地方曾经断过。
+    </p>
+    <div class="cl-intro-meta">
+      <span>自 <b>2026.10.23</b> 起</span>
+      <span><b id="clReleaseTotal">2</b> 个版本</span>
+      <span>只写玩家能感觉到的变化</span>
+    </div>
+  </div>
+</header>
+
+<main class="cl-shell">
+  <div class="wrap--wide">
+    <div class="cl-toolbar">
+      <label class="cl-search">
+        <span>检索</span>
+        <input id="clSearch" type="search" placeholder="搜存档、残图、旧梦、修复…" autocomplete="off">
+      </label>
+      <div class="cl-filters" id="clFilters" role="group" aria-label="按分类筛选更新"></div>
+    </div>
+    <p class="cl-count" id="clCount" role="status" aria-live="polite"></p>
+    <div class="cl-list" id="clList"></div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div>
+        <h4>一介凡人</h4>
+        <p>一个以《凡人修仙传》世界观为背景的免费人生模拟。</p>
+        <p class="tiny">非官方同人作品，不使用原著正文。</p>
+      </div>
+      <div>
+        <h4>走走</h4>
+        <div class="footer-links">
+          <a href="play.html">推演一世</a>
+          <a href="hall.html">碑林</a>
+          <a href="codex.html">万宝阁 · 图鉴</a>
+        </div>
+      </div>
+      <div>
+        <h4>看看</h4>
+        <div class="footer-links">
+          <a href="changelog.html">更新纪事</a>
+          <a href="about.html">这是怎么算出来的</a>
+          <a href="https://github.com/wang1375830242/yijie-fanren" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>一介凡人 · 2026</span>
+      <span>大道无情，运行日月。</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/common.js?v=20261023jj"></script>
+<script src="js/changelog-data.js?v=20261023jj"></script>
+<script src="js/changelog.js?v=20261023jj"></script>
+</body>
+</html>

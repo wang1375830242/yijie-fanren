@@ -41,6 +41,7 @@ python server.py
 | `play.html` | 推演一世。择界 → 命格卡 → 人生主界面 → 飞升 → 终局 |
 | `hall.html` | 碑林。读别人的一生，点灯、留言 |
 | `codex.html` | 万宝阁图鉴。境界 / 界域 / 宗门 / 法宝 / 丹药 / 妖兽 |
+| `changelog.html` | 更新纪事。按版本记录玩家可感知的变化 |
 | `about.html` | 这是怎么算的、数据与版权说明 |
 | `docs/zhihu/zhihu-article.md` | 知乎发布稿，含项目截图与试玩地址 |
 | `docs/deploy-backend-linux.md` | Linux 公共碑林后端部署说明（可发给服务器 AI 执行） |
@@ -54,6 +55,7 @@ python server.py
 | `docs/p5-name-gender-design.md` | 姓名性别池与凡人问心修正 |
 | `docs/reliability-fixes.md` | 灵界化神断链与 risk 失败结算修复 |
 | `docs/ci.md` | 自动化回归与飞升率断言 |
+| `docs/changelog-guide.md` | 更新纪事的记录与发布规则 |
 
 ## 这一世怎么算
 

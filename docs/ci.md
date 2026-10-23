@@ -13,10 +13,11 @@
 npm test
 ```
 
-等价于：
+`npm test` 会依次运行：
 
 ```bash
 node tests/canon-regression.js
+node tests/changelog-check.js
 ```
 
 项目仍然没有 npm 依赖、没有构建步骤，`package.json` 只提供测试脚本入口。

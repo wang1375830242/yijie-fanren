@@ -1,0 +1,331 @@
+/* ==========================================================================
+   更新纪事
+   ========================================================================== */
+.changelog-page .page-head {
+  padding-bottom: 34px;
+}
+.changelog-page .page-head h1 {
+  font-size: clamp(48px, 6.4vw, 82px);
+}
+.cl-intro-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 20px;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.cl-intro-meta b {
+  color: var(--text-soft);
+  font-weight: 400;
+}
+.cl-shell {
+  padding: 34px 0 0;
+}
+.cl-toolbar {
+  position: sticky;
+  top: 64px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  background: rgba(11, 15, 11, 0.92);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+}
+.cl-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1 1 260px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line-2);
+  background: rgba(233, 227, 211, 0.025);
+}
+.cl-search span {
+  flex: 0 0 auto;
+  color: var(--cinnabar-2);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+.cl-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+.cl-search input::placeholder {
+  color: var(--muted-2);
+}
+.cl-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cl-filter {
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.cl-filter:hover,
+.cl-filter:focus-visible,
+.cl-filter.is-active {
+  color: var(--text);
+  border-color: var(--jade);
+}
+.cl-filter.is-active {
+  background: rgba(134, 160, 131, 0.12);
+}
+.cl-count {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.cl-list {
+  padding: 18px 0 10px;
+}
+.cl-release {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 22px;
+  padding: 30px 0;
+  border-left: 1px solid var(--line);
+  scroll-margin-top: 132px;
+  position: relative;
+}
+.cl-release::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 38px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--jade);
+  background: var(--ink-900);
+  transform: rotate(45deg);
+}
+.cl-release.is-latest::before {
+  border-color: var(--gold-2);
+  background: var(--gold-2);
+}
+.cl-release.is-target {
+  background: rgba(199, 167, 95, 0.06);
+}
+.cl-release-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 3px 0 0 16px;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 12px;
+}
+.cl-release-meta time {
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+.cl-version {
+  color: var(--gold-2);
+  font-family: var(--latin);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+.cl-latest {
+  padding: 1px 6px;
+  border: 1px solid var(--cinnabar-2);
+  color: var(--cinnabar-2);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+.cl-compat {
+  color: var(--muted-2);
+  font-size: 10px;
+}
+.cl-release-head {
+  min-width: 0;
+}
+.cl-release-head h2 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-family: var(--kai);
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+.cl-summary {
+  max-width: 50em;
+  margin: 0 0 18px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.9;
+}
+.cl-copy {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted-2);
+  font-family: var(--kai);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.cl-copy:hover,
+.cl-copy:focus-visible {
+  color: var(--text);
+  border-color: var(--jade);
+}
+.cl-changes {
+  display: grid;
+  gap: 18px;
+}
+.cl-group-title {
+  margin: 0 0 7px;
+  color: var(--cinnabar-2);
+  font-family: var(--kai);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+}
+.cl-change-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cl-change {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid rgba(233, 227, 211, 0.07);
+}
+.cl-mark {
+  padding-top: 2px;
+  font-family: var(--kai);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.cl-mark--feature {
+  color: var(--jade-2);
+}
+.cl-mark--improve {
+  color: var(--gold-2);
+}
+.cl-mark--fix {
+  color: var(--cinnabar-2);
+}
+.cl-mark--engineering {
+  color: var(--muted);
+}
+.cl-change-text {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.85;
+}
+.cl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  margin-top: 5px;
+}
+.cl-tag {
+  color: var(--muted-2);
+  font-family: var(--kai);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+.cl-commit {
+  margin-top: 3px;
+  color: var(--muted-2);
+  font-family: var(--latin);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.cl-commit:hover {
+  color: var(--jade-2);
+}
+.cl-empty {
+  padding: 56px 0;
+  color: var(--muted);
+  text-align: center;
+  font-family: var(--kai);
+}
+.cl-empty p {
+  margin-bottom: 14px;
+}
+.cl-clear {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  cursor: pointer;
+}
+@media (max-width: 760px) {
+  .cl-toolbar {
+    position: static;
+    padding-top: 18px;
+  }
+  .cl-search {
+    flex-basis: 100%;
+  }
+  .cl-filters {
+    flex-wrap: nowrap;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .cl-filter {
+    flex: 0 0 auto;
+    min-height: 44px;
+  }
+  .cl-release {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 24px 0 26px 16px;
+  }
+  .cl-release::before {
+    top: 30px;
+  }
+  .cl-release-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0;
+  }
+  .cl-change {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+  .cl-commit {
+    grid-column: 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cl-release.is-target {
+    transition: none;
+  }
+}
