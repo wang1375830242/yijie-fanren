@@ -240,6 +240,85 @@ sudo ufw status
 
 不要执行 `ufw allow 8765`，除非你明确知道自己在做什么。8765 只应该监听 `127.0.0.1`。
 
+### 5.1 没有域名时的临时 HTTPS 方案
+
+如果暂时没有自己的域名，可以用 `sslip.io` 的临时域名指向服务器 IP。它不需要注册，DNS 会直接把 `<IP>.sslip.io` 解析到该 IP。
+
+先取本机公网 IP：
+
+```bash
+SERVER_IP="$(curl -4 -s https://api.ipify.org)"
+TEMP_HOST="${SERVER_IP}.sslip.io"
+echo "$TEMP_HOST"
+```
+
+如果 `curl` 返回为空，就把 `SERVER_IP` 手动设置成服务器公网 IP。
+
+安装 Nginx 和 Certbot：
+
+```bash
+sudo apt update
+sudo apt install -y nginx certbot python3-certbot-nginx
+```
+
+写入配置（`server_name` 使用刚才的临时域名）：
+
+```bash
+sudo tee /etc/nginx/sites-available/yijie-fanren >/dev/null <<EOF
+server {
+    listen 80;
+    server_name ${TEMP_HOST};
+
+    client_max_body_size 16k;
+
+    location / {
+        proxy_pass http://127.0.0.1:8765;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOF
+
+sudo ln -sf /etc/nginx/sites-available/yijie-fanren /etc/nginx/sites-enabled/yijie-fanren
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+申请证书：
+
+```bash
+sudo certbot --nginx \
+  -d "${TEMP_HOST}" \
+  --redirect \
+  --non-interactive \
+  --agree-tos \
+  --register-unsafely-without-email
+```
+
+云厂商安全组必须放行 **80 和 443**。如果使用 `ufw`：
+
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+```
+
+验证：
+
+```bash
+curl -I "https://${TEMP_HOST}/hall.html"
+curl -fsS "https://${TEMP_HOST}/api/hall"
+```
+
+注意：
+
+- `sslip.io` 只是临时入口，不适合作为长期品牌域名；有域名后换成自己的域名即可。
+- 如果云厂商因为备案/端口策略拦截 80/443，Let's Encrypt 的 HTTP-01 验证会失败；此时只能用 `http://IP:8765` 做短期调试（需要改 `--host 0.0.0.0` 并放行安全组），或者使用 Cloudflare Tunnel 之类的隧道方案。
+- 不要把 `http://IP:8765` 当作长期公开方案：没有 HTTPS，也没有域名。
+
+
 ---
 
 ## 6. 上线后的验收测试
