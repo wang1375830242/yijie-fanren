@@ -178,10 +178,59 @@ ascend.state.age = 1200;
 ascend.ascendTo("spirit");
 ok(ascend.state.world === "spirit", "H2 进入灵界后 world 应为 spirit");
 ok(ascend.state.tier === 5, "H2 进入灵界后仍应是化神 tier=5");
+ok(ascend.canBreak(), "H2 飞升灵界后的化神应能继续冲击炼虚");
 ascend.state.pending = { kind: "break", chance: 1 };
 ascend.chooseBreak("push");
 ok(ascend.state.tier === 6, "H2 化神之后应能正常突破到炼虚 tier=6");
 ok(ascend.state.world === "spirit", "H2 炼虚仍应留在灵界");
+
+/* risk 失败不应再结算成功 effects。 */
+const riskFail = new Sim({ seed: 925, world: "human" });
+riskFail.state.cult = 0;
+riskFail.state.stones = 0;
+riskFail.state.pending = {
+  kind: "event",
+  id: "risk-test",
+  choices: [
+    {
+      label: "赌一次",
+      risk: { p: 0, fail: { mood: -5 } },
+      effects: { cult: 10, stones: 50, flag: "risk_success" },
+      outcome: "成了。",
+    },
+  ],
+};
+riskFail.rng.chance = () => false;
+riskFail.choose(0);
+ok(
+  riskFail.state.cult === 0 &&
+    riskFail.state.stones === 0 &&
+    !riskFail.state.flags.risk_success,
+  "risk 失败不应获得成功选项的修为、灵石和 flag"
+);
+const riskWin = new Sim({ seed: 926, world: "human" });
+riskWin.state.cult = 0;
+riskWin.state.stones = 0;
+riskWin.state.pending = {
+  kind: "event",
+  id: "risk-win",
+  choices: [
+    {
+      label: "赌一次",
+      risk: { p: 0.5, fail: { mood: -5 } },
+      effects: { cult: 10, stones: 50, flag: "risk_success" },
+      outcome: "成了。",
+    },
+  ],
+};
+riskWin.rng.chance = () => true;
+riskWin.choose(0);
+ok(
+  riskWin.state.cult === 10 &&
+    riskWin.state.stones === 50 &&
+    riskWin.state.flags.risk_success,
+  "risk 成功应正常结算成功收益"
+);
 
 /* H4：典籍中的界域必须与境界匹配。 */
 function expectedWorld(realm) {

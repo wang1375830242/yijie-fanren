@@ -50,6 +50,7 @@ python server.py
 | `docs/choice-history-design.md` | 抉择弹框最小化与回看前情 |
 | `docs/late-game-nodes.md` | 斩三尸、大乘之门与大罗天 |
 | `docs/p5-name-gender-design.md` | 姓名性别池与凡人问心修正 |
+| `docs/reliability-fixes.md` | 灵界化神断链与 risk 失败结算修复 |
 
 ## 这一世怎么算
 
