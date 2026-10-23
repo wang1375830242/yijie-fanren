@@ -669,9 +669,15 @@ ok(
 );
 ok(
   fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("endWish") &&
+    fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes('role="log"') &&
+    fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("logSize") &&
     fs.readFileSync(path.join(ROOT, "hall.html"), "utf8").includes("statRead") &&
     fs.readFileSync(path.join(ROOT, "hall.html"), "utf8").includes("statStreak"),
-  "终局遗愿与碑林跨局统计入口应存在"
+  "终局遗愿、人生录无障碍与碑林跨局统计入口应存在"
+);
+ok(
+  gameSource.includes("lastChartKey") && gameSource.includes("lastMapKey"),
+  "人生地图与曲线应按脏键渲染"
 );
 ok(
   fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("choicePeek") &&
@@ -948,6 +954,21 @@ ok(
   sceneSim.state.sceneTotal["test-scene"] === 1 &&
     sceneSim.state.sceneUses["test-scene|risk"] === 1,
   "场景去重应同时记录 sceneKey 与结果类型"
+);
+
+/* P4：高境界收入、长期支出与后期货栈。 */
+const ecoSim = new Sim({ seed: 952, world: "human" });
+ecoSim.state.tier = 9;
+ecoSim.state.focus = "alchemy";
+const lowEco = new Sim({ seed: 953, world: "human" });
+lowEco.state.focus = "alchemy";
+ok(ecoSim.annualIncome() > lowEco.annualIncome(), "高境界年收入应高于低境界");
+ecoSim.state.flags.buy_cave = true;
+ecoSim.state.disciples = [{ name: "甲", alive: true }, { name: "乙", alive: true }];
+ok(ecoSim.annualUpkeep() >= 4, "洞府与弟子应产生长期支出");
+ok(
+  D.SHOP.filter((it) => (it.tierMin || 0) >= 9).length >= 2,
+  "货栈后期应至少有两件高境界商品"
 );
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; natural-ascensions=${naturalAscensions}; worst-repeat=${worstRepeat}`);

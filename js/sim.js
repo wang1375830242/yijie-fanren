@@ -99,6 +99,7 @@
         karma: 0,
         traits: { kind: 0, ruthless: 0, curious: 0, bold: 0, calm: 0 },
         stones,
+        incomePerYear: 0,
         insight,
         luck,
         breakBonus: 0,
@@ -643,6 +644,23 @@
       };
     }
 
+    annualIncome() {
+      const s = this.state;
+      const base = this.focusDef().stones || 0;
+      return Math.round(base * (1 + Math.max(0, s.tier - 1) * 0.18));
+    }
+
+    annualUpkeep() {
+      const s = this.state;
+      let upkeep = 0;
+      if (s.flags && s.flags.buy_cave) upkeep += 2;
+      if (s.flags && s.flags.buy_spirit_field) upkeep += 1;
+      const disciples = (s.disciples || []).filter((d) => d.alive !== false).length;
+      upkeep += disciples * (1 + Math.floor(s.tier / 4));
+      if (s.tier >= 6) upkeep += 2;
+      return upkeep;
+    }
+
     yearTick() {
       const s = this.state;
       if (s.tier === 0) {
@@ -653,7 +671,9 @@
         const f = this.focusDef();
         const decay = s.age > s.maxAge * 0.6 ? 0.12 : 0.02;
         s.mood = clamp(s.mood + (f.mood || 0) - decay, 0, 100);
-        s.stones = Math.max(0, s.stones + (f.stones || 0));
+        const income = this.annualIncome() + (s.incomePerYear || 0);
+        const upkeep = this.annualUpkeep();
+        s.stones = Math.max(0, s.stones + income - upkeep);
         if (f.insight && this.rng.chance(f.insight)) {
           s.insight = clamp(s.insight + 1, 0, 100);
         }
@@ -1346,6 +1366,7 @@
         else s.stones = Math.max(0, s.stones + effects.stones);
       }
       if (typeof effects.maxAge === "number") s.maxAge += effects.maxAge;
+      if (typeof effects.incomePerYear === "number") s.incomePerYear += effects.incomePerYear;
       if (typeof effects.breakBonus === "number") s.breakBonus += effects.breakBonus;
       if (typeof effects.ward === "number") s.ward += effects.ward;
       if (typeof effects.cultRate === "number") s.cultRate += effects.cultRate;

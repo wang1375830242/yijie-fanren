@@ -31,6 +31,9 @@
   let releaseShopTrap = null;
   let runSaveWarned = false;
   let choicePeek = false;
+  let lastSaveAt = 0;
+  let lastChartKey = "";
+  let lastMapKey = "";
 
   /* ======================================================================
      通用
@@ -205,8 +208,12 @@
     show("card");
   }
 
-  function saveRun() {
+  function saveRun(force) {
     if (!sim || !state || !state.alive || state.pending) return false;
+    const now = Date.now();
+    // 自动逐回合保存每 1.5 秒最多一次；离开页面和关键操作可强制落盘。
+    if (!force && now - lastSaveAt < 1500) return true;
+    lastSaveAt = now;
     const run = sim.snapshot();
     run.pace = pace;
     const ok = U.store.setRun(run);
@@ -421,6 +428,9 @@
     $("mapLegend").innerHTML = "";
     $("chartBox").innerHTML = "";
     logRendered = 0;
+    lastChartKey = "";
+    lastMapKey = "";
+    lastSaveAt = 0;
   }
 
   /* ======================================================================
@@ -682,11 +692,19 @@
     $("ladder").innerHTML = ladder.join("");
 
     // 人生地图
-    renderMap();
+    const mapKey = `${Math.floor(s.age / 5)}|${s.tier}|${s.maxAge}|${s.tierHistory.length}`;
+    if (full || mapKey !== lastMapKey) {
+      renderMap();
+      lastMapKey = mapKey;
+    }
 
     // 曲线
-    $("chartBox").innerHTML = A.survivalChart(s.age, s.maxAge);
-    $("chartBox").style.color = "var(--realm)";
+    const chartKey = `${Math.floor(s.age / 10)}|${s.maxAge}`;
+    if (full || chartKey !== lastChartKey) {
+      $("chartBox").innerHTML = A.survivalChart(s.age, s.maxAge);
+      $("chartBox").style.color = "var(--realm)";
+      lastChartKey = chartKey;
+    }
 
     // 日志
     if (full) renderLogAll();
@@ -1495,11 +1513,20 @@
       setTheme("human");
     });
     $("shopClose").addEventListener("click", closeShop);
+    const logLarge = !!U.store.prefs().logLarge;
+    $("log").classList.toggle("is-large", logLarge);
+    $("logSize").setAttribute("aria-pressed", logLarge ? "true" : "false");
+    $("logSize").addEventListener("click", () => {
+      const on = !$("log").classList.contains("is-large");
+      $("log").classList.toggle("is-large", on);
+      $("logSize").setAttribute("aria-pressed", on ? "true" : "false");
+      U.store.setPref("logLarge", on);
+    });
     $("shopOverlay").addEventListener("click", (e) => {
       if (e.target === $("shopOverlay")) closeShop();
     });
     $("btnShare").addEventListener("click", drawShareCard);
-    window.addEventListener("pagehide", saveRun);
+    window.addEventListener("pagehide", () => saveRun(true));
     $("btnHall").addEventListener("click", () => (location.href = "hall.html"));
     $("btnAgain").addEventListener("click", () => {
       U.store.clearRun();

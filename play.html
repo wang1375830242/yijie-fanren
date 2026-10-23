@@ -228,9 +228,12 @@
       <div class="panel p-log">
         <div class="log-head">
           <b>人生录</b>
-          <span id="logHint">逐年记录 · 最新的在最下面</span>
+          <div class="log-tools">
+            <button id="logSize" type="button" aria-label="切换人生录字号" aria-pressed="false">字号</button>
+            <span id="logHint">逐年记录 · 最新的在最下面</span>
+          </div>
         </div>
-        <div class="log" id="log" tabindex="0" aria-label="人生录，可用方向键滚动查看前情"></div>
+        <div class="log" id="log" tabindex="0" role="log" aria-live="polite" aria-relevant="additions text" aria-label="人生录，可用方向键滚动查看前情"></div>
       </div>
     </section>
 
@@ -351,13 +354,13 @@
 
 <canvas id="shareCanvas" width="1080" height="1350" hidden></canvas>
 
-<script src="js/common.js?v=20261023ll"></script>
-<script src="js/data.js?v=20261023ll"></script>
-<script src="js/events.js?v=20261023ll"></script>
-<script src="js/events-expanded.js?v=20261023ll"></script>
-<script src="js/art.js?v=20261023ll"></script>
-<script src="js/sim.js?v=20261023ll"></script>
-<script src="js/audio.js?v=20261023ll"></script>
-<script src="js/game.js?v=20261023ll"></script>
+<script src="js/common.js?v=20261023mm"></script>
+<script src="js/data.js?v=20261023mm"></script>
+<script src="js/events.js?v=20261023mm"></script>
+<script src="js/events-expanded.js?v=20261023mm"></script>
+<script src="js/art.js?v=20261023mm"></script>
+<script src="js/sim.js?v=20261023mm"></script>
+<script src="js/audio.js?v=20261023mm"></script>
+<script src="js/game.js?v=20261023mm"></script>
 </body>
 </html>
