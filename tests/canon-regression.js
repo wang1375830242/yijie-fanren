@@ -494,6 +494,59 @@ ok(
   "游戏应接入自动保存与续存提示"
 );
 
+/* P1：残图主线与地域/宗门身份锚点。 */
+const mainline = new Sim({ seed: 901, world: "human" });
+mainline.state.path = "cultivator";
+mainline.state.tier = 2;
+mainline.state.age = 50;
+mainline.state.maxAge = 1000;
+ok(mainline.maybeMainline(), "筑基五十岁应触发残图起点");
+ok(mainline.state.pending && mainline.state.pending.id === "c_secret", "残图起点事件应正确");
+mainline.choose(0);
+ok(mainline.state.flags.xutian, "取得半图后应写入 xutian");
+mainline.state.age = 60;
+ok(mainline.maybeMainline(), "有半图后应触发合图");
+ok(mainline.state.pending && mainline.state.pending.id === "xutian_2", "合图事件应正确");
+mainline.choose(0);
+ok(mainline.state.flags.xutian_2_done, "合图后应写入完成标记");
+mainline.state.tier = 3;
+mainline.state.age = 90;
+ok(mainline.maybeMainline(), "结丹后应触发入殿");
+ok(mainline.state.pending && mainline.state.pending.id === "xutian_3", "入殿事件应正确");
+mainline.choose(0);
+ok(mainline.state.flags.xutian_3_done, "入殿后应写入完成标记");
+
+const regionYue = XD.EVENT_BY_ID.r_yue_anchor;
+ok(
+  regionYue.when({ world: "human", origin: { place: "越国 · 青牛镇" }, tier: 1, age: 18 }),
+  "越国地域锚点应匹配越国出生地"
+);
+ok(
+  !regionYue.when({ world: "human", origin: { place: "大晋 · 晋州" }, tier: 1, age: 18 }),
+  "越国地域锚点不应匹配大晋出生地"
+);
+const sectAnchor = XD.EVENT_BY_ID.sect_anchor_huangfeng;
+ok(
+  sectAnchor.when({ world: "human", sect: "黄枫谷", tier: 1, age: 18 }),
+  "黄枫谷宗门锚点应匹配本宗"
+);
+ok(
+  !sectAnchor.when({ world: "human", sect: "落云宗", tier: 1, age: 18 }),
+  "黄枫谷宗门锚点不应匹配其他宗门"
+);
+const anchorSim = new Sim({ seed: 902, world: "human" });
+anchorSim.state.path = "cultivator";
+anchorSim.state.tier = 1;
+anchorSim.state.age = 18;
+anchorSim.state.origin.place = "越国 · 青牛镇";
+ok(anchorSim.maybeIdentityAnchors(), "第一次身份锚点应触发地域事件");
+ok(anchorSim.state.pending && anchorSim.state.pending.id === "r_yue_anchor", "地域锚点事件应为越国");
+anchorSim.choose(0);
+anchorSim.state.age = 19;
+anchorSim.state.sect = "黄枫谷";
+ok(anchorSim.maybeIdentityAnchors(), "地域锚点后应触发宗门锚点");
+ok(anchorSim.state.pending && anchorSim.state.pending.id === "sect_anchor_huangfeng", "宗门锚点事件应为黄枫谷");
+
 
 /* 弟子/对手：自动入场、境界推进、寿尽与摘要。 */
 const socialSim = new Sim({ seed: 558, world: "human" });
@@ -610,6 +663,6 @@ for (let seed = 1; seed <= 220; seed++) {
 ok(issues === 0, `220 局不变量问题：${issues}`);
 ok(pseudoReachedSpirit > 0, "至少应有一名伪灵根到达灵界");
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
-ok(XD.EVENTS.length === 3065, `事件总数应为 3065，实际 ${XD.EVENTS.length}`);
+ok(XD.EVENTS.length === 3084, `事件总数应为 3084，实际 ${XD.EVENTS.length}`);
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; worst-repeat=${worstRepeat}`);

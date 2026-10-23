@@ -354,6 +354,96 @@
       this.trigger("sect_promotion");
       return true;
     }
+
+    maybeMainline() {
+      const s = this.state;
+      if (s.world !== "human" || s.pending) return false;
+      if (
+        !s.flags.xutian &&
+        !s.flags.xutian_closed &&
+        !s.seen.c_secret &&
+        s.tier >= 2 &&
+        s.age >= 50
+      ) {
+        this.trigger("c_secret");
+        return true;
+      }
+      if (
+        s.flags.xutian &&
+        !s.flags.xutian_2_done &&
+        !s.flags.xutian_closed &&
+        s.tier >= 2 &&
+        s.tier <= 5 &&
+        s.age >= 60 &&
+        s.age + 20 < s.maxAge
+      ) {
+        this.trigger("xutian_2");
+        return true;
+      }
+      if (
+        s.flags.xutian_2_done &&
+        !s.flags.xutian_3_done &&
+        !s.flags.xutian_closed &&
+        s.tier >= 3 &&
+        s.tier <= 5 &&
+        s.age >= 90 &&
+        s.age + 20 < s.maxAge
+      ) {
+        this.trigger("xutian_3");
+        return true;
+      }
+      return false;
+    }
+
+    regionAnchorId() {
+      const place = this.state.origin.place || "";
+      if (place.includes("越国")) return "r_yue_anchor";
+      if (place.includes("天南")) return "r_tiannan_anchor";
+      if (place.includes("大晋")) return "r_dajin_anchor";
+      if (place.includes("乱星海")) return "r_luantian_anchor";
+      return null;
+    }
+
+    sectAnchorId() {
+      const map = {
+        黄枫谷: "sect_anchor_huangfeng",
+        掩月宗: "sect_anchor_yanyue",
+        灵兽山: "sect_anchor_lingshou",
+        化刀坞: "sect_anchor_huadao",
+        落云宗: "sect_anchor_luoyun",
+        古剑门: "sect_anchor_gujian",
+        百巧院: "sect_anchor_baqiao",
+        太一门: "sect_anchor_taiyi",
+        化仙宗: "sect_anchor_huaxian",
+        天符门: "sect_anchor_tianfu",
+        星宫: "sect_anchor_xinggong",
+        妙音门: "sect_anchor_miaoyin",
+        碧云门: "sect_anchor_biyun",
+      };
+      return map[this.state.sect] || null;
+    }
+
+    maybeIdentityAnchors() {
+      const s = this.state;
+      if (s.world !== "human" || s.pending || s.tier <= 0 || s.age < 18) return false;
+      if (!s.flags.region_anchor_seen) {
+        const region = this.regionAnchorId();
+        if (region && XD.EVENT_BY_ID[region]) {
+          s.flags.region_anchor_seen = true;
+          this.trigger(region);
+          return true;
+        }
+      }
+      if (!s.flags.sect_anchor_seen && this.isSectMember()) {
+        const sect = this.sectAnchorId();
+        if (sect && XD.EVENT_BY_ID[sect]) {
+          s.flags.sect_anchor_seen = true;
+          this.trigger(sect);
+          return true;
+        }
+      }
+      return false;
+    }
     pushLog(kind, text, extra) {
       const entry = Object.assign(
         { age: this.state.age, kind, text },
@@ -693,6 +783,10 @@
       }
       // 宗门提拔排在突破之后，避免抢掉破境/里程碑的 pending
       if (!s.pending && this.maybeSectPromotion()) return;
+      // 中期「残图」主线：按 flag 强制推进，避免被随机池淹没
+      if (!s.pending && this.maybeMainline()) return;
+      // 地域/宗门身份锚点：一局各一次，保证玩家能遇见
+      if (!s.pending && this.maybeIdentityAnchors()) return;
       // 随机事件
       if (!s.pending && this.rng.chance(this.eventChance())) {
         const ev = this.pickEvent();

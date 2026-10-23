@@ -508,6 +508,9 @@
     };
     tags.push(stageNames[sim.stage()]);
     if (s.bottle) tags.push("无名旧瓶");
+    if (s.flags && s.flags.xutian && !s.flags.xutian_closed) {
+      tags.push(s.flags.xutian_3_done ? "残图 · 已了" : s.flags.xutian_2_done ? "残图 · 入殿" : "残图 · 半图");
+    }
     if (s.traits) {
       const traitLabels = {
         kind: "仁厚",

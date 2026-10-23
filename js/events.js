@@ -784,29 +784,484 @@
 
   add({
     id: "c_secret",
-    when: (s) => s.tier >= 2 && s.tier <= 4 && s.age >= 50,
+    when: (s) =>
+      s.world === "human" &&
+      s.tier >= 2 &&
+      s.tier <= 4 &&
+      s.age >= 50 &&
+      !s.flags.xutian &&
+      !s.flags.xutian_closed,
     w: 7,
     title: "残图",
     text: "你从一具古修士的遗骸上摸出半张兽皮，上面画着一座殿的轮廓，标注着「虚天」二字。图的另一半，据说在乱星海。",
     choices: [
       {
         label: "去乱星海找另一半",
-        risk: { p: 0.4, text: "你找到了，也活着回来了。", fail: { death: true, cause: "死于乱星海" } },
-        effects: { stones: 200, cult: 10, insight: 6, flag: "xutian" },
+        effects: { stones: 200, cult: 10, insight: 6, mood: -6, flag: "xutian" },
         outcome: "两半兽皮拼合的那晚，图上多出了一行小字：入殿者，九死一生。",
       },
       {
         label: "把图卖了，换现成的资源",
-        effects: { stones: 180, mood: 2 },
+        effects: { stones: 180, mood: 2, flag: "xutian_closed" },
         outcome: "买图的是个蒙面修士。你拿着灵石走出坊市，觉得背后有人在看。",
       },
       {
         label: "烧了它，不惹这个因果",
-        effects: { karma: 3, mood: 3, luck: 2 },
+        effects: { karma: 3, mood: 3, luck: 2, flag: "xutian_closed" },
         outcome: "兽皮烧起来是绿色的。你看着它卷成灰，心里松了一口气。",
       },
     ],
   });
+
+  add({
+    id: "xutian_2",
+    when: (s) =>
+      s.world === "human" &&
+      s.flags.xutian &&
+      !s.flags.xutian_2_done &&
+      !s.flags.xutian_closed &&
+      s.tier >= 2 &&
+      s.tier <= 5 &&
+      s.age >= 60 &&
+      s.age + 20 < s.maxAge,
+    w: 12,
+    major: true,
+    title: "残图 · 合图",
+    text: (s) =>
+      `半张兽皮在你手里放了二十年。${s.origin.place}的旧友带来消息：乱星海有人见过另一半月纹。图上那座殿仍在原处，等着一个肯走完的人。`,
+    choices: [
+      {
+        label: "变卖一部分家底，亲自去乱星海",
+        effects: { stones: -80, mood: -5, insight: 4, flag: "xutian_2_done" },
+        outcome: "你在海上走了很久。回来时，兽皮上的山门已经合拢，只剩一条细细的路线。",
+      },
+      {
+        label: "托商队去找，自己留在洞府等",
+        effects: { stones: -40, insight: 3, mood: 2, flag: "xutian_2_done" },
+        outcome: "半年后，商队带回一块拓片。路线对上了。你没有亲自去，但图终于完整了。",
+      },
+      {
+        label: "把图收起来，不再追",
+        effects: { mood: 4, karma: 2, flag: "xutian_closed" },
+        outcome: "你把兽皮压回箱底。很多年后，你已经记不清那座殿的样子。",
+      },
+    ],
+  });
+
+  add({
+    id: "xutian_3",
+    when: (s) =>
+      s.world === "human" &&
+      s.flags.xutian_2_done &&
+      !s.flags.xutian_3_done &&
+      !s.flags.xutian_closed &&
+      s.tier >= 3 &&
+      s.tier <= 5 &&
+      s.age >= 90 &&
+      s.age + 20 < s.maxAge,
+    w: 14,
+    major: true,
+    title: "残图 · 入殿",
+    text: "图上的山门在极北的冰原下打开。殿不是虚天殿，只是一座借了旧名的偏殿；门内的灯还亮着，像有人刚刚离开。",
+    choices: [
+      {
+        label: "入殿，把里面的东西看完",
+        effects: { stones: 300, insight: 8, breakBonus: 8, mood: -6, flag: "xutian_3_done" },
+        outcome: "你从殿里带出一块无名残鼎片。它不能替你破境，却让你看懂了一段旧阵。",
+      },
+      {
+        label: "只取外殿的遗物，不碰内门",
+        effects: { stones: 140, insight: 4, luck: 2, flag: "xutian_3_done" },
+        outcome: "你拿了几件旧物，退出殿门。身后的灯一盏一盏灭了。",
+      },
+      {
+        label: "在门口站了一夜，转身离开",
+        effects: { mood: 6, karma: 3, flag: "xutian_closed" },
+        outcome: "你没有进去。天亮时，冰原上只剩下你自己的脚印。",
+      },
+    ],
+  });
+
+  /* 地域锚点：每个出生区域一条，先用具体地名和生计立住气质。 */
+  add({
+    id: "r_yue_anchor",
+    when: (s) => s.world === "human" && s.origin.place.includes("越国") && s.tier >= 1 && s.age >= 18,
+    w: 9,
+    sceneKey: "region_yue",
+    title: "越国 · 药市",
+    text: "嘉元城的药市刚开市，灵草上还带着山雾。一个老药农把最后一筐灵草推到你面前，说价钱可以少一点，但希望你别挑走带露水的那几株。",
+    choices: [
+      {
+        label: "按原价买下，把带露水的留给他",
+        effects: { stones: -20, karma: 3, mood: 2 },
+        outcome: "老药农愣了一下，把一小包种子塞进你手里。他说，这是山上才活得下来的东西。",
+      },
+      {
+        label: "挑走最好的几株，赶去丹房",
+        effects: { stones: -15, insight: 2 },
+        outcome: "你带走灵草，没再看他的脸。丹房今天收药，去晚了就排不上。",
+      },
+      {
+        label: "不买，先去城里打听消息",
+        effects: { luck: 2, mood: 1 },
+        outcome: "你在茶摊坐了半天，听到三件小事，其中一件后来救了你。",
+      },
+    ],
+  });
+
+  add({
+    id: "r_tiannan_anchor",
+    when: (s) => s.world === "human" && s.origin.place.includes("天南") && s.tier >= 1 && s.age >= 18,
+    w: 9,
+    sceneKey: "region_tiannan",
+    title: "天南 · 镖车",
+    text: "临江府的镖车在城外停了半日。镖头说前面山口不太平，愿意出一笔灵石请个修士随行。车队里有个孩子一直掀帘看天。",
+    choices: [
+      {
+        label: "接下这趟镖，送到落雁城",
+        effects: { stones: 35, karma: 2, mood: -2 },
+        outcome: "一路平安。孩子在城门口回头看你，问你下次还走不走这条路。",
+      },
+      {
+        label: "只替他们看看山口，不接镖",
+        effects: { insight: 2, luck: 2 },
+        outcome: "你在山口转了一圈，回来告诉他们绕路。镖头沉默很久，最后朝你拱了拱手。",
+      },
+      {
+        label: "不沾凡人的事，回洞府",
+        effects: { mood: 2, cult: 2 },
+        outcome: "你转身走了。身后的车轮声一直响到天黑。",
+      },
+    ],
+  });
+
+  add({
+    id: "r_dajin_anchor",
+    when: (s) => s.world === "human" && s.origin.place.includes("大晋") && s.tier >= 1 && s.age >= 18,
+    w: 9,
+    sceneKey: "region_dajin",
+    title: "大晋 · 官船",
+    text: "晋州的官船靠岸，船工往岸上搬一只封着朱印的木箱。押船的修士看了你一眼，说箱子里是给京城某位大人的东西，问你有没有兴趣接一程。",
+    choices: [
+      {
+        label: "接这一程，只送到下一座渡口",
+        effects: { stones: 40, karma: 1, mood: -2 },
+        outcome: "渡口到了。木箱没有打开。押船修士给你灵石时，多看了你一眼。",
+      },
+      {
+        label: "拒绝，京城的水太深",
+        effects: { mood: 2, luck: 1 },
+        outcome: "你退回人群里。官船离岸时，朱印在日光下亮了一下。",
+      },
+      {
+        label: "打听箱子的来路",
+        effects: { insight: 3, luck: -1 },
+        outcome: "你只问了两句，船工就闭了嘴。后来你才知道，有些问题比箱子重。",
+      },
+    ],
+  });
+
+  add({
+    id: "r_luantian_anchor",
+    when: (s) => s.world === "human" && s.origin.place.includes("乱星海") && s.tier >= 1 && s.age >= 18,
+    w: 9,
+    sceneKey: "region_luantian",
+    title: "乱星海 · 潮汐",
+    text: "石螺岛的潮水退得很远，露出平时看不见的礁道。岛上老人说，礁道尽头有沉船的碎片，也有人说那里有会认人的海兽。",
+    choices: [
+      {
+        label: "沿着礁道走到尽头",
+        effects: { stones: 25, luck: 2, mood: -2 },
+        outcome: "你捡到一块被海水磨圆的旧铜片，上面刻着半个字。",
+      },
+      {
+        label: "留在岛上帮人修船",
+        effects: { karma: 3, stones: 10, mood: 2 },
+        outcome: "你替他们把船底的裂缝补好。傍晚时，岛上的人给你留了一碗热汤。",
+      },
+      {
+        label: "等潮水回来，不冒这个险",
+        effects: { mood: 2, insight: 2 },
+        outcome: "你坐在礁石上看潮水一寸寸涨回来。有些路，错过一次就再也没有了。",
+      },
+    ],
+  });
+
+  /* 宗门身份锚点：每个可加入宗门一条，先建立“这里的规矩”。 */
+  add({
+    id: "sect_anchor_huangfeng",
+    when: (s) => s.world === "human" && s.sect === "黄枫谷" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_huangfeng",
+    title: "黄枫谷 · 药园",
+    text: "药园的新土只够三峰分。执事把名册推到你面前，让你先挑；名单最后一行，是那个曾在雨里替你挡过一程的外门弟子。",
+    choices: [
+      {
+        label: "把好地让给最后一行",
+        effects: { karma: 4, mood: 3 },
+        outcome: "执事看了你一眼，什么也没说。第二年，那块地里的灵草长得最好。",
+      },
+      {
+        label: "按规矩挑最好的那块",
+        effects: { stones: 20, insight: 2, mood: -1 },
+        outcome: "你按规矩办事。没人能挑出错，但那个外门弟子再没和你说过话。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_yanyue",
+    when: (s) => s.world === "human" && s.sect === "掩月宗" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_yanyue",
+    title: "掩月宗 · 石阵",
+    text: "掩月宗的石阵在夜里自己转了一格。值守的师姐问你，是阵眼松了，还是有人动过。你知道自己昨晚去过阵边。",
+    choices: [
+      {
+        label: "如实说出自己昨夜的行踪",
+        effects: { karma: 3, insight: 2, mood: -2 },
+        outcome: "师姐听完，只让你把阵图重画一遍。她没有问你为什么去。",
+      },
+      {
+        label: "先查阵眼，再决定说不说",
+        effects: { insight: 4, luck: 1 },
+        outcome: "阵眼上有一道新痕。你把它记下来，暂时没有告诉任何人。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_lingshou",
+    when: (s) => s.world === "human" && s.sect === "灵兽山" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_lingshou",
+    title: "灵兽山 · 兽栏",
+    text: "兽栏里新送来一只不肯进食的幼兽。师兄说它认生，让你先别靠近；可你走近时，它没有躲。",
+    choices: [
+      {
+        label: "每天来喂它，慢慢等",
+        effects: { karma: 2, mood: 3, insight: 1 },
+        outcome: "第七天，幼兽终于从你手里吃了第一口。师兄说，这算你的缘分。",
+      },
+      {
+        label: "按兽栏规矩，交给师兄处理",
+        effects: { mood: 2, stones: 10 },
+        outcome: "你按规矩退了出去。后来那只幼兽跟了师兄，见你时会低一下头。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_huadao",
+    when: (s) => s.world === "human" && s.sect === "化刀坞" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_huadao",
+    title: "化刀坞 · 试刀",
+    text: "试刀台上插着一柄没有开刃的旧刀。刀主已经死了很多年，留下话：谁能拔出它，谁就替他还一次未了的约。",
+    choices: [
+      {
+        label: "拔刀，替死人走一趟",
+        effects: { karma: 4, insight: 2, mood: -2 },
+        outcome: "刀很轻。你下山走了三天，把刀插进了一座无名坟前。",
+      },
+      {
+        label: "只上香，不碰刀",
+        effects: { mood: 2, luck: 1 },
+        outcome: "你上了三炷香。刀在风里响了一声，像有人叹了口气。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_luoyun",
+    when: (s) => s.world === "human" && s.sect === "落云宗" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_luoyun",
+    title: "落云宗 · 药香",
+    text: "云梦山的药香从峰头飘下来。丹房缺一味引药，执事问你愿不愿意去后山采；后山最近有弟子失踪。",
+    choices: [
+      {
+        label: "去后山，把药采回来",
+        effects: { stones: 25, insight: 3, mood: -3 },
+        outcome: "你采到了药，也在一处崖缝里看见半截被扯断的衣袖。",
+      },
+      {
+        label: "先报给执事，再带人一起去",
+        effects: { karma: 3, insight: 1 },
+        outcome: "执事沉默了一会儿，叫上了两个内门弟子。你们一起上了后山。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_gujian",
+    when: (s) => s.world === "human" && s.sect === "古剑门" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_gujian",
+    title: "古剑门 · 剑坪",
+    text: "剑坪上有一道很浅的剑痕，据说是开派祖师留下的。门规说，谁能看懂这道痕，谁就能进剑阁。你看了一夜。",
+    choices: [
+      {
+        label: "把看见的告诉守阁长老",
+        effects: { insight: 4, mood: 2 },
+        outcome: "长老听完，让你进剑阁待了三天。出来时，你的剑意还是原来的样子，但手稳了。",
+      },
+      {
+        label: "把剑痕记在心里，不告诉别人",
+        effects: { insight: 3, luck: 2, mood: -1 },
+        outcome: "你离开剑坪时，守阁长老正看着你。他没有拦你。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_baqiao",
+    when: (s) => s.world === "human" && s.sect === "百巧院" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_baqiao",
+    title: "百巧院 · 炉火",
+    text: "百巧院的炉火三天没熄。你负责的那一炉器胚裂了，院里的师兄说，要么补，要么重新开炉；重新开炉要扣半年月例。",
+    choices: [
+      {
+        label: "留下来补器胚",
+        effects: { insight: 3, stones: 15, mood: -2 },
+        outcome: "你补了七天。器胚最后成了，但多了一道谁也没见过的纹。",
+      },
+      {
+        label: "认罚，重新开炉",
+        effects: { stones: -20, karma: 2, insight: 1 },
+        outcome: "你交了罚，重新开炉。师兄说，肯认罚的人比会炼器的人少。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_taiyi",
+    when: (s) => s.world === "human" && s.sect === "太一门" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_taiyi",
+    title: "太一门 · 白玉牌",
+    text: "太一门的白玉牌按门第发放。你的牌子比别人低了一阶，执事说这是旧例；旁边一位同门把自己的牌子翻过来，让你看清上面的名字。",
+    choices: [
+      {
+        label: "收下低一阶的牌子，不争",
+        effects: { mood: -3, insight: 2, karma: 1 },
+        outcome: "你把牌子收进袖里。后来你才知道，那块牌子能进的藏书阁只少一层。",
+      },
+      {
+        label: "去找执事问清旧例",
+        effects: { insight: 2, luck: 2, mood: -1 },
+        outcome: "执事翻了很久的名册，最后给你换了一块。你没赢，但也没输。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_huaxian",
+    when: (s) => s.world === "human" && s.sect === "化仙宗" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_huaxian",
+    title: "化仙宗 · 南疆雾",
+    text: "南疆的雾把山门遮了半截。接引修士给你一只旧罗盘，说雾里会看见不该看见的东西，看见时不要回头。",
+    choices: [
+      {
+        label: "握紧罗盘，走进雾里",
+        effects: { insight: 4, mood: -3, luck: 1 },
+        outcome: "雾里有人在叫你的名字。你没有回头。走出雾时，罗盘上的针停在了南边。",
+      },
+      {
+        label: "等雾散再上山",
+        effects: { mood: 2, insight: 1 },
+        outcome: "雾散了三天。山门还在，接引修士已经换了一个人。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_tianfu",
+    when: (s) => s.world === "human" && s.sect === "天符门" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_tianfu",
+    title: "天符门 · 朱砂",
+    text: "天符门的院子里晒满符纸，风一吹，朱砂味扑了你一脸。教符的师兄让你画一张最基础的定神符，你画到最后一笔时，纸自己燃了。",
+    choices: [
+      {
+        label: "重新画，直到画成",
+        effects: { insight: 3, mood: -2 },
+        outcome: "你画到第九张，纸终于没有燃。师兄把那张符收走了，说等你筑基再还你。",
+      },
+      {
+        label: "问师兄为什么会燃",
+        effects: { insight: 4, luck: 1 },
+        outcome: "师兄看了你很久，说：因为你画符的时候，在想别的事。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_xinggong",
+    when: (s) => s.world === "human" && s.sect === "星宫" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_xinggong",
+    title: "星宫 · 观星台",
+    text: "星宫的观星台只在无月之夜开放。你上去时，台上已经站了一个人；他指着海面说，今晚的星辉会落在不该落的地方。",
+    choices: [
+      {
+        label: "留下来，和他一起看完",
+        effects: { insight: 4, mood: 2 },
+        outcome: "星辉落在礁石上，像一条短暂的路。天亮后，那个人已经走了。",
+      },
+      {
+        label: "记下星位，回去查旧图",
+        effects: { insight: 3, stones: 10 },
+        outcome: "你在旧图里找到同样的星位。上一次出现，是三百年前。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_miaoyin",
+    when: (s) => s.world === "human" && s.sect === "妙音门" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_miaoyin",
+    title: "妙音门 · 琴曲",
+    text: "妙音门的琴声从岛上飘过来。教习让你弹一曲最熟的，你弹到一半，弦断了；门外有人轻轻接上了后半段。",
+    choices: [
+      {
+        label: "出门看看是谁",
+        effects: { luck: 2, mood: 3, insight: 1 },
+        outcome: "门外没有人，只有一片落在石阶上的花瓣。",
+      },
+      {
+        label: "坐下，把断弦重新接好",
+        effects: { insight: 3, mood: 1 },
+        outcome: "你接好弦，从头弹了一遍。教习在帘后听完，没有打分。",
+      },
+    ],
+  });
+
+  add({
+    id: "sect_anchor_biyun",
+    when: (s) => s.world === "human" && s.sect === "碧云门" && s.tier >= 1 && s.age >= 18,
+    w: 8,
+    sceneKey: "sect_anchor_biyun",
+    title: "碧云门 · 海船",
+    text: "碧云门的海船停在礁石间。门主问你敢不敢下海，你说敢；他让人把一艘没有桨的小船推到你面前。",
+    choices: [
+      {
+        label: "上船，顺着潮水出去",
+        effects: { luck: 3, mood: -2, stones: 15 },
+        outcome: "你在海上漂了一夜，天亮时看见一群发光的鱼。船自己回到了礁石边。",
+      },
+      {
+        label: "先问清规矩再上船",
+        effects: { insight: 3, mood: 1 },
+        outcome: "门主笑了，说碧云门的规矩就是没有规矩。然后他还是给了你一支桨。",
+      },
+    ],
+  });
+
+
 
   add({
     id: "c_heart",
