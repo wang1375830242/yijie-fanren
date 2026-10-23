@@ -273,7 +273,9 @@
           (f.cult || 1) *
           (1 + s.cultRate) *
           (s.bottle ? 2.1 : 1);
-        s.cult = clamp(s.cult + base * mul, 0, 100);
+        // 结丹以后给低灵根一条活路：速度仍受灵根影响，但不让寿元上限变成硬墙。
+        const effectiveMul = s.tier >= 3 ? Math.max(mul, 0.8) : mul;
+        s.cult = clamp(s.cult + base * effectiveMul, 0, 100);
       }
 
       if (s.mood < 12 && this.rng.chance(0.006)) {
@@ -528,9 +530,7 @@
         result.text = choice.failText || "事与愿违。";
         if (choice.risk.fail && choice.risk.fail.death) {
           const cause = choice.risk.fail.cause || "意外身亡";
-          const hardDeath =
-            choice.noRescue ||
-            /劫|天劫|走火入魔|空间乱流|道祖之争|寿元/.test(cause);
+          const hardDeath = choice.noRescue || this.isHardDeath(cause);
           if (!hardDeath) {
             const eventId = s.pending.id;
             this.apply(effects);
@@ -750,13 +750,14 @@
       const s = this.state;
       if (world === "spirit") {
         s.world = "spirit";
-        s.tier = 6;
+        // 化神修士穿过空间节点后仍是化神，炼虚要在灵界重新突破。
+        s.tier = 5;
         s.cult = 0;
-        s.maxAge = Math.max(s.maxAge, D.REALMS[6].life);
+        s.maxAge = Math.max(s.maxAge, D.REALMS[5].life);
         s.flags.arrived_spirit = false;
         s.place = "灵界 · 天渊城";
         s.sect = "天渊城 · 散修";
-        this.pushLog("system", "你穿过空间节点，落入了灵界。");
+        this.pushLog("system", "你穿过空间节点，落入了灵界。境界仍是化神，天地却换了。");
       } else if (world === "immortal") {
         s.world = "immortal";
         s.tier = 9;
@@ -851,13 +852,22 @@
     }
 
     /* ---------------- 结束 ---------------- */
+    isHardDeath(cause) {
+      return /劫|天劫|走火入魔|空间乱流|道祖之争|寿元/.test(String(cause || ""));
+    }
+
     die(cause, opts) {
       if (!this.state.alive) return;
-      if (!(opts && opts.bypassWard) && cause !== "寿元耗尽" && this.state.ward > 0) {
+      const hard = this.isHardDeath(cause);
+      if (!(opts && opts.bypassWard) && !hard && this.state.ward > 0) {
+        if (this.rng.chance(0.92)) {
+          this.state.ward -= 1;
+          this.state.mood = clamp(this.state.mood - 8, 0, 100);
+          this.pushLog("system", "护身玉符碎了，替你挡下了这一劫。");
+          return;
+        }
         this.state.ward -= 1;
-        this.state.mood = clamp(this.state.mood + 10, 0, 100);
-        this.pushLog("system", "护身玉符碎了，替你挡下了这一劫。");
-        return;
+        this.pushLog("system", "护身玉符碎了，却没有完全挡住这一击。");
       }
       this.state.alive = false;
       this.state.cause = cause;

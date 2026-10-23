@@ -11,10 +11,10 @@
   if (!D || !D.CODEX) return;
 
   const C = [
-    { name: "韩立", tag: "人界 · 黄枫谷", meta: "道祖（原著结局）", desc: "七玄门药童出身，伪灵根，靠掌天瓶、谨慎与算计一路走到仙界。不是天才，但几乎每一步都留了后手。" },
-    { name: "南宫婉", tag: "人界 · 掩月宗", meta: "真仙（原著结局）", desc: "韩立唯一的道侣。血色禁地结缘，掩月宗逼婚，后入落云宗；仙界篇恢复甘如霜记忆后放弃大罗，回落真仙，与韩立隐居黑土仙域。" },
+    { name: "韩立", tag: "人界 · 黄枫谷", meta: "道祖（读者共识）", desc: "七玄门药童出身，伪灵根，靠掌天瓶、谨慎与算计一路走到仙界。不是天才，但几乎每一步都留了后手。" },
+    { name: "南宫婉", tag: "人界 · 掩月宗", meta: "真仙（读者共识）", desc: "韩立唯一的道侣。血色禁地结缘，掩月宗逼婚，后入落云宗；仙界篇恢复甘如霜记忆后放弃大罗，回落真仙，与韩立隐居黑土仙域。" },
     { name: "紫灵", tag: "乱星海 · 妙音门", meta: "大乘（读者共识）", desc: "汪凝，妙音门门主之女。韩立初恋墨彩环的转世暗示；独立、要强，曾为大道留在魔界，仙界篇结尾与韩立、南宫婉、元瑶一同隐居。" },
-    { name: "银月", tag: "灵界 · 银月狼族", meta: "大乘（原著结局）", desc: "银月狼族圣女玲珑分裂出的元神，长期以器灵/白狐形态跟随韩立；昆吾山合体后回归灵界，修至大乘，长伴韩立直至其飞升。" },
+    { name: "银月", tag: "灵界 · 银月狼族", meta: "大乘（读者共识）", desc: "银月狼族圣女玲珑分裂出的元神，长期以器灵/白狐形态跟随韩立；昆吾山合体后回归灵界，修至大乘，长伴韩立直至其飞升。" },
     { name: "厉飞雨", tag: "人界 · 七玄门", meta: "凡人", desc: "韩立在七玄门唯一交心的凡俗挚友。韩立后来长期用他的名字行走天下。" },
     { name: "墨大夫", tag: "人界 · 七玄门", meta: "凡人武者 / 夺舍者", desc: "韩立的第一任师父，也是第一个死敌。教他医术、毒术与长春功，本意是夺舍。" },
     { name: "墨彩环", tag: "人界 · 墨府", meta: "凡人 / 无灵根", desc: "韩立的凡人初恋。没有灵根，问出「没有灵根真的不能成为修仙者吗」，是仙凡殊途的起点。" },
@@ -24,7 +24,7 @@
     { name: "向之礼", tag: "人界 · 大晋", meta: "化神", desc: "伪装成炼气弟子的大晋化神修士，多次潜入血色禁地寻找飞升灵界的空间节点。" },
     { name: "风老怪", tag: "人界 · 大晋", meta: "化神", desc: "大晋化神散修，血气丹的炼制者，与向之礼交好，最终联手闯空间节点陨落。" },
     { name: "呼庆雷", tag: "人界 · 天魔宗", meta: "化神", desc: "天魔宗太上长老，号称人界第一魔修；与向之礼、风老怪组队偷渡空间节点时陨落。" },
-    { name: "冰凤", tag: "人界 · 妖族", meta: "妖修 / 合体（推测）", spec: true, desc: "与韩立两次结伴的妖修，从虚天殿脱困，后偷渡灵界；与韩立亦敌亦友。" },
+    { name: "冰凤", tag: "人界 · 妖族", meta: "化神（推测）", spec: true, desc: "与韩立两次结伴的妖修，从虚天殿脱困，后偷渡灵界；与韩立亦敌亦友。" },
     { name: "元瑶", tag: "乱星海 · 青阳门", meta: "化神", desc: "乱星海女修，为师姐妍丽修还阳术、与韩立生死相托；啼魂兽的原主人。" },
     { name: "妍丽", tag: "乱星海 · 青阳门", meta: "结丹 / 残魂（推测）", spec: true, desc: "元瑶师姐，曾被青阳门少主当作炉鼎，替元瑶赴死，只余残魂。" },
     { name: "陈巧倩", tag: "人界 · 黄枫谷", meta: "筑基", desc: "韩立的黄枫谷同门师姐，曾被家族联姻拆散，终身未嫁，是韩立早期遗憾之一。" },
@@ -184,7 +184,7 @@
   /* 碑林里补一些原著人物，仍以“传说碑”形式出现 */
   D.LEGENDS.push(
     { id: "legend-mo-dafu", name: "墨大夫", title: "七玄门 · 神手谷", realm: "凡人", world: "human", years: "不可考", line: "他教韩立医术，也教他不要相信任何人。", note: "原著人物 · 致敬" },
-    { id: "legend-mo-caihuan", name: "墨彩环", title: "墨府 · 凡人", realm: "无灵根", world: "human", years: "不可考", line: "没有灵根，真的不能成为修仙者吗？", note: "原著人物 · 致敬" },
+    { id: "legend-mo-caihuan", name: "墨彩环", title: "墨府 · 凡人", realm: "凡人", world: "human", years: "不可考", line: "没有灵根，真的不能成为修仙者吗？", note: "原著人物 · 致敬" },
     { id: "legend-zhang-tie", name: "张铁", title: "七玄门 · 韩立同伴", realm: "凡人", world: "human", years: "不可考", line: "他没能走上山，却以另一种方式留了下来。", note: "原著人物 · 致敬" },
     { id: "legend-li-huayuan", name: "李化元", title: "黄枫谷 · 结丹长老", realm: "结丹", world: "human", years: "不可考", line: "有些东西，比性命更重要。", note: "原著人物 · 致敬" },
     { id: "legend-linghu", name: "令狐老祖", title: "黄枫谷 · 太上长老", realm: "元婴中期", world: "human", years: "不可考", line: "三件重宝，换一个承诺。", note: "原著人物 · 致敬" },
@@ -196,7 +196,7 @@
     { id: "legend-yanruyan", name: "燕如嫣", title: "燕家堡 · 鬼灵门", realm: "元婴", world: "human", years: "不可考", line: "越国第一天才，也曾被困在一场婚事里。", note: "原著人物 · 致敬" },
     { id: "legend-lingyuling", name: "凌玉灵", title: "星宫 · 天灵根", realm: "化神", world: "human", years: "不可考", line: "乱星海数千年，只出了一个她。", note: "原著人物 · 致敬" },
     { id: "legend-nanlong", name: "南陇侯", title: "天南 · 散修", realm: "元婴中期", world: "human", years: "不可考", line: "他总能在绝境里活着回来，直到最后一次。", note: "原著人物 · 致敬" },
-    { id: "legend-bingfeng", name: "冰凤", title: "人界 · 妖族", realm: "合体（推测）", world: "human", years: "不可考", line: "她与韩立互相算计，也互相救过。", note: "原著人物 · 致敬（境界推测）" },
+    { id: "legend-bingfeng", name: "冰凤", title: "人界 · 妖族", realm: "化神（推测）", world: "human", years: "不可考", line: "她与韩立互相算计，也互相救过。", note: "原著人物 · 致敬（境界推测）" },
     { id: "legend-dayan", name: "大衍神君", title: "极西之地 · 上古", realm: "化神（推测）", world: "human", years: "不可考", line: "他死了很多年，还在替后来的人指路。", note: "原著人物 · 致敬（境界推测）" },
     { id: "legend-gu-huo-jin", name: "古或今", title: "仙界 · 时间道祖", realm: "道祖", world: "immortal", years: "不可考", line: "时间在他手里，像一条可以反复折返的河。", note: "原著人物 · 致敬" },
     { id: "legend-li-yuanjiu", name: "李元究", title: "仙界 · 九元观", realm: "金之本源道祖", world: "immortal", years: "不可考", line: "他捡到一只瓶子，后来成了一座道观。", note: "原著人物 · 致敬" },
@@ -205,7 +205,7 @@
 
   XD.CANON = {
     source: "https://www.weqoocu.cn/fanren-wiki/",
-    note: "人物、宗门、灵根词条参考公开读者 wiki 与原著读者整理；带「推测」标记的是推断或二创补写，不是原著明文。",
+    note: "人物、宗门、灵根词条参考公开读者 wiki 与原著读者整理；带「推测」或「读者共识」标记的是推断或二创补写，不是原著明文。",
     characters: C,
     sects: S,
     roots: R,

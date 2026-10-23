@@ -11,16 +11,17 @@
      life：该境界的寿元上限
      per ：进入该境界后，一次心跳跨越的年数（越到后面，时间越快） */
   const REALMS = [
+    // 本作将原著“渡劫期”压缩进大乘后期：m_ascend 作为大乘→真仙的渡劫事件，不单列 tier。
     { key: "fan", name: "凡人", tier: 0, world: "human", need: 0, life: 78, per: 1, color: "#a89f88" },
     { key: "qi", name: "炼气期", tier: 1, world: "human", need: 26, life: 130, per: 1, layers: 13, color: "#8fa07c" },
     { key: "foundation", name: "筑基期", tier: 2, world: "human", need: 55, life: 220, per: 2, subs: ["初期", "中期", "后期"], color: "#7ea78f" },
-    { key: "core", name: "结丹期", tier: 3, world: "human", need: 400, life: 480, per: 4, subs: ["初期", "中期", "后期"], color: "#6fa7a4" },
-    { key: "nascent", name: "元婴期", tier: 4, world: "human", need: 1100, life: 1000, per: 8, subs: ["初期", "中期", "后期"], color: "#6f95bb" },
-    { key: "deity", name: "化神期", tier: 5, world: "human", need: 2400, life: 2000, per: 15, subs: ["初期", "中期", "后期"], color: "#8a86c4" },
-    { key: "void", name: "炼虚期", tier: 6, world: "spirit", need: 8000, life: 3000, per: 40, subs: ["初期", "中期", "后期"], color: "#8fa8d6" },
-    { key: "unity", name: "合体期", tier: 7, world: "spirit", need: 18000, life: 8000, per: 80, subs: ["初期", "中期", "后期"], color: "#a0a6dc" },
-    { key: "mahayana", name: "大乘期", tier: 8, world: "spirit", need: 40000, life: 15000, per: 160, subs: ["初期", "中期", "后期"], color: "#bab0e0" },
-    { key: "true", name: "真仙", tier: 9, world: "immortal", need: 80000, life: 80000, per: 400, subs: ["初期", "中期", "后期"], color: "#d6ba78" },
+    { key: "core", name: "结丹期", tier: 3, world: "human", need: 350, life: 480, per: 4, subs: ["初期", "中期", "后期"], color: "#6fa7a4" },
+    { key: "nascent", name: "元婴期", tier: 4, world: "human", need: 600, life: 1000, per: 8, subs: ["初期", "中期", "后期"], color: "#6f95bb" },
+    { key: "deity", name: "化神期", tier: 5, world: "human", need: 1300, life: 2000, per: 15, subs: ["初期", "中期", "后期"], color: "#8a86c4" },
+    { key: "void", name: "炼虚期", tier: 6, world: "spirit", need: 2000, life: 3000, per: 40, subs: ["初期", "中期", "后期"], color: "#8fa8d6" },
+    { key: "unity", name: "合体期", tier: 7, world: "spirit", need: 5000, life: 8000, per: 80, subs: ["初期", "中期", "后期"], color: "#a0a6dc" },
+    { key: "mahayana", name: "大乘期", tier: 8, world: "spirit", need: 10000, life: 15000, per: 160, subs: ["初期", "中期", "后期"], color: "#bab0e0" },
+    { key: "true", name: "真仙", tier: 9, world: "immortal", need: 40000, life: 80000, per: 400, subs: ["初期", "中期", "后期"], color: "#d6ba78" },
     { key: "golden", name: "金仙", tier: 10, world: "immortal", need: 150000, life: 200000, per: 800, subs: ["初期", "中期", "后期"], color: "#e0c98d" },
     { key: "taiyi", name: "太乙", tier: 11, world: "immortal", need: 300000, life: 500000, per: 1600, subs: ["初期", "中期", "后期"], color: "#e7d6a2" },
     { key: "daluo", name: "大罗", tier: 12, world: "immortal", need: 600000, life: 1000000, per: 3200, subs: ["初期", "中期", "后期"], color: "#f0e2b6" },
@@ -356,7 +357,7 @@
       name: "紫灵",
       title: "乱星海 · 妙音门",
       realm: "大乘",
-      world: "immortal",
+      world: "spirit",
       years: "不可考",
       line: "她把一生的算计都用在了活着上。",
       note: "原著人物 · 致敬（结局据读者共识）",
@@ -376,7 +377,7 @@
       name: "厉飞雨",
       title: "七玄门 · 同门",
       realm: "凡人",
-      world: "mortal",
+      world: "human",
       years: "不可考",
       line: "有些人没能走上山，但他一直是那条路上最亮的一段。",
       note: "原著人物 · 致敬（境界为二创留白）",
@@ -413,7 +414,7 @@
           ? "太乙者可开一界，可断一纪。万界之中，已是站在顶端的那一小撮。"
           : r.key === "daluo"
           ? "大罗之上，时间失去意义。前路只剩道祖。"
-          : "道祖不是修出来的，是争出来的。万界只有一个位置。",
+          : "道祖不是修出来的，是争出来的。每条大道走到尽头，都有一个位置。",
       meta: `寿元 ${r.life > 100000 ? "不可计" : r.life + " 年"}`,
     })),
     worlds: [
