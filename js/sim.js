@@ -54,7 +54,23 @@
         rng.pick(D0.DAOHAO_A) + rng.pick(D0.DAOHAO_B);
 
       const bottle = rng.chance(0.012);
-      const startTier = world === "spirit" ? 6 : world === "immortal" ? 9 : 0;
+      const isExisting = opts.mode === "existing";
+      const startTier = isExisting
+        ? world === "spirit"
+          ? 6
+          : world === "immortal"
+          ? 9
+          : 0
+        : world === "human"
+        ? 0
+        : 1;
+      const startAge = isExisting
+        ? world === "spirit"
+          ? 16
+          : world === "immortal"
+          ? 100
+          : 0
+        : 0;
       const realm = D0.REALMS[startTier];
 
       const insight = clamp(
@@ -75,7 +91,7 @@
         startWorld: world,
         path: startTier > 0 ? "cultivator" : "unsettled",
         tier: startTier,
-        age: world === "spirit" ? 16 : world === "immortal" ? 100 : 0,
+        age: startAge,
         maxAge: realm.life,
         cult: 0,
         mood,
@@ -90,7 +106,16 @@
         root,
         origin,
         place: origin.place,
-        sect: world === "spirit" ? "天渊城 · 散修" : world === "immortal" ? "北寒仙域 · 散仙" : "凡俗",
+        sect:
+          world === "spirit"
+            ? isExisting
+              ? "天渊城 · 散修"
+              : "天渊城 · 本地散修"
+            : world === "immortal"
+            ? isExisting
+              ? "北寒仙域 · 散仙"
+              : "北寒仙域 · 本地散修"
+            : "凡俗",
         sectRank: -1,
         sectContrib: 0,
         sectPromo: null,
@@ -137,11 +162,13 @@
           ? `你出生在${origin.place}，${origin.family}。${origin.text}`
           : `你降生于${origin.place}，${origin.family}。${origin.text}`
       );
-      if (startTier > 0) {
+      if (startTier > 0 && isExisting) {
         this.pushLog(
           "system",
           `你降生于此界，自幼修行，如今已是${this.realmName()}。`
         );
+      } else if (startTier > 0 && world !== "human") {
+        this.pushLog("system", `你生在此界，灵气浓郁，修行比人界同辈快。`);
       }
       this.state.tierHistory.push({ age: this.state.age, tier: this.state.tier });
     }
@@ -311,6 +338,12 @@
     }
     worldMeta() {
       return D.WORLD_META[this.state.world] || D.WORLD_META.human;
+    }
+
+    worldCultMul() {
+      if (this.state.world === "spirit") return 1.5;
+      if (this.state.world === "immortal") return 2;
+      return 1;
     }
     focusDef() {
       return D.FOCUS.find((f) => f.key === this.state.focus) || D.FOCUS[0];
@@ -585,6 +618,7 @@
           (0.82 + s.mood / 240) *
           (f.cult || 1) *
           (1 + s.cultRate) *
+          this.worldCultMul() *
           (s.bottle ? 2.1 : 1);
         // 结丹以后给低灵根一条活路：速度仍受灵根影响，但不让寿元上限变成硬墙。
         const effectiveMul = s.tier >= 3 ? Math.max(mul, 0.8) : mul;

@@ -688,7 +688,33 @@ for (let seed = 1; seed <= 220; seed++) {
   worstRepeat = Math.max(worstRepeat, ...Object.values(counts), 0);
 }
 ok(issues === 0, `220 局不变量问题：${issues}`);
-ok(pseudoReachedSpirit > 0, "至少应有一名伪灵根到达灵界");
+const spiritBirth = new Sim({ seed: 910, world: "spirit" });
+const immortalBirth = new Sim({ seed: 911, world: "immortal" });
+const spiritExisting = new Sim({ seed: 912, world: "spirit", mode: "existing" });
+const immortalExisting = new Sim({ seed: 913, world: "immortal", mode: "existing" });
+ok(
+  spiritBirth.state.tier === 1 && spiritBirth.state.age === 0,
+  "灵界本地出生应从炼气起步，不应直接炼虚"
+);
+ok(
+  immortalBirth.state.tier === 1 && immortalBirth.state.age === 0,
+  "仙界本地出生应从炼气起步，不应直接真仙"
+);
+ok(
+  spiritExisting.state.tier === 6 && immortalExisting.state.tier === 9,
+  "现存修士模式应保留灵界炼虚/仙界真仙的开局"
+);
+ok(
+  spiritBirth.worldCultMul() === 1.5 && immortalBirth.worldCultMul() === 2,
+  "灵界/仙界本地出生应获得修炼速度加成"
+);
+const pseudoExisting = new Sim({ seed: 914, world: "spirit", mode: "existing" });
+pseudoExisting.state.root = D.ROOTS.find((root) => root.key === "wei");
+pseudoExisting.state.tier = 6;
+ok(
+  pseudoExisting.state.root.key === "wei" && pseudoExisting.state.tier >= 6,
+  "现存修士模式应保留伪灵根高境界抽样"
+);
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
 ok(XD.EVENTS.length === 3085, `事件总数应为 3085，实际 ${XD.EVENTS.length}`);
 
