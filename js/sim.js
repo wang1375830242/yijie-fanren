@@ -460,12 +460,22 @@
       }
     }
 
+    partnerInterval(tier, talent) {
+      const realm = D.REALMS[Math.max(0, Math.min(13, Number(tier) || 0))] || D.REALMS[0];
+      const need = Math.max(1, realm.need || 1);
+      const pace = Math.max(1, realm.pace || 1);
+      const base = need / (Math.max(0.4, Number(talent) || 1) * 1.2 * pace);
+      const jitter = 0.85 + this.socialRng.next() * 0.3;
+      return Math.max(20, Math.round(base * jitter));
+    }
+
     partnerTick() {
       const s = this.state;
       const p = s.partner;
       if (!p || p.alive === false) return;
       if (!Array.isArray(s.partnerHistory)) s.partnerHistory = [];
       if (typeof p.tier !== "number") p.tier = s.tier;
+      if (p.tier > 12) p.tier = 12;
       if (typeof p.world !== "string") p.world = s.world;
       if (typeof p.age !== "number") p.age = p.since || s.age;
       if (typeof p.ageOffset !== "number") p.ageOffset = p.age - s.age;
@@ -487,21 +497,27 @@
         return;
       }
       if (s.age < p.nextAt) return;
-      p.nextAt = s.age + Math.max(8, Math.round(28 - p.talent * 10));
-      p.cult = clamp(p.cult + 20 + p.talent * 14, 0, 100);
-      if (p.cult < 100) return;
+      if (p.tier >= 12) {
+        p.nextAt = s.age + 9999;
+        p.cult = 100;
+        return;
+      }
+      p.cult = 100;
+      const interval = this.partnerInterval(p.tier, p.talent);
       const chance = clamp(
         0.45 + (p.talent - 1) * 0.2 + (p.affinity - 50) * 0.002,
         0.2,
         0.9
       );
-      if (!this.rng.chance(chance) || p.tier >= 13) {
+      if (!this.rng.chance(chance)) {
         p.cult = 85;
+        p.nextAt = s.age + Math.max(12, Math.round(interval * 0.5));
         return;
       }
       p.tier += 1;
       p.cult = 0;
       p.maxAge = Math.max(p.maxAge, D.REALMS[p.tier].life);
+      p.nextAt = s.age + this.partnerInterval(p.tier, p.talent);
       if (p.tier >= 6 && p.world === "human") p.world = "spirit";
       if (p.tier >= 9 && p.world === "spirit") p.world = "immortal";
       p.status = p.world === s.world ? "present" : "apart";
@@ -1069,19 +1085,21 @@
       }
       if (effects.partner) {
         const partnerAge = s.age + this.rng.int(-3, 3);
+        const partnerTier = Math.max(0, s.tier);
+        const partnerTalent = 0.85 + this.rng.next() * 0.8;
         s.partner = {
           name: this.rng.pick(D.SURNAMES) + this.rng.pick(D.GIVEN),
           title: effects.partner,
           since: s.age,
           age: partnerAge,
           ageOffset: partnerAge - s.age,
-          tier: Math.max(0, s.tier),
+          tier: partnerTier,
           cult: 0,
-          talent: 0.85 + this.rng.next() * 0.8,
+          talent: partnerTalent,
           world: s.world,
           maxAge: Math.max(80, this.realm().life),
           affinity: 60,
-          nextAt: s.age + this.rng.int(15, 35),
+          nextAt: s.age + this.partnerInterval(partnerTier, partnerTalent),
           status: "present",
           alive: true,
           place: s.place,

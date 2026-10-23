@@ -345,6 +345,30 @@ ok(
   "道侣岁数不应固定在结伴年龄"
 );
 
+/* 道侣突破必须按境界需要时间，不能在 1200 岁自行证道。 */
+const slowerPartner = new Sim({ seed: 701, world: "human" });
+slowerPartner.state.path = "cultivator";
+slowerPartner.state.tier = 5;
+slowerPartner.state.age = 30;
+slowerPartner.state.maxAge = 5000;
+slowerPartner.apply({ partner: "道侣" });
+const slow = slowerPartner.state.partner;
+slow.tier = 5;
+slow.nextAt = 40;
+for (let age = 100; age <= 1200; age += 10) {
+  slowerPartner.state.age = age;
+  slowerPartner.partnerTick();
+  if (!slowerPartner.state.partner) break;
+}
+ok(
+  !slowerPartner.state.partner || slowerPartner.state.partner.tier <= 8,
+  "道侣 1200 岁不应突破到道祖或过高境界"
+);
+ok(
+  slowerPartner.partnerInterval(5, 1.2) > slowerPartner.partnerInterval(1, 1.2),
+  "高境界道侣突破间隔应更长"
+);
+
 /* 转世道果：四项继承、上下限与不继承境界/寿元。 */
 const legacySource = new Sim({ seed: 222, world: "human" });
 legacySource.state.tier = 6;
