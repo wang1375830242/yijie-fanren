@@ -208,6 +208,19 @@
       const s = this.state;
       const depth = (s.legacy && s.legacy.depth ? s.legacy.depth : 0) + 1;
       const decay = Math.pow(0.9, Math.max(0, depth - 1));
+      const lastPartner =
+        s.partner ||
+        (Array.isArray(s.partnerHistory) && s.partnerHistory.length
+          ? s.partnerHistory[s.partnerHistory.length - 1]
+          : null);
+      const discipleNames = (s.disciples || [])
+        .filter(Boolean)
+        .slice(0, 3)
+        .map((d) => d.name);
+      const rivalNames = (s.rivals || [])
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((r) => r.name);
       return {
         v: 1,
         depth,
@@ -224,6 +237,11 @@
           tier: s.tier,
           cause: s.cause || "尚在人世",
           age: s.endedAt != null ? s.endedAt : s.age,
+          place: (s.origin && s.origin.place) || s.place || "",
+          sectName: s.sect && s.sect !== "散修" ? s.sect : "",
+          partnerName: lastPartner ? lastPartner.name : "",
+          discipleNames,
+          rivalNames,
         },
       };
     }
@@ -443,6 +461,22 @@
         }
       }
       return false;
+    }
+
+    maybeLegacyEcho() {
+      const s = this.state;
+      if (
+        s.world !== "human" ||
+        !s.legacy ||
+        !s.legacy.source ||
+        s.flags.legacy_echo_seen ||
+        s.age < 16
+      ) {
+        return false;
+      }
+      s.flags.legacy_echo_seen = true;
+      this.trigger("legacy_echo");
+      return true;
     }
     pushLog(kind, text, extra) {
       const entry = Object.assign(
@@ -787,6 +821,8 @@
       if (!s.pending && this.maybeMainline()) return;
       // 地域/宗门身份锚点：一局各一次，保证玩家能遇见
       if (!s.pending && this.maybeIdentityAnchors()) return;
+      // 再一世：前世回响，一局最多一次
+      if (!s.pending && this.maybeLegacyEcho()) return;
       // 随机事件
       if (!s.pending && this.rng.chance(this.eventChance())) {
         const ev = this.pickEvent();

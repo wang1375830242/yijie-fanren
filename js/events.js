@@ -882,6 +882,44 @@
     ],
   });
 
+  add({
+    id: "legacy_echo",
+    when: (s) => s.world === "human" && s.legacy && s.legacy.source && s.age >= 16,
+    w: 1,
+    major: true,
+    title: "旧梦",
+    text: (s) => {
+      const src = (s.legacy && s.legacy.source) || {};
+      if (src.partnerName) {
+        return `${s.age}岁那年，一个陌生人在路口拦住你，递来一封旧信。信封上的落款是「${src.partnerName}」，你从未听过这个名字，却觉得那笔字很熟。`;
+      }
+      if (src.discipleNames && src.discipleNames.length) {
+        return `${s.age}岁那年，一个年轻修士向你打听「${src.discipleNames[0]}」这个名字。你说没听过；他走后，你却在纸上写下了同样的三个字。`;
+      }
+      if (src.sectName) {
+        return `${s.age}岁那年，你在旧衣铺看见一块褪色的门牌，上面还留着「${src.sectName}」的纹样。你站了很久，直到老板问你买不买。`;
+      }
+      return `${s.age}岁那年，你梦见一个叫「${src.name || "无名"}」的人站在雾里。你看不清他的脸，却知道他走过你后来要走的那条路。`;
+    },
+    choices: [
+      {
+        label: "收下旧信，记住那个名字",
+        effects: { insight: 3, mood: 2, karma: 2, flag: "legacy_echo_done" },
+        outcome: "你把信折好，放进贴身的口袋。那晚你睡得很沉，梦里有一条很长的路。",
+      },
+      {
+        label: "问对方从哪里来",
+        effects: { insight: 2, luck: 2, flag: "legacy_echo_done" },
+        outcome: "陌生人只指了指北边。你顺着他的手指看过去，那里只有一片没有名字的山。",
+      },
+      {
+        label: "把信烧了，不追问",
+        effects: { mood: 1, karma: -1, flag: "legacy_echo_done" },
+        outcome: "火苗把落款烧成一个黑点。你告诉自己，那只是别人的旧事。",
+      },
+    ],
+  });
+
   /* 地域锚点：每个出生区域一条，先用具体地名和生计立住气质。 */
   add({
     id: "r_yue_anchor",

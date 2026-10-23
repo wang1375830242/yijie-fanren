@@ -792,6 +792,16 @@ body:not(.in-life) #btnAuto {
 .rel-list {
   display: grid;
   gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.rel.dead {
+  opacity: 0.55;
+}
+.rel.dead .rel-name {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
 }
 .rel {
   display: grid;

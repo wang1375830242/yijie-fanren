@@ -493,6 +493,33 @@ ok(
   gameSource.includes("saveRun") && gameSource.includes("maybeResume"),
   "游戏应接入自动保存与续存提示"
 );
+ok(
+  !gameSource.includes("aliveDisciples[aliveDisciples.length - 1]") &&
+    gameSource.includes("bondStatus"),
+  "关系面板应显示全部羁绊而不是最后一个徒弟"
+);
+
+const echoSource = new Sim({ seed: 903, world: "human" });
+echoSource.state.partner = { name: "沈青棠", title: "道侣", tier: 3 };
+echoSource.state.sect = "黄枫谷";
+echoSource.state.origin.place = "越国 · 青牛镇";
+echoSource.state.disciples = [{ name: "陆小满" }, { name: "周照" }];
+const echoLegacy = echoSource.legacySummary();
+ok(
+  echoLegacy.source.partnerName === "沈青棠" &&
+    echoLegacy.source.sectName === "黄枫谷" &&
+    echoLegacy.source.discipleNames.length === 2,
+  "道果应记录前世故人字段"
+);
+const echoSim = new Sim({ seed: 904, world: "human", legacy: echoLegacy });
+echoSim.state.age = 16;
+ok(echoSim.maybeLegacyEcho(), "有前世道果的十六岁应触发旧梦");
+ok(echoSim.state.pending && echoSim.state.pending.id === "legacy_echo", "旧梦事件应正确");
+echoSim.choose(0);
+ok(echoSim.state.flags.legacy_echo_done, "旧梦选择应写入完成标记");
+const noEcho = new Sim({ seed: 905, world: "human" });
+noEcho.state.age = 16;
+ok(!noEcho.maybeLegacyEcho(), "没有前世道果不应触发旧梦");
 
 /* P1：残图主线与地域/宗门身份锚点。 */
 const mainline = new Sim({ seed: 901, world: "human" });
@@ -663,6 +690,6 @@ for (let seed = 1; seed <= 220; seed++) {
 ok(issues === 0, `220 局不变量问题：${issues}`);
 ok(pseudoReachedSpirit > 0, "至少应有一名伪灵根到达灵界");
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
-ok(XD.EVENTS.length === 3084, `事件总数应为 3084，实际 ${XD.EVENTS.length}`);
+ok(XD.EVENTS.length === 3085, `事件总数应为 3085，实际 ${XD.EVENTS.length}`);
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; worst-repeat=${worstRepeat}`);

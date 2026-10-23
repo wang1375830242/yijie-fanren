@@ -548,6 +548,10 @@
 
     // 关系
     const rels = [];
+    const bondStatus = (person) =>
+      person && person.alive === false
+        ? `离世${person.fate ? ` · ${person.fate}` : ""}`
+        : "在世";
     rels.push({
       ico: "门",
       name: s.sect || "无门无派",
@@ -557,36 +561,34 @@
     if (s.partner) {
       const partnerRealm = (D.REALMS[s.partner.tier || 0] || D.REALMS[0]).name;
       const partnerWorld = (D.WORLD_META[s.partner.world || s.world] || {}).name || "";
-      const partnerState = s.partner.status === "apart" ? " · 异地" : "";
+      const partnerState = s.partner.status === "apart" ? "异地 · " : "";
       rels.push({
         ico: "侣",
         name: s.partner.name,
-        sub: `${s.partner.title} · ${partnerRealm} · ${partnerWorld}${partnerState}`,
+        sub: `${s.partner.title} · ${partnerRealm} · ${partnerWorld} · ${partnerState}${bondStatus(s.partner)}`,
         when: `${typeof s.partner.age === "number" ? s.partner.age : s.partner.since}岁`,
       });
     }
-    const discipleList = s.disciples || [];
-    const aliveDisciples = discipleList.filter((d) => d.alive !== false);
-    if (discipleList.length) {
-      const d = aliveDisciples[aliveDisciples.length - 1] || discipleList[discipleList.length - 1];
+    const discipleList = (s.disciples || []).slice().sort((a, b) => (a.alive === false ? 1 : 0) - (b.alive === false ? 1 : 0));
+    for (const d of discipleList) {
       const dRealm = (D.REALMS[d.tier || 0] || D.REALMS[0]).name;
       rels.push({
         ico: "徒",
         name: d.name,
-        sub: `${d.title || "弟子"} · ${dRealm} · 亲厚 ${Math.round(d.affinity || 0)} · 在世 ${aliveDisciples.length}/${discipleList.length}`,
+        sub: `${d.title || "弟子"} · ${dRealm} · 亲厚 ${Math.round(d.affinity || 0)} · ${bondStatus(d)}`,
         when: `${typeof d.age === "number" ? d.age : d.since}岁`,
+        dead: d.alive === false,
       });
     }
-    const rivalList = s.rivals || [];
-    const aliveRivals = rivalList.filter((r) => r.alive !== false);
-    if (rivalList.length) {
-      const r = aliveRivals[aliveRivals.length - 1] || rivalList[rivalList.length - 1];
+    const rivalList = (s.rivals || []).slice().sort((a, b) => (a.alive === false ? 1 : 0) - (b.alive === false ? 1 : 0));
+    for (const r of rivalList) {
       const rRealm = (D.REALMS[r.tier || 0] || D.REALMS[0]).name;
       rels.push({
         ico: "仇",
         name: r.name,
-        sub: `${r.title || "对手"} · ${rRealm} · 敌意 ${Math.round(r.hostility || 0)}`,
+        sub: `${r.title || "对手"} · ${rRealm} · 敌意 ${Math.round(r.hostility || 0)} · ${bondStatus(r)}`,
         when: `${typeof r.age === "number" ? r.age : r.since}岁`,
+        dead: r.alive === false,
       });
     }
     if (rels.length === 1)
@@ -594,7 +596,7 @@
     $("relList").innerHTML = rels
       .map(
         (r) =>
-          `<div class="rel"><div class="rel-ico">${r.ico}</div><div><div class="rel-name">${U.esc(r.name)}</div><div class="rel-sub">${U.esc(r.sub)}</div></div><div class="rel-when">${U.esc(r.when)}</div></div>`
+          `<div class="rel${r.dead ? " dead" : ""}"><div class="rel-ico">${r.ico}</div><div><div class="rel-name">${U.esc(r.name)}</div><div class="rel-sub">${U.esc(r.sub)}</div></div><div class="rel-when">${U.esc(r.when)}</div></div>`
       )
       .join("");
 
