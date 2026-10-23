@@ -290,9 +290,10 @@ const canonPeopleBlock = canonSource.slice(
   canonSource.indexOf("const C = ["),
   canonSource.indexOf("  const S = [")
 );
+const detailedCount = (canonPeopleBlock.match(/desc:\s*"[^"]{20,}"/g) || []).length;
 ok(
-  !/desc:\s*"[^"]{80,}"/.test(canonPeopleBlock),
-  "人物词条不应保留大段剧情复述"
+  detailedCount >= 50,
+  `原著人物应展示详细人物志，实际详细词条 ${detailedCount}`
 );
 ok(gameSource.includes("无名旧瓶"), "H7 角色面板应显示“无名旧瓶”");
 ok(!gameSource.includes("生还 ${"), "濒死选项不应显示生还率");
