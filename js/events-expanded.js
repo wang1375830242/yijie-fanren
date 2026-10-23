@@ -90,6 +90,54 @@
           { label: "跟着去看", effects: { luck: 3, insight: 2 }, outcome: "你走了很远，最后在路口停下。" },
           { label: "回去", effects: { mood: 1 }, outcome: "你转身回家。晚饭的香味从门缝里飘出来。" },
         ],
+        [
+          { label: "先看看再说", effects: { insight: 2, mood: 1 }, outcome: "你蹲下来看了很久，直到大人们把话说完。" },
+          { label: "叫上大人", effects: { karma: 2, mood: 1 }, outcome: "大人来了，事情很快就被处理掉了。" },
+        ],
+        [
+          { label: "记在心里", effects: { insight: 2, mood: 1 }, outcome: "你没有说出口，但一直没有忘。" },
+          { label: "找人问问", effects: { luck: 2, insight: 2 }, outcome: "你问了一圈，得到的答案互相矛盾。" },
+        ],
+        [
+          { label: "照着做", effects: { mood: 1, karma: 1 }, outcome: "你照着大人的样子做了一遍，居然像模像样。" },
+          { label: "偏要试一次", effects: { luck: 3, mood: -1 }, outcome: "你试了。结果和你想的不太一样。" },
+        ],
+        [
+          { label: "分给别人", effects: { karma: 3, mood: 2 }, outcome: "你把东西分了出去，自己只剩一点点。" },
+          { label: "自己留着", effects: { luck: 2, mood: 1 }, outcome: "你把它留在自己身边，谁也没告诉。" },
+        ],
+        [
+          { label: "跟着走", effects: { luck: 3, insight: 1 }, outcome: "你跟着走了很远，直到看不见来时的路。" },
+          { label: "留在原地", effects: { mood: 2, insight: 1 }, outcome: "你留在原地，听见风从屋檐下穿过去。" },
+        ],
+        [
+          { label: "放回原处", effects: { karma: 2, mood: 1 }, outcome: "你把它放回原处，像什么都没有发生过。" },
+          { label: "带回家", effects: { luck: 2, insight: 1 }, outcome: "你把它带回家，藏在一个只有你知道的角落。" },
+        ],
+        [
+          { label: "学大人的样子", effects: { insight: 2, mood: 1 }, outcome: "你学着大人的样子说话，逗得他们笑了起来。" },
+          { label: "按自己的想法", effects: { luck: 3, mood: -1 }, outcome: "你按自己的想法做了，没有人拦你，也没有人夸你。" },
+        ],
+        [
+          { label: "跑回家", effects: { mood: 3 }, outcome: "你一路跑回家，推开门时还在喘气。" },
+          { label: "再多待一会儿", effects: { insight: 2, luck: 1 }, outcome: "你又待了一会儿，直到天色彻底暗下来。" },
+        ],
+        [
+          { label: "先听他说完", effects: { insight: 2, mood: 1 }, outcome: "你听他把话说完，才发现重点在最后一句。" },
+          { label: "转身走开", effects: { mood: 2, luck: -1 }, outcome: "你转身走开，身后的声音越来越远。" },
+        ],
+        [
+          { label: "把手伸过去", effects: { luck: 2, mood: 1 }, outcome: "你伸出手，碰到了那件东西。凉的。" },
+          { label: "缩回来", effects: { insight: 1, mood: 1 }, outcome: "你把手缩回来，决定再等一等。" },
+        ],
+        [
+          { label: "记住这个地方", effects: { insight: 2, luck: 1 }, outcome: "你记住了路怎么走，也记住了那天的风。" },
+          { label: "不再回头", effects: { mood: 2 }, outcome: "你没有回头。后来也没有再回去过。" },
+        ],
+        [
+          { label: "跟着笑", effects: { mood: 2, karma: 1 }, outcome: "你跟着笑了。其实你没太听懂他们在笑什么。" },
+          { label: "没有笑", effects: { insight: 2, mood: -1 }, outcome: "你没有笑。大人们很快就不说了。" },
+        ],
       ],
     },
 
@@ -507,18 +555,25 @@
         when: theme.when,
         w: theme.w + (i % 3),
         title,
+        sceneKey: `${theme.key}:${scene}`,
         text: (s) => fill(`${scene}${detail}${theme.hook}${theme.extra ? theme.extra(s) : ""}`, s),
         choices: (s) =>
-          set.map((c) => ({
-            ...c,
-            label: fill(c.label, s),
-            outcome:
+          set.map((c, ci) => {
+            const text =
               typeof c.outcome === "function"
                 ? c.outcome
                 : c.outcome
                 ? fill(c.outcome, s)
-                : fill(outcome, s),
-          })),
+                : fill(outcome, s);
+            return {
+              ...c,
+              label: fill(c.label, s),
+              outcome:
+                theme.key === "h_child" && typeof c.outcome !== "function"
+                  ? `${text}${pool.outcomes[(i + ci) % pool.outcomes.length]}`
+                  : text,
+            };
+          }),
       });
     }
   });

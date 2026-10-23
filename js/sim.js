@@ -360,7 +360,9 @@
         (e) => e.id.indexOf("g_h_child_") === 0 && !s.seen[e.id]
       );
       if (!pool.length) return false;
-      this.trigger(this.rng.pick(pool).id);
+      const recentScenes = new Set(s.recentScenes || []);
+      const fresh = pool.filter((e) => !(e.sceneKey && recentScenes.has(e.sceneKey)));
+      this.trigger(this.rng.pick(fresh.length ? fresh : pool).id);
       return true;
     }
 
@@ -409,7 +411,7 @@
 
     pickEvent() {
       const s = this.state;
-      const pool = XD.EVENTS.filter((e) => {
+      let pool = XD.EVENTS.filter((e) => {
         if (e.id === "root_test") return false;
         if (e.once && s.seen[e.id]) return false;
         try {
@@ -419,6 +421,9 @@
         }
       });
       if (!pool.length) return null;
+      const recentScenes = new Set(s.recentScenes || []);
+      const fresh = pool.filter((e) => !(e.sceneKey && recentScenes.has(e.sceneKey)));
+      if (fresh.length) pool = fresh;
       return this.rng.weighted(pool, (e) => e.w || 1);
     }
 
@@ -427,6 +432,9 @@
       if (!ev) return;
       const s = this.state;
       if (ev.once) s.seen[id] = true;
+      if (ev.sceneKey) {
+        s.recentScenes = (s.recentScenes || []).concat(ev.sceneKey).slice(-6);
+      }
       const text = typeof ev.text === "function" ? ev.text(s) : ev.text;
       this.pushLog("event", text, { title: ev.title });
       s.pending = {

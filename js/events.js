@@ -159,9 +159,25 @@
     title: "测灵根",
     text: (s) => {
       if (s.root.key === "none") {
-        return "十岁这年，镇上来了一位替人摸骨的老道。他把手按在你头顶，闭眼半晌，说：「经脉闭塞，灵窍未开。孩子，你没有灵根。」围观的人散了，母亲把你抱得更紧。";
+        const noneLeads = [
+          "十岁这年，镇上来了一位替人摸骨的老道。",
+          "十岁这年，母亲带你去庙里上香。一个老道看了你一眼。",
+          "十岁这年，村里来了个游方道士，挨家挨户化缘。",
+          "十岁这年，你在村口遇见一个背剑的老人。他停下来看了你很久。",
+        ];
+        const lead = noneLeads[(s.seed >>> 0) % noneLeads.length];
+        return `${lead}他把手按在你头顶，闭眼半晌，说：「经脉闭塞，灵窍未开。孩子，你没有灵根。」围观的人散了，母亲把你抱得更紧。`;
       }
-      return `十岁这年，有仙门来到你住的地方，设了测灵台。你把手按上那块青玉，玉中亮起了${s.root.name === "天灵根" ? "一道" : "几道"}光。执事抬起头，第一次正眼看你：「${s.root.name}。你可愿上山？」`;
+      const leads = [
+        "十岁这年，有仙门来到你住的地方，设了测灵台。",
+        "十岁这年，镇上的仙门执事挨家挨户摸骨。轮到你时，他把手停了停。",
+        "十岁这年，你在山上砍柴，遇见一个白衣人。他看了你很久。",
+        "十岁这年，村里来了两位仙师，说只测有缘人。你被挤在人群最后。",
+        "十岁这年，镇上的仙师摆了三日测灵台。你排到第三天才轮上。",
+        "十岁这年，你在河边遇见一个钓鱼的老人。他收起鱼竿，说你该去测一测。",
+      ];
+      const lead = leads[(s.seed >>> 0) % leads.length];
+      return `${lead}他取出一块青玉，让你把手放上去。玉中亮起了${s.root.name === "天灵根" ? "一道" : "几道"}光。他抬起头，第一次正眼看你：「${s.root.name}。你可愿上山？」`;
     },
     choices: (s) => {
       if (s.root.key === "none") {
@@ -186,7 +202,7 @@
         }
         return base;
       }
-      return [
+      const sectChoices = [
         {
           label: "入黄枫谷",
           effects: { sect: "黄枫谷", mood: 5, stones: 20, begin: true },
@@ -208,6 +224,8 @@
           outcome: "执事没有劝你。他说：「修行是逆天的事，孝顺是顺天的事。都不亏。」",
         },
       ];
+      const offset = (s.seed >>> 0) % sectChoices.length;
+      return sectChoices.slice(offset).concat(sectChoices.slice(0, offset));
     },
   });
 
@@ -1257,26 +1275,67 @@
         "五岁这年，父亲把你架在肩头去看庙会。回来的路上，他问你想成为什么样的人。",
         "五岁这年，村里来了个走江湖的说书人。讲到一半，他忽然停下来问你：你想成为什么样的人？",
         "五岁这年，你在灶台边帮母亲添柴。她看着火，忽然问你想成为什么样的人。",
+        "五岁这年，你发了一场烧。退烧后，母亲坐在床边问你想成为什么样的人。",
+        "五岁这年，隔壁家添了小孩。你趴在门口看，父亲忽然问你想成为什么样的人。",
       ];
       return variants[(s.seed >>> 0) % variants.length];
     },
-    choices: [
-      {
-        label: "让家里人过上好日子",
-        effects: { mood: 5, karma: 2 },
-        outcome: "大人笑了。那句话你记了很多年。",
-      },
-      {
-        label: "去山外看看",
-        effects: { luck: 3, insight: 2 },
-        outcome: "你不知道山外有什么，但你知道自己想去。",
-      },
-      {
-        label: "像现在这样就很好",
-        effects: { mood: 4 },
-        outcome: "母亲摸摸你的头。那一年很平静。",
-      },
-    ],
+    choices: (s) => {
+      const variants = [
+        [
+          {
+            label: "让家里人过上好日子",
+            effects: { mood: 5, karma: 2 },
+            outcome: "大人笑了。那句话你记了很多年。",
+          },
+          {
+            label: "去山外看看",
+            effects: { luck: 3, insight: 2 },
+            outcome: "你不知道山外有什么，但你知道自己想去。",
+          },
+          {
+            label: "像现在这样就很好",
+            effects: { mood: 4 },
+            outcome: "母亲摸摸你的头。那一年很平静。",
+          },
+        ],
+        [
+          {
+            label: "想让爹娘不再受苦",
+            effects: { mood: 5, karma: 3 },
+            outcome: "你说得很认真。大人沉默了一会儿，才笑着点头。",
+          },
+          {
+            label: "想去山外看看",
+            effects: { luck: 3, insight: 2 },
+            outcome: "你抬头看向山的方向。那里只有云。",
+          },
+          {
+            label: "想一辈子留在村里",
+            effects: { mood: 4, karma: 1 },
+            outcome: "这句话让大人笑了很久。后来你才知道，留在村里也不容易。",
+          },
+        ],
+        [
+          {
+            label: "想变得很强",
+            effects: { insight: 3, mood: 2 },
+            outcome: "大人问你为什么。你说不上来，只觉得强了就不会怕。",
+          },
+          {
+            label: "想保护家里人",
+            effects: { karma: 4, mood: 3 },
+            outcome: "大人把你抱起来，说你长大了一岁。",
+          },
+          {
+            label: "还没想过",
+            effects: { mood: 2, luck: 2 },
+            outcome: "大人说没关系。五岁本来就不用想那么远。",
+          },
+        ],
+      ];
+      return variants[(s.seed >>> 0) % variants.length];
+    },
   });
 
   add({
@@ -1284,13 +1343,30 @@
     when: () => false,
     w: 0,
     title: "问心 · 十五岁",
-    text: (s) =>
-      s.tier > 0
-        ? "十五岁，你已经在山门里待了几年。每天挑水、劈柴、听师兄讲那些听不太懂的道理。有人问你，为什么留在这里。"
-        : "十五岁，你第一次看见仙人御剑从天上过。剑光很快，像一道白色的线。",
-    choices: (s) =>
-      s.tier > 0
-        ? [
+    text: (s) => {
+      if (s.tier > 0) {
+        const variants = [
+          "十五岁，你已经在山门里待了几年。每天挑水、劈柴、听师兄讲那些听不太懂的道理。有人问你，为什么留在这里。",
+          "十五岁，山门发了冬衣。你把自己的那件让给了更小的弟子，师兄看了你一眼，问你图什么。",
+          "十五岁，你第一次独自下山采买。回来时山门已经关了，你在石阶上坐了一夜。",
+          "十五岁，药圃里的灵草枯了一半。执事问是谁值的夜，你站了起来。",
+          "十五岁，山门里丢了东西。所有人都在看你，因为你是最后一个离开的。",
+          "十五岁，你第一次领到自己的月例。灵石不多，你数了三遍。",
+        ];
+        return variants[(s.seed >>> 0) % variants.length];
+      }
+      const variants = [
+        "十五岁，你第一次看见仙人御剑从天上过。剑光很快，像一道白色的线。",
+        "十五岁，镇上的说书人又来了。这次讲的是有人亲眼见过仙人。",
+        "十五岁，你在田里干活，抬头看见一道剑光从云后划过去。",
+        "十五岁，你跟着父亲去城里送药，远远看见一位仙师从城门走进来。",
+      ];
+      return variants[(s.seed >>> 0) % variants.length];
+    },
+    choices: (s) => {
+      if (s.tier > 0) {
+        const variants = [
+          [
             {
               label: "想走得更远",
               effects: { insight: 3, mood: 2 },
@@ -1306,24 +1382,62 @@
               effects: { mood: 2, luck: 2 },
               outcome: "师兄说，没想好也正常。大多数人都是走着走着才知道的。",
             },
-          ]
-        : [
+          ],
+          [
             {
-              label: "想学",
+              label: "想看看更高的山",
               effects: { insight: 3, mood: 2 },
-              outcome: "你追着那道剑光跑了很远，直到它消失在云里。",
+              outcome: "你说这话时，师兄没有笑，只是抬头看了一眼山顶。",
             },
             {
-              label: "害怕",
-              effects: { mood: 2, luck: 1 },
-              outcome: "你躲到树后，心跳了很久。仙人没有看见你。",
+              label: "想守住现在",
+              effects: { karma: 3, mood: 3 },
+              outcome: "你说完，自己也不知道这算不算志向。",
             },
             {
-              label: "不信",
-              effects: { insight: 1, luck: 2 },
-              outcome: "你告诉自己那是眼花。可后来很多年，你总会抬头看天。",
+              label: "还没想好",
+              effects: { mood: 2, luck: 2 },
+              outcome: "师兄说，没想好也正常。山门里的日子还长。",
             },
           ],
+          [
+            {
+              label: "想证明自己",
+              effects: { insight: 2, mood: 3 },
+              outcome: "你不想再被人看轻。这句话你没有说出口。",
+            },
+            {
+              label: "想护住身边的人",
+              effects: { karma: 4, mood: 2 },
+              outcome: "你说得很轻，但没有人笑。",
+            },
+            {
+              label: "想下山看看",
+              effects: { luck: 3, insight: 1 },
+              outcome: "山下的路你还没走过。你只见过它在地图上的样子。",
+            },
+          ],
+        ];
+        return variants[(s.seed >>> 0) % variants.length];
+      }
+      return [
+        {
+          label: "想学",
+          effects: { insight: 3, mood: 2 },
+          outcome: "你追着那道剑光跑了很远，直到它消失在云里。",
+        },
+        {
+          label: "害怕",
+          effects: { mood: 2, luck: 1 },
+          outcome: "你躲到树后，心跳了很久。仙人没有看见你。",
+        },
+        {
+          label: "不信",
+          effects: { insight: 1, luck: 2 },
+          outcome: "你告诉自己那是眼花。可后来很多年，你总会抬头看天。",
+        },
+      ];
+    },
   });
 
   add({
