@@ -680,6 +680,15 @@ ok(
   gameSource.includes("lastChartKey") && gameSource.includes("lastMapKey"),
   "人生地图与曲线应按脏键渲染"
 );
+const breakBlock = gameSource.slice(
+  gameSource.indexOf("function openBreak"),
+  gameSource.indexOf("function handleWorldChange")
+);
+ok(
+  breakBlock.includes('$("choiceOverlay").hidden = true;') &&
+    (breakBlock.match(/if \(handleWorldChange\(\)\) return;/g) || []).length >= 2,
+  "突破后应关闭抉择遮罩，并在跨世界破境时停下播放飞升"
+);
 ok(
   fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("choicePeek") &&
     fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("choiceResume"),

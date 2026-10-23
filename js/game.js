@@ -1054,6 +1054,7 @@
         refreshAll();
         if (!state.alive) return endLife();
         if (state.pending) return openPrompt();
+        if (handleWorldChange()) return;
         paused = false;
         $("btnPause").textContent = "❚❚";
         if (act === "push" && XD.Audio) XD.Audio.bell(act === "push" ? "break" : "soft");
@@ -1070,6 +1071,8 @@
       autoTimer = setTimeout(() => {
         const before = state.log.length;
         const push = waitMax || p.chance >= 0.62 || state.age + 8 >= state.maxAge;
+        $("choiceOverlay").hidden = true;
+        resetPromptChrome();
         sim.chooseBreak(push ? "push" : "wait");
         if (releasePromptTrap) {
           releasePromptTrap();
@@ -1079,6 +1082,7 @@
         refreshAll();
         if (!state.alive) return endLife();
         if (state.pending) return openPrompt();
+        if (handleWorldChange()) return;
         paused = false;
         saveRun();
         schedule();

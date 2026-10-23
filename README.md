@@ -61,6 +61,7 @@ python server.py
 | `docs/p4-economy-accessibility-performance.md` | 经济、移动端、无障碍与长局性能 |
 | `docs/late-mainlines.md` | 灵界天渊西线与仙界北寒灰线设计 |
 | `docs/canon-event-policy.md` | 致敬事件包的版权边界、字段与开关 |
+| `docs/breakthrough-freeze-fix.md` | 大境界突破后遮罩未关闭的修复说明 |
 
 ## 这一世怎么算
 
