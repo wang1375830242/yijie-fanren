@@ -1,6 +1,6 @@
 /* ==========================================================================
    一介凡人 · 事件扩展（程序化补编）
-   目标：把事件池从 63 条扩到约 680 条（10 倍量级），并让道侣在后续
+   目标：把事件池从 63 条扩到约 2000 条（30 倍量级），前期事件扩到 400 条，并让道侣在后续
    人生里持续出现。所有条目仍是本地原创文案，不复制原著正文。
    ========================================================================== */
 (function () {
@@ -9,7 +9,7 @@
   if (!XD || !Array.isArray(XD.EVENTS)) return;
 
   const E = XD.EVENTS;
-  const N = 23;
+  const N = 64;
 
   function fill(text, s) {
     const name = s.partner ? s.partner.name : "那个人";
@@ -36,6 +36,10 @@
         "你在山神庙里躲雨，看见供桌上放着半块饼。",
         "邻村的孩子来走亲戚，你们在晒谷场上打了一架。",
         "父亲用木头给你削了一把小剑。",
+        "村口的老井边，两个大人压低声音说话。",
+        "春天开河，冰排撞在桥墩上，发出闷响。",
+        "你跟着母亲去邻村探亲，走了很久的夜路。",
+        "你在打谷场上睡了一觉，醒来时天已经黑了。",
       ],
       details: [
         "那时候你还不知道山外有修仙者。",
@@ -54,6 +58,10 @@
         "你没有告诉别人。",
         "后来你走过很多地方，再没见过那样的院子。",
         "你当时觉得很平常。",
+        "你后来才明白，他们在说一件大事。",
+        "那声音你记了很久。",
+        "你第一次觉得，路可以走到很远。",
+        "你当时只想再睡一会儿。",
       ],
       outcomes: [
         "你后来常常想起这一天。",
@@ -483,13 +491,13 @@
 
   THEMES.forEach((theme, ti) => {
     const pool = POOLS[theme.pool];
-    const count = theme.key === "h_child" ? 40 : N;
+    const count = theme.key === "h_child" ? 400 : N;
     for (let i = 0; i < count; i++) {
       const title = theme.titles[i % theme.titles.length];
       const scene = pool.scenes[i % pool.scenes.length];
       const detail =
         pool.details[
-          (i * 3 + Math.floor(i / pool.scenes.length) * 3 + 2) % pool.details.length
+          (Math.floor(i / pool.scenes.length) + i) % pool.details.length
         ];
       const outcome = pool.outcomes[(i * 3 + 1) % pool.outcomes.length];
       const sets = theme.choices || pool.choices;
