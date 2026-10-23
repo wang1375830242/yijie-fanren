@@ -940,7 +940,7 @@ ok(
   "现存修士模式应保留伪灵根高境界抽样"
 );
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
-ok(XD.EVENTS.length === 3090, `事件总数应为 3090，实际 ${XD.EVENTS.length}`);
+ok(XD.EVENTS.length === 3098, `事件总数应为 3098，实际 ${XD.EVENTS.length}`);
 const sceneCounts = Object.fromEntries(
   Object.entries(XD.SCENE_POOLS || {}).map(([key, pool]) => [key, pool.scenes.length])
 );
@@ -969,6 +969,36 @@ ok(ecoSim.annualUpkeep() >= 4, "洞府与弟子应产生长期支出");
 ok(
   D.SHOP.filter((it) => (it.tierMin || 0) >= 9).length >= 2,
   "货栈后期应至少有两件高境界商品"
+);
+
+/* 灵界、仙界四步主线。 */
+["s_main_1", "s_main_2", "s_main_3", "s_main_4", "i_main_1", "i_main_2", "i_main_3", "i_main_4"].forEach((id) => {
+  ok(!!XD.EVENT_BY_ID[id], `缺少主线事件 ${id}`);
+});
+function runMainline(world, ids) {
+  const line = new Sim({ seed: 960, world });
+  line.state.tier = world === "spirit" ? 5 : 9;
+  line.state.age = world === "spirit" ? 80 : 500;
+  line.state.stones = 1000;
+  line.state.flags.arrived_spirit_seen = true;
+  line.state.flags.arrived_immortal_seen = true;
+  const seen = [];
+  for (let i = 0; i < ids.length; i++) {
+    line.maybeMainline();
+    seen.push(line.state.pending && line.state.pending.id);
+    line.choose(1);
+  }
+  return seen;
+}
+ok(
+  runMainline("spirit", ["s_main_1", "s_main_2", "s_main_3", "s_main_4"]).join(",") ===
+    "s_main_1,s_main_2,s_main_3,s_main_4",
+  "灵界主线应按四步顺序触发"
+);
+ok(
+  runMainline("immortal", ["i_main_1", "i_main_2", "i_main_3", "i_main_4"]).join(",") ===
+    "i_main_1,i_main_2,i_main_3,i_main_4",
+  "仙界主线应按四步顺序触发"
 );
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; natural-ascensions=${naturalAscensions}; worst-repeat=${worstRepeat}`);

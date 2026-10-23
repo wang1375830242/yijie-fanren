@@ -1562,6 +1562,265 @@
   });
 
   add({
+    id: "s_main_1",
+    when: (s) =>
+      s.world === "spirit" &&
+      s.tier >= 5 &&
+      s.tier <= 6 &&
+      s.age >= 80 &&
+      !s.flags.s_main_closed &&
+      !s.flags.s_main_1,
+    w: 1,
+    major: true,
+    title: "西线烽火",
+    text: "天渊城西线的烽火一夜烧到城头。异族的大军没有攻城，只把西墙外的三座阵眼一座座拔掉。守将把最后一支预备队交给你，说：「西墙不能在我们手里断。」",
+    choices: [
+      {
+        label: "带人守西墙",
+        effects: { stones: 40, karma: 6, breakBonus: 4, flag: "s_main_1" },
+        outcome: "你在西墙站了七天。阵眼保住了两座，第三座在你眼前碎成一片白光。",
+      },
+      {
+        label: "退守内城，保住人",
+        effects: { mood: -4, insight: 4, karma: 2, flag: "s_main_1" },
+        outcome: "你带人退回内城。西墙外的旗倒了，城里没有人怪你。",
+      },
+      {
+        label: "带散修从北门撤离",
+        effects: { stones: 80, karma: -4, mood: 2, flag: "s_main_1" },
+        outcome: "你带着一群不肯送死的人走了。回头时，天渊城的灯还亮着。",
+      },
+    ],
+  });
+
+  add({
+    id: "s_main_2",
+    when: (s) =>
+      s.world === "spirit" &&
+      s.tier >= 5 &&
+      s.tier <= 6 &&
+      s.age >= 80 &&
+      s.flags.s_main_1 &&
+      !s.flags.s_main_closed &&
+      !s.flags.s_main_2,
+    w: 1,
+    major: true,
+    title: "阵眼将尽",
+    text: "西墙的阵眼只剩最后一座。守将说，阵眼一断，外城就守不住；阵眼还能撑三天，但修复它的人未必回得来。城里的散修开始收拾行李。",
+    choices: [
+      {
+        label: "亲自去修阵眼",
+        risk: { p: 0.5, text: "阵眼重新亮了起来。", fail: { death: true, cause: "殁于西线阵眼" } },
+        effects: { karma: 8, breakBonus: 4, flag: "s_main_2" },
+        outcome: "你在阵眼里坐了三天。第四天早上，城墙上的灯重新亮了。",
+      },
+      {
+        label: "把灵石全填进阵眼",
+        effects: { stones: -120, karma: 4, flag: "s_main_2" },
+        outcome: "灵石化成一片薄光。阵眼稳住了，你的储物袋空了。",
+      },
+      {
+        label: "护送城中凡人先走",
+        effects: { karma: 3, mood: -2, insight: 3, flag: "s_main_2" },
+        outcome: "你把能带走的人送出了城。西墙的钟声在身后响了一夜。",
+      },
+    ],
+  });
+
+  add({
+    id: "s_main_3",
+    when: (s) =>
+      s.world === "spirit" &&
+      s.tier >= 5 &&
+      s.tier <= 6 &&
+      s.age >= 80 &&
+      s.flags.s_main_2 &&
+      !s.flags.s_main_closed &&
+      !s.flags.s_main_3,
+    w: 1,
+    major: true,
+    title: "西墙失守",
+    text: "第三夜，西墙还是塌了一段。异族从缺口涌进来，守将把最后的令旗插在城头，自己没有再下来。你身边只剩十几个人，退路和援军都还没有消息。",
+    choices: [
+      {
+        label: "守住缺口，等援军",
+        risk: { p: 0.45, text: "援军在天亮前赶到。", fail: { death: true, cause: "殁于天渊城缺口" } },
+        effects: { karma: 10, breakBonus: 6, stones: 50, flag: "s_main_3" },
+        outcome: "你撑到天亮。援军从东门进城时，西墙的缺口已经被尸体填平了。",
+      },
+      {
+        label: "带人从地道撤出",
+        effects: { mood: -3, insight: 5, karma: 2, flag: "s_main_3" },
+        outcome: "地道很窄，你最后一个爬出来。身后传来城墙倒塌的声音。",
+      },
+      {
+        label: "点燃阵眼，与缺口同归",
+        risk: { p: 0.3, text: "阵眼炸开，缺口被封住了。", fail: { death: true, cause: "殁于阵眼自毁" } },
+        effects: { karma: 12, breakBonus: 8, flag: "s_main_3" },
+        outcome: "火光把半边天照亮。你从灰里爬出来，耳朵里只剩下嗡鸣。",
+      },
+    ],
+  });
+
+  add({
+    id: "s_main_4",
+    when: (s) =>
+      s.world === "spirit" &&
+      s.flags.s_main_3 &&
+      !s.flags.s_main_closed,
+    w: 1,
+    major: true,
+    title: "城下余烬",
+    text: "天渊城没有亡，但西城已经不能住人了。有人在废墟里找亲人的名字，有人开始重建城墙。守将的令旗还插在城头，旗面上全是洞。",
+    choices: [
+      {
+        label: "留下来重建西城",
+        effects: { stones: 60, karma: 5, mood: 4, flag: "s_main_closed" },
+        outcome: "你在西城住了很多年。后来的人只知道这里叫「旧西墙」，不知道你曾在这里。",
+      },
+      {
+        label: "把守将的名字刻进碑里",
+        effects: { insight: 6, karma: 3, mood: 2, flag: "s_main_closed" },
+        outcome: "碑很小，名字很多。你刻到最后，手一直在抖。",
+      },
+      {
+        label: "离开天渊城，继续赶路",
+        effects: { stones: 100, insight: 4, mood: 1, flag: "s_main_closed" },
+        outcome: "你出城时没有回头。西线的烽火已经熄了，天上的云却还是红的。",
+      },
+    ],
+  });
+
+  add({
+    id: "i_main_1",
+    when: (s) =>
+      s.world === "immortal" &&
+      s.tier >= 9 &&
+      s.tier <= 10 &&
+      s.age >= 500 &&
+      !s.flags.i_main_closed &&
+      !s.flags.i_main_1,
+    w: 1,
+    major: true,
+    title: "雪线裂缝",
+    text: "北寒仙域的雪线上裂开了一道细缝。缝里没有风，也没有光，只有一层会呼吸的灰。仙宫的人说那只是地脉，但你看见雪落进去之后，再也没有落出来。",
+    choices: [
+      {
+        label: "下到裂缝边缘查看",
+        effects: { insight: 6, stones: 120, flag: "i_main_1" },
+        outcome: "你在缝边看见一截旧剑，剑身上刻着不属于仙界的纹路。",
+      },
+      {
+        label: "先封住裂缝，再上报",
+        effects: { karma: 5, breakBonus: 3, flag: "i_main_1" },
+        outcome: "你布下三层禁制。灰暂时退了，但禁制后面一直有东西在敲。",
+      },
+      {
+        label: "把消息卖给仙市",
+        effects: { stones: 300, karma: -5, flag: "i_main_1" },
+        outcome: "消息卖了个好价钱。三天后，仙市上多了一批从雪线带回来的旧物。",
+      },
+    ],
+  });
+
+  add({
+    id: "i_main_2",
+    when: (s) =>
+      s.world === "immortal" &&
+      s.tier >= 9 &&
+      s.tier <= 10 &&
+      s.age >= 500 &&
+      s.flags.i_main_1 &&
+      !s.flags.i_main_closed &&
+      !s.flags.i_main_2,
+    w: 1,
+    major: true,
+    title: "灰潮",
+    text: "裂缝没有封住。灰从雪线下漫出来，所过之处，仙宫的灯一盏盏灭掉。仙官说灰界在另一面呼吸，每一次呼吸，北寒仙域就少一块地方。",
+    choices: [
+      {
+        label: "守住雪线，挡住灰潮",
+        risk: { p: 0.5, text: "灰潮在雪线前停住了。", fail: { death: true, cause: "殁于北寒灰潮" } },
+        effects: { karma: 8, breakBonus: 5, flag: "i_main_2" },
+        outcome: "你在雪线站了很久。灰退去时，你的影子已经不再跟着你。",
+      },
+      {
+        label: "护送仙城的人南撤",
+        effects: { karma: 5, mood: -3, insight: 4, flag: "i_main_2" },
+        outcome: "你送走了三座城的人。第四座城没有等到你。",
+      },
+      {
+        label: "用仙宫玉简暂封灰潮",
+        effects: { stones: -200, insight: 3, flag: "i_main_2" },
+        outcome: "玉简碎成粉。灰潮停了一夜，你听见裂缝深处有人在叫你的名字。",
+      },
+    ],
+  });
+
+  add({
+    id: "i_main_3",
+    when: (s) =>
+      s.world === "immortal" &&
+      s.tier >= 9 &&
+      s.tier <= 10 &&
+      s.age >= 500 &&
+      s.flags.i_main_2 &&
+      !s.flags.i_main_closed &&
+      !s.flags.i_main_3,
+    w: 1,
+    major: true,
+    title: "仙宫征召",
+    text: "仙宫的使者第二次来到雪线。这一次不是问你要不要镇守，而是问你愿不愿意进灰界，从另一面把裂缝合上。使者说，进去的人很少回来；回来的，也很少还是原来的人。",
+    choices: [
+      {
+        label: "接令，进灰界",
+        effects: { karma: 10, breakBonus: 6, flag: "i_main_3" },
+        outcome: "你跨过裂缝。灰界没有天，只有一层很低的白。",
+      },
+      {
+        label: "要求仙宫先撤走凡人",
+        effects: { karma: 6, mood: -2, insight: 3, flag: "i_main_3" },
+        outcome: "使者的脸色很难看。三天后，最后一批凡人离开了北寒仙域。",
+      },
+      {
+        label: "拒绝，留在这一面",
+        effects: { mood: 4, insight: 4, flag: "i_main_3" },
+        outcome: "你没有接令。雪线外的灰又向前漫了一寸。",
+      },
+    ],
+  });
+
+  add({
+    id: "i_main_4",
+    when: (s) =>
+      s.world === "immortal" &&
+      s.flags.i_main_3 &&
+      !s.flags.i_main_closed,
+    w: 1,
+    major: true,
+    title: "断界海的眼",
+    text: "裂缝的尽头连着断界海。海面上浮着一只巨大的眼，灰从瞳孔里一阵阵涌出。你终于明白，北寒仙域的雪线只是它呼吸的一角。",
+    choices: [
+      {
+        label: "以百年修为封住这只眼",
+        effects: { cult: -18, maxAge: -20, karma: 12, breakBonus: 6, flag: "i_main_closed" },
+        outcome: "你把修为填进裂缝。眼合上时，北寒仙域的雪停了一瞬。",
+      },
+      {
+        label: "借断界海的潮水把它推回去",
+        risk: { p: 0.45, text: "潮水把眼推回了灰界。", fail: { death: true, cause: "殁于断界海" } },
+        effects: { karma: 8, stones: 500, breakBonus: 5, flag: "i_main_closed" },
+        outcome: "潮水退了。你站在空出来的海床上，看见一路通向很远的地方。",
+      },
+      {
+        label: "转身离开，把这里留给后来的人",
+        effects: { mood: -4, insight: 8, flag: "i_main_closed" },
+        outcome: "你走了。身后的灰没有追来，但你知道它还在那里。",
+      },
+    ],
+  });
+
+  add({
     id: "i_dacheng_gate",
     when: (s) =>
       s.world === "spirit" &&

@@ -455,40 +455,80 @@
 
     maybeMainline() {
       const s = this.state;
-      if (s.world !== "human" || s.pending) return false;
-      if (
-        !s.flags.xutian &&
-        !s.flags.xutian_closed &&
-        !s.seen.c_secret &&
-        s.tier >= 2 &&
-        s.age >= 50
-      ) {
-        this.trigger("c_secret");
-        return true;
+      if (s.pending) return false;
+      if (s.world === "human") {
+        if (
+          !s.flags.xutian &&
+          !s.flags.xutian_closed &&
+          !s.seen.c_secret &&
+          s.tier >= 2 &&
+          s.age >= 50
+        ) {
+          this.trigger("c_secret");
+          return true;
+        }
+        if (
+          s.flags.xutian &&
+          !s.flags.xutian_2_done &&
+          !s.flags.xutian_closed &&
+          s.tier >= 2 &&
+          s.tier <= 5 &&
+          s.age >= 60 &&
+          s.age + 20 < s.maxAge
+        ) {
+          this.trigger("xutian_2");
+          return true;
+        }
+        if (
+          s.flags.xutian_2_done &&
+          !s.flags.xutian_3_done &&
+          !s.flags.xutian_closed &&
+          s.tier >= 3 &&
+          s.tier <= 5 &&
+          s.age >= 90 &&
+          s.age + 20 < s.maxAge
+        ) {
+          this.trigger("xutian_3");
+          return true;
+        }
       }
       if (
-        s.flags.xutian &&
-        !s.flags.xutian_2_done &&
-        !s.flags.xutian_closed &&
-        s.tier >= 2 &&
-        s.tier <= 5 &&
-        s.age >= 60 &&
-        s.age + 20 < s.maxAge
+        s.world === "spirit" &&
+        !s.flags.s_main_closed &&
+        s.tier >= 5 &&
+        s.tier <= 6 &&
+        s.age >= 80
       ) {
-        this.trigger("xutian_2");
-        return true;
+        const next = !s.flags.s_main_1
+          ? "s_main_1"
+          : !s.flags.s_main_2
+          ? "s_main_2"
+          : !s.flags.s_main_3
+          ? "s_main_3"
+          : "s_main_4";
+        if (!s.seen[next]) {
+          this.trigger(next);
+          return true;
+        }
       }
       if (
-        s.flags.xutian_2_done &&
-        !s.flags.xutian_3_done &&
-        !s.flags.xutian_closed &&
-        s.tier >= 3 &&
-        s.tier <= 5 &&
-        s.age >= 90 &&
-        s.age + 20 < s.maxAge
+        s.world === "immortal" &&
+        !s.flags.i_main_closed &&
+        s.tier >= 9 &&
+        s.tier <= 10 &&
+        s.age >= 500
       ) {
-        this.trigger("xutian_3");
-        return true;
+        const next = !s.flags.i_main_1
+          ? "i_main_1"
+          : !s.flags.i_main_2
+          ? "i_main_2"
+          : !s.flags.i_main_3
+          ? "i_main_3"
+          : "i_main_4";
+        if (!s.seen[next]) {
+          this.trigger(next);
+          return true;
+        }
       }
       return false;
     }
