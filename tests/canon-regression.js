@@ -411,6 +411,7 @@ mortalQuestion.state.flags.asked15 = true;
 ok(!mortalQuestion.maybeAgeQuestion(), "凡人三十岁不应触发修行问心");
 const cultivatorQuestion = new Sim({ seed: 12, world: "human" });
 cultivatorQuestion.state.path = "cultivator";
+cultivatorQuestion.state.tier = 1;
 cultivatorQuestion.state.age = 30;
 cultivatorQuestion.state.flags.asked5 = true;
 cultivatorQuestion.state.flags.asked15 = true;
@@ -420,6 +421,13 @@ ok(
     cultivatorQuestion.state.pending.id === "age_30",
   "修士三十岁应正常触发问心"
 );
+const tierZeroQuestion = new Sim({ seed: 13, world: "human" });
+tierZeroQuestion.state.path = "cultivator";
+tierZeroQuestion.state.tier = 0;
+tierZeroQuestion.state.age = 30;
+tierZeroQuestion.state.flags.asked5 = true;
+tierZeroQuestion.state.flags.asked15 = true;
+ok(!tierZeroQuestion.maybeAgeQuestion(), "未踏入炼气的角色不应触发修行问心");
 
 /* 道侣自动线：突破、异地、死亡留档。 */
 const partnerLife = new Sim({ seed: 12, world: "human" });

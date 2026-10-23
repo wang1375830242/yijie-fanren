@@ -2264,7 +2264,7 @@
 
   add({
     id: "age_30",
-    when: () => false,
+    when: (s) => s.path === "cultivator" && s.tier > 0,
     w: 0,
     title: "问心 · 三十岁",
     text: "三十岁，你开始明白修行不是一条一定能走通的路。有人问你图什么。",
@@ -2289,7 +2289,7 @@
 
   add({
     id: "age_50",
-    when: () => false,
+    when: (s) => s.path === "cultivator" && s.tier > 0,
     w: 0,
     title: "问心 · 五十岁",
     text: "五十岁，你送走了一个认识的人。回来的路上，你忽然想：如果此生只能走到这里……",
@@ -2314,7 +2314,7 @@
 
   add({
     id: "age_70",
-    when: () => false,
+    when: (s) => s.path === "cultivator" && s.tier > 0,
     w: 0,
     title: "问心 · 七十岁",
     text: "七十岁，你坐在门口晒太阳。有人问你怕不怕死。",

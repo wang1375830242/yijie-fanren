@@ -919,8 +919,8 @@
       }
       const ages = [5, 15, 30, 50, 70];
       for (const age of ages) {
-        // 三十岁以后的问题都在问“修行图什么”，凡人不应被问。
-        if (age >= 30 && s.path !== "cultivator") continue;
+        // 三十岁以后的问题都在问“修行图什么”，凡人/尚未踏入修行的人不应被问。
+        if (age >= 30 && (s.path !== "cultivator" || s.tier <= 0)) continue;
         if (s.age >= age && !s.flags["asked" + age]) {
           const id = "age_" + age;
           if (XD.EVENT_BY_ID[id]) {
