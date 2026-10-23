@@ -35,11 +35,16 @@ global.document = {
   },
 };
 global.localStorage = {
-  getItem() {
-    return null;
+  _data: {},
+  getItem(key) {
+    return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : null;
   },
-  setItem() {},
-  removeItem() {},
+  setItem(key, value) {
+    this._data[key] = String(value);
+  },
+  removeItem(key) {
+    delete this._data[key];
+  },
 };
 
 for (const file of [
@@ -71,6 +76,49 @@ for (const realm of D.REALMS.filter((realm) => realm.tier >= 3)) {
     `H1 ${realm.name} need ${realm.need} > life ${realm.life} * 0.8`
   );
 }
+for (const realm of D.REALMS.filter((realm) => realm.tier >= 6)) {
+  ok(realm.per >= 32 && realm.pace > 1, `后期节奏 ${realm.name} 应有更小步长与 compensator`);
+}
+const pitySim = new Sim({ seed: 71, world: "human" });
+pitySim.state.age = 20;
+pitySim.state.stepsSinceEvent = 2;
+ok(pitySim.eventChance() >= 0.45, "连续无事件后应有保底事件率");
+const daozuEvent = XD.EVENT_BY_ID.i_daozu;
+ok(
+  daozuEvent.choices.some((choice) => choice.effects && choice.effects.flag === "daozu_declined"),
+  "道祖事件退让后应记录已退标志"
+);
+
+/* 结局：分类、三幕回顾与终局摘要。 */
+const endingSim = new Sim({ seed: 602, world: "human" });
+endingSim.state.tier = 3;
+endingSim.state.age = 240;
+endingSim.state.cause = "走火入魔";
+const ending = endingSim.finaleSummary("走火入魔");
+ok(ending.key === "demon" && ending.title.includes("道"), "心魔结局应归入道消");
+ok(ending.narrative && ending.narrative.length <= 120, "终局叙事应有短文本");
+ok(ending.acts.length >= 1 && ending.acts.length <= 3, "一生回顾应有三幕上限");
+ok(
+  endingSim.finaleSummary("走火入魔").narrative === ending.narrative,
+  "同一 seed 的终局叙事应稳定"
+);
+const mortalEndingSim = new Sim({ seed: 604, world: "human" });
+mortalEndingSim.state.tier = 0;
+mortalEndingSim.state.path = "mortal";
+const mortalEnding = mortalEndingSim.finaleSummary("寿元耗尽");
+ok(mortalEnding.key === "mortal", "凡人寿终应归入凡尘");
+const ascendedEnding = endingSim.finaleSummary("证道");
+ok(ascendedEnding.key === "legend", "证道应使用证道结局");
+const deathSim = new Sim({ seed: 603, world: "human" });
+deathSim.state.tier = 1;
+deathSim.state.ward = 0;
+deathSim.die("走火入魔");
+ok(deathSim.summary().finale && deathSim.summary().finale.key === "demon", "死亡摘要应带终局叙事");
+ok(
+  fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("endNarrative") &&
+    fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("endActs"),
+  "终局页应展示终局叙事与三幕回顾"
+);
 
 /* H2：化神进入灵界仍是化神，之后再突破炼虚。 */
 const ascend = new Sim({ seed: 3, world: "human" });
@@ -297,6 +345,124 @@ ok(
   "道侣岁数不应固定在结伴年龄"
 );
 
+/* 转世道果：四项继承、上下限与不继承境界/寿元。 */
+const legacySource = new Sim({ seed: 222, world: "human" });
+legacySource.state.tier = 6;
+legacySource.state.insight = 50;
+legacySource.state.stones = 100;
+legacySource.state.karma = 20;
+const legacyReward = legacySource.legacySummary();
+ok(legacyReward.v === 1 && legacyReward.depth === 1, "道果应带版本与世代");
+ok(legacyReward.insight > 0 && legacyReward.stones > 0, "道果应包含悟性与遗物");
+ok(legacyReward.ward === 1, "化神以上前世应留下护身玉符");
+ok(legacyReward.karma > 0, "善因应保留正向因果");
+
+const legacyBaseline = new Sim({ seed: 333, world: "human" });
+const legacyNext = new Sim({ seed: 333, world: "human", legacy: legacyReward });
+ok(legacyNext.state.legacy && legacyNext.state.legacy.source, "下一世应记录道果来源");
+ok(legacyNext.state.tier === legacyBaseline.state.tier, "道果不应继承境界");
+ok(legacyNext.state.age === legacyBaseline.state.age, "道果不应继承年龄");
+ok(legacyNext.state.maxAge === legacyBaseline.state.maxAge, "道果不应继承寿元");
+ok(
+  legacyNext.state.insight === Math.min(90, legacyBaseline.state.insight + legacyReward.insight),
+  "悟性起点应按上限继承"
+);
+ok(
+  legacyNext.state.stones === legacyBaseline.state.stones + legacyReward.stones,
+  "遗物灵石应带入下一世"
+);
+ok(legacyNext.state.karma === legacyBaseline.state.karma + legacyReward.karma, "未了因果应带入下一世");
+ok(legacyNext.state.ward >= legacyReward.ward, "护身玉符应带入下一世");
+ok(legacyNext.legacySummary().depth === 2, "道果世代应递增");
+const weightSim = new Sim({ seed: 444, world: "human" });
+const noneRoot = D.ROOTS.find((x) => x.key === "none");
+const siRoot = D.ROOTS.find((x) => x.key === "si");
+ok(weightSim.rootWeight("wei", noneRoot) < noneRoot.w, "道果不应提高凡骨权重");
+ok(weightSim.rootWeight("wei", siRoot) > siRoot.w, "道果应只向上提高灵根权重");
+
+XD.util.store.setLegacy(legacyReward);
+ok(XD.util.store.legacy() && XD.util.store.legacy().v === 1, "道果应可写入本机");
+XD.util.store.markLegacyUsed(123);
+ok(XD.util.store.legacy().usedBy === 123, "道果使用后应记录已用种子");
+const playSource = fs.readFileSync(path.join(ROOT, "play.html"), "utf8");
+ok(playSource.includes("birthLegacy") && playSource.includes("legacyBox"), "终局和出生页应展示道果入口");
+
+/* 宗门职位：贡献、境界门槛、晋升事件与 pending 保护。 */
+const sectSim = new Sim({ seed: 555, world: "human" });
+sectSim.state.path = "cultivator";
+sectSim.state.tier = 2;
+sectSim.state.sect = "黄枫谷";
+sectSim.initSectRank();
+sectSim.state.focus = "sect";
+sectSim.state.lastStepYears = 2;
+sectSim.state.sectContrib = 60;
+sectSim.sectTick();
+ok(sectSim.state.sectPromo === 1, "达到内门门槛应进入晋升队列");
+sectSim.state.pending = { kind: "break" };
+ok(!sectSim.maybeSectPromotion(), "有 pending 时晋升不应覆盖");
+ok(sectSim.state.pending.kind === "break", "晋升不应替换突破 pending");
+sectSim.state.pending = null;
+ok(sectSim.maybeSectPromotion(), "空闲时应触发晋升事件");
+ok(sectSim.state.sectRank === 1, "晋升后应更新宗门职位");
+ok(sectSim.state.pending && sectSim.state.pending.id === "sect_promotion", "晋升应触发宗门事件");
+sectSim.state.pending = null;
+
+const highSect = new Sim({ seed: 556, world: "human" });
+highSect.state.path = "cultivator";
+highSect.state.tier = 12;
+highSect.state.sect = "太一门";
+highSect.state.focus = "sect";
+highSect.state.lastStepYears = 3200;
+highSect.initSectRank();
+const highBefore = highSect.state.sectContrib;
+highSect.sectTick();
+ok(highSect.state.sectContrib - highBefore <= 40, "高境界一步贡献应有上限");
+
+const rogueSect = new Sim({ seed: 557, world: "human" });
+rogueSect.state.path = "cultivator";
+rogueSect.state.tier = 2;
+rogueSect.state.sect = "散修";
+rogueSect.state.focus = "sect";
+rogueSect.initSectRank();
+rogueSect.sectTick();
+ok(rogueSect.state.sectRank === -1 && rogueSect.state.sectContrib === 0, "散修不应进入宗门职位");
+ok(
+  highSect.summary().sectRank && highSect.summary().sectContrib >= 0,
+  "终局摘要应包含宗门职位与贡献"
+);
+
+/* 弟子/对手：自动入场、境界推进、寿尽与摘要。 */
+const socialSim = new Sim({ seed: 558, world: "human" });
+socialSim.state.path = "cultivator";
+socialSim.state.tier = 4;
+socialSim.state.age = 150;
+socialSim.socialTick();
+ok(socialSim.state.rivals.length >= 1, "筑基以上应能形成对手");
+ok(socialSim.state.disciples.length >= 1, "结丹以上应能收到弟子");
+const disciple = socialSim.state.disciples[0];
+ok(
+  ["tier", "age", "maxAge", "affinity", "nextAt", "alive"].every(
+    (key) => typeof disciple[key] === "number" || typeof disciple[key] === "boolean"
+  ),
+  "弟子应具备境界/年龄/寿元/关系字段"
+);
+const rival = socialSim.state.rivals[0];
+ok(typeof rival.hostility === "number" && typeof rival.tier === "number", "对手应具备敌意与境界");
+const oldTier = disciple.tier;
+disciple.nextAt = disciple.age;
+socialSim.tickSocialList(socialSim.state.disciples, "disciple");
+ok(disciple.tier >= oldTier, "弟子应随年份推进境界");
+disciple.maxAge = disciple.age;
+const historyBefore = socialSim.state.discipleHistory.length;
+socialSim.tickSocialList(socialSim.state.disciples, "disciple");
+socialSim.tickSocialList(socialSim.state.disciples, "disciple");
+ok(disciple.alive === false, "弟子寿尽应标记离世");
+ok(socialSim.state.discipleHistory.length === historyBefore + 1, "弟子寿尽只应写入一次历史");
+ok(
+  socialSim.summary().rivals && socialSim.summary().discipleHistory,
+  "终局摘要应包含对手与弟子历史"
+);
+
 /* L1/L3/L4：低优先级文案与小口径。 */
 const dataText = fs.readFileSync(path.join(ROOT, "js/data.js"), "utf8");
 ok(dataText.includes("寿四百八十载"), "L1 结丹文案应与 480 年寿元一致");
@@ -380,6 +546,6 @@ for (let seed = 1; seed <= 220; seed++) {
 ok(issues === 0, `220 局不变量问题：${issues}`);
 ok(pseudoReachedSpirit > 0, "至少应有一名伪灵根到达灵界");
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
-ok(XD.EVENTS.length === 3064, `事件总数应为 3064，实际 ${XD.EVENTS.length}`);
+ok(XD.EVENTS.length === 3065, `事件总数应为 3065，实际 ${XD.EVENTS.length}`);
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; worst-repeat=${worstRepeat}`);

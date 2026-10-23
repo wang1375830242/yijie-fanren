@@ -1703,6 +1703,126 @@ body:not(.in-life) #btnAuto {
   font-size: 14.5px;
   letter-spacing: 0.04em;
 }
+.birth-legacy {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: rgba(20, 25, 18, 0.55);
+  color: var(--text);
+  font-family: var(--kai);
+  font-size: 12px;
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+}
+.birth-legacy b {
+  color: var(--gold, #c7a75f);
+  font-weight: 400;
+}
+.birth-legacy span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+}
+.legacy-box {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-ink);
+}
+.legacy-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.legacy-head span {
+  font-family: var(--kai);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--paper-ink);
+}
+.legacy-head small {
+  color: var(--paper-muted);
+  font-family: var(--kai);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-align: right;
+}
+.legacy-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--line-ink);
+  font-family: var(--kai);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.legacy-row span {
+  color: var(--paper-muted);
+  letter-spacing: 0.08em;
+  flex: 0 0 auto;
+}
+.legacy-row b {
+  color: var(--paper-ink);
+  font-weight: 400;
+  text-align: right;
+}
+.legacy-note {
+  margin: 10px 0 0;
+  color: var(--paper-muted);
+  font-family: var(--kai);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+}
+.end-narrative {
+  margin: 0 0 16px;
+  color: var(--paper-ink);
+  font-family: var(--kai);
+  font-size: 13px;
+  line-height: 1.9;
+  letter-spacing: 0.05em;
+}
+.end-acts {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-ink);
+  display: grid;
+  gap: 10px;
+}
+.act {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 4px 10px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--line-ink);
+}
+.act-tag {
+  color: var(--paper-muted);
+  font-family: var(--kai);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+}
+.act-age {
+  color: var(--paper-muted);
+  font-family: var(--kai);
+  font-size: 10px;
+  text-align: right;
+}
+.act-text {
+  grid-column: 2;
+  color: var(--paper-ink);
+  font-family: var(--kai);
+  font-size: 12px;
+  line-height: 1.8;
+}
+@media (max-width: 800px) {
+  .act {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+}
 .end-side {
   display: flex;
   flex-direction: column;

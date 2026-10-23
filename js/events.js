@@ -681,6 +681,30 @@
   });
 
   add({
+    id: "sect_promotion",
+    when: () => false,
+    w: 0,
+    once: false,
+    title: "宗门提拔",
+    text: (s) => {
+      const rank = (D.SECT_RANKS && D.SECT_RANKS[s.sectRank]) || { name: "外门" };
+      return `${s.sect}的执事在议事堂点到你的名字。凭这些年的贡献，你被擢升为${rank.name}。堂下有人抬头看你，也有人低头记下了你的名字。`;
+    },
+    choices: [
+      {
+        label: "谢过宗门，继续做事",
+        effects: { sectContrib: 10, mood: 3 },
+        outcome: "你没有多说什么，第二天照旧去了任务堂。",
+      },
+      {
+        label: "请缨外出执事",
+        effects: { sectContrib: 15, stones: 20, mood: -2 },
+        outcome: "你领了一枚外务令牌。山门外的路，比堂上难走得多。",
+      },
+    ],
+  });
+
+  add({
     id: "f_auction",
     when: (s) => s.tier >= 1 && s.tier <= 2 && s.age >= 20,
     w: 9,
@@ -1059,7 +1083,7 @@
       },
       {
         label: "退，把这个位置让出去",
-        effects: { mood: 10, karma: 10, insight: 10 },
+        effects: { mood: 10, karma: 10, insight: 10, flag: "daozu_declined" },
         outcome: "你转身走了。身后传来一声巨响，然后是很长的寂静。",
       },
     ],

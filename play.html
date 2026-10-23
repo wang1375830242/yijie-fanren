@@ -118,6 +118,7 @@
 
     <div class="birth-cta">
       <button class="btn btn--primary" id="btnBirth" type="button">降 生</button>
+      <p class="birth-legacy" id="birthLegacy" hidden></p>
       <p class="note">夭折、走火入魔、战死、坐化，都会如实发生。这里没有存档，也没有重来——除了再投一次胎。站内含死亡、争斗等虚构描写，建议十六岁以上；可在上方开启柔化模式。</p>
     </div>
   </div>
@@ -269,7 +270,17 @@
       </div>
       <p class="end-life" id="endLife">生卒不详</p>
       <p class="end-epitaph" id="endEpitaph"></p>
+      <p class="end-narrative" id="endNarrative"></p>
       <dl class="end-fields" id="endFields"></dl>
+      <div class="legacy-box" id="legacyBox" hidden>
+        <div class="legacy-head">
+          <span>道 果</span>
+          <small id="legacySource"></small>
+        </div>
+        <div id="legacyList"></div>
+        <p class="legacy-note">仅下一世自动继承；不继承境界、修为与寿元。</p>
+      </div>
+      <div class="end-acts" id="endActs"></div>
     </article>
     <aside class="end-side">
       <div class="end-actions">
@@ -333,13 +344,13 @@
 
 <canvas id="shareCanvas" width="1080" height="1350" hidden></canvas>
 
-<script src="js/common.js?v=20261023u"></script>
-<script src="js/data.js?v=20261023u"></script>
-<script src="js/events.js?v=20261023u"></script>
-<script src="js/events-expanded.js?v=20261023u"></script>
-<script src="js/art.js?v=20261023u"></script>
-<script src="js/sim.js?v=20261023u"></script>
-<script src="js/audio.js?v=20261023u"></script>
-<script src="js/game.js?v=20261023u"></script>
+<script src="js/common.js?v=20261023y"></script>
+<script src="js/data.js?v=20261023y"></script>
+<script src="js/events.js?v=20261023y"></script>
+<script src="js/events-expanded.js?v=20261023y"></script>
+<script src="js/art.js?v=20261023y"></script>
+<script src="js/sim.js?v=20261023y"></script>
+<script src="js/audio.js?v=20261023y"></script>
+<script src="js/game.js?v=20261023y"></script>
 </body>
 </html>

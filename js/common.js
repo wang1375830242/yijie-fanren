@@ -49,6 +49,7 @@
   const KEY_LIVES = "yijie.lives.v1";
   const KEY_PREFS = "yijie.prefs.v1";
   const KEY_CANDLES = "yijie.candles.v1";
+  const KEY_LEGACY = "yijie.legacy.v1";
 
   function read(key, fallback) {
     try {
@@ -79,6 +80,22 @@
     },
     clearLives() {
       write(KEY_LIVES, []);
+    },
+    legacy() {
+      const v = read(KEY_LEGACY, null);
+      return v && typeof v === "object" ? v : null;
+    },
+    setLegacy(legacy) {
+      return write(KEY_LEGACY, legacy);
+    },
+    markLegacyUsed(seed) {
+      const legacy = store.legacy();
+      if (!legacy) return false;
+      legacy.usedBy = seed >>> 0;
+      return write(KEY_LEGACY, legacy);
+    },
+    clearLegacy() {
+      write(KEY_LEGACY, null);
     },
     prefs() {
       return read(KEY_PREFS, {});

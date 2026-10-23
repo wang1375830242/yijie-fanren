@@ -18,14 +18,14 @@
     { key: "core", name: "结丹期", tier: 3, world: "human", need: 350, life: 480, per: 4, subs: ["初期", "中期", "后期"], color: "#6fa7a4" },
     { key: "nascent", name: "元婴期", tier: 4, world: "human", need: 600, life: 1000, per: 8, subs: ["初期", "中期", "后期"], color: "#6f95bb" },
     { key: "deity", name: "化神期", tier: 5, world: "human", need: 1300, life: 2000, per: 15, subs: ["初期", "中期", "后期"], color: "#8a86c4" },
-    { key: "void", name: "炼虚期", tier: 6, world: "spirit", need: 2000, life: 3000, per: 40, subs: ["初期", "中期", "后期"], color: "#8fa8d6" },
-    { key: "unity", name: "合体期", tier: 7, world: "spirit", need: 5000, life: 8000, per: 80, subs: ["初期", "中期", "后期"], color: "#a0a6dc" },
-    { key: "mahayana", name: "大乘期", tier: 8, world: "spirit", need: 10000, life: 15000, per: 160, subs: ["初期", "中期", "后期"], color: "#bab0e0" },
-    { key: "true", name: "真仙", tier: 9, world: "immortal", need: 40000, life: 80000, per: 400, subs: ["初期", "中期", "后期"], color: "#d6ba78" },
-    { key: "golden", name: "金仙", tier: 10, world: "immortal", need: 150000, life: 200000, per: 800, subs: ["初期", "中期", "后期"], color: "#e0c98d" },
-    { key: "taiyi", name: "太乙", tier: 11, world: "immortal", need: 300000, life: 500000, per: 1600, subs: ["初期", "中期", "后期"], color: "#e7d6a2" },
-    { key: "daluo", name: "大罗", tier: 12, world: "immortal", need: 600000, life: 1000000, per: 3200, subs: ["初期", "中期", "后期"], color: "#f0e2b6" },
-    { key: "daozu", name: "道祖", tier: 13, world: "immortal", need: 99999, life: 9999999, per: 9999, subs: [""], color: "#f6ecc9" },
+    { key: "void", name: "炼虚期", tier: 6, world: "spirit", need: 2000, life: 3000, per: 32, pace: 1.5, subs: ["初期", "中期", "后期"], color: "#8fa8d6" },
+    { key: "unity", name: "合体期", tier: 7, world: "spirit", need: 5000, life: 8000, per: 48, pace: 1.8, subs: ["初期", "中期", "后期"], color: "#a0a6dc" },
+    { key: "mahayana", name: "大乘期", tier: 8, world: "spirit", need: 10000, life: 15000, per: 64, pace: 2, subs: ["初期", "中期", "后期"], color: "#bab0e0" },
+    { key: "true", name: "真仙", tier: 9, world: "immortal", need: 40000, life: 80000, per: 100, pace: 3, subs: ["初期", "中期", "后期"], color: "#d6ba78" },
+    { key: "golden", name: "金仙", tier: 10, world: "immortal", need: 150000, life: 200000, per: 150, pace: 4, subs: ["初期", "中期", "后期"], color: "#e0c98d" },
+    { key: "taiyi", name: "太乙", tier: 11, world: "immortal", need: 300000, life: 500000, per: 200, pace: 5, subs: ["初期", "中期", "后期"], color: "#e7d6a2" },
+    { key: "daluo", name: "大罗", tier: 12, world: "immortal", need: 600000, life: 1000000, per: 250, pace: 6, subs: ["初期", "中期", "后期"], color: "#f0e2b6" },
+    { key: "daozu", name: "道祖", tier: 13, world: "immortal", need: 99999, life: 9999999, per: 400, pace: 8, subs: [""], color: "#f6ecc9" },
   ];
 
   const WORLD_META = {
@@ -100,6 +100,14 @@
     { key: "sect", name: "宗门", desc: "接任务、结人脉，在门派里站稳脚跟。", cult: 0.7, mood: 1, stones: 6, luck: 1, risk: 0 },
     { key: "insight", name: "参悟", desc: "不急着进境，先把道理看透。", cult: 1.0, mood: 2, stones: 0, luck: 0, risk: 0, insight: 0.08 },
     { key: "seclude", name: "蛰伏", desc: "藏起来，等风头过去。", cult: 0.45, mood: 4, stones: 0, luck: 0, risk: -1 },
+  ];
+
+  /* 宗门职位：贡献达到门槛且境界足够时晋升 */
+  const SECT_RANKS = [
+    { name: "外门", need: 0, tierMin: 1, share: 5 },
+    { name: "内门", need: 60, tierMin: 2, share: 12 },
+    { name: "执事", need: 180, tierMin: 3, share: 25 },
+    { name: "长老", need: 420, tierMin: 5, share: 50 },
   ];
 
   /* ---------------- 货栈 ---------------- */
@@ -537,6 +545,7 @@
     DAOHAO_A,
     DAOHAO_B,
     FOCUS,
+    SECT_RANKS,
     SHOP,
     AMBIENT,
     MICRO,

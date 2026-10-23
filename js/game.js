@@ -41,6 +41,27 @@
     $("tbMid").hidden = name !== "life";
     document.body.classList.toggle("in-life", name === "life");
     window.scrollTo({ top: 0, behavior: "instant" in document.documentElement.style ? "instant" : "auto" });
+    if (name === "birth") renderBirthLegacy();
+  }
+
+  function renderBirthLegacy() {
+    const el = $("birthLegacy");
+    if (!el) return;
+    const params = new URLSearchParams(location.search);
+    const legacy = params.get("seed") ? null : U.store.legacy();
+    if (!legacy || legacy.usedBy) {
+      el.hidden = true;
+      el.textContent = "";
+      return;
+    }
+    const source = legacy.source || {};
+    const parts = [];
+    if (legacy.rootKey) parts.push("灵根余韵");
+    parts.push(`悟性 +${legacy.insight || 0}`);
+    parts.push("遗物");
+    if (legacy.karma) parts.push(`因果 ${legacy.karma > 0 ? "+" : ""}${legacy.karma}`);
+    el.hidden = false;
+    el.innerHTML = `你带着前世道果：<b>${U.esc(source.name || "无名")}</b> · ${U.esc(source.realm || "凡人")} · ${U.esc(parts.join(" · "))}<span>下一世自动继承</span>`;
   }
 
   function setTheme(world) {
@@ -164,8 +185,16 @@
     const qSeed = params.get("seed");
     const seed = qSeed ? Number(qSeed) >>> 0 : (Math.random() * 4294967295) >>> 0;
     const modeEl = document.querySelector('input[name="mode"]:checked');
-    sim = new XD.Sim({ seed, world, mode: modeEl ? modeEl.value : "birth" });
+    const storedLegacy = qSeed ? null : U.store.legacy();
+    const legacy = storedLegacy && !storedLegacy.usedBy ? storedLegacy : null;
+    sim = new XD.Sim({
+      seed,
+      world,
+      mode: modeEl ? modeEl.value : "birth",
+      legacy,
+    });
     state = sim.state;
+    if (legacy) U.store.markLegacyUsed(state.seed);
     endSummary = null;
     saved = false;
     setTheme(state.world);
@@ -194,6 +223,9 @@
       ["寿元", s.maxAge + " 年"],
       ["随身", s.stones ? s.stones + " 块灵石" : "一无所有"],
     ];
+    if (s.legacy && s.legacy.source) {
+      fields.push(["前世", `${s.legacy.source.name} · ${s.legacy.source.realm}`]);
+    }
     $("fateFields").innerHTML = fields
       .map(
         ([k, v]) =>
@@ -368,9 +400,10 @@
       s.path === "cultivator" ? `${s.daohao} · ${s.gender}` : `凡俗 · ${s.gender}`;
     $("idRealmName").textContent = sim.displayRealm();
     $("idRealmTag").textContent = worldName(s.world);
+    const rankName = sim.sectRankName();
     const tags = [
       s.root.name,
-      s.sect || "散修",
+      rankName ? `${s.sect} · ${rankName}` : s.sect || "散修",
       s.origin.family,
     ];
     const stageNames = {
@@ -420,7 +453,12 @@
 
     // 关系
     const rels = [];
-    rels.push({ ico: "门", name: s.sect || "无门无派", sub: "宗门 / 归属", when: "" });
+    rels.push({
+      ico: "门",
+      name: s.sect || "无门无派",
+      sub: rankName ? `宗门 · ${rankName} · 贡献 ${Math.round(s.sectContrib || 0)}` : "宗门 / 归属",
+      when: "",
+    });
     if (s.partner) {
       const partnerRealm = (D.REALMS[s.partner.tier || 0] || D.REALMS[0]).name;
       const partnerWorld = (D.WORLD_META[s.partner.world || s.world] || {}).name || "";
@@ -432,15 +470,30 @@
         when: `${typeof s.partner.age === "number" ? s.partner.age : s.partner.since}岁`,
       });
     }
-    if (s.disciples.length)
+    const discipleList = s.disciples || [];
+    const aliveDisciples = discipleList.filter((d) => d.alive !== false);
+    if (discipleList.length) {
+      const d = aliveDisciples[aliveDisciples.length - 1] || discipleList[discipleList.length - 1];
+      const dRealm = (D.REALMS[d.tier || 0] || D.REALMS[0]).name;
       rels.push({
         ico: "徒",
-        name: s.disciples[s.disciples.length - 1].name,
-        sub: `弟子 · 共 ${s.disciples.length} 人`,
-        when: s.disciples[s.disciples.length - 1].since + "岁",
+        name: d.name,
+        sub: `${d.title || "弟子"} · ${dRealm} · 亲厚 ${Math.round(d.affinity || 0)} · 在世 ${aliveDisciples.length}/${discipleList.length}`,
+        when: `${typeof d.age === "number" ? d.age : d.since}岁`,
       });
-    if (s.rivals.length)
-      rels.push({ ico: "仇", name: s.rivals[s.rivals.length - 1].name, sub: "结下的因果", when: "" });
+    }
+    const rivalList = s.rivals || [];
+    const aliveRivals = rivalList.filter((r) => r.alive !== false);
+    if (rivalList.length) {
+      const r = aliveRivals[aliveRivals.length - 1] || rivalList[rivalList.length - 1];
+      const rRealm = (D.REALMS[r.tier || 0] || D.REALMS[0]).name;
+      rels.push({
+        ico: "仇",
+        name: r.name,
+        sub: `${r.title || "对手"} · ${rRealm} · 敌意 ${Math.round(r.hostility || 0)}`,
+        when: `${typeof r.age === "number" ? r.age : r.since}岁`,
+      });
+    }
     if (rels.length === 1)
       rels.push({ ico: "影", name: "孤身一人", sub: "修行路上，暂无同行者", when: "" });
     $("relList").innerHTML = rels
@@ -896,6 +949,36 @@
   /* ======================================================================
      终局
      ====================================================================== */
+  function renderLegacy(legacy) {
+    const box = $("legacyBox");
+    if (!box || !legacy) return;
+    const source = legacy.source || {};
+    const rows = [];
+    rows.push([
+      "灵根余韵",
+      legacy.rootKey
+        ? `下一世更容易生出与「${legacy.rootName || "前世灵根"}」同源的灵根`
+        : "凡骨无灵根余韵",
+    ]);
+    rows.push(["悟性起点", `+${legacy.insight || 0}`]);
+    rows.push([
+      "遗物",
+      `灵石余泽${legacy.ward ? " · 护身玉符 ×1" : ""}`,
+    ]);
+    rows.push([
+      "未了因果",
+      legacy.karma ? `因果 ${legacy.karma > 0 ? "+" : ""}${legacy.karma}` : "无牵无挂",
+    ]);
+    $("legacySource").textContent = `${source.name || "无名"} · ${source.realm || "凡人"} · ${source.cause || "离世"} · ${source.age || 0}岁`;
+    $("legacyList").innerHTML = rows
+      .map(
+        ([k, v]) =>
+          `<div class="legacy-row"><span>${U.esc(k)}</span><b>${U.esc(v)}</b></div>`
+      )
+      .join("");
+    box.hidden = false;
+  }
+
   function endLife() {
     stopWhisper();
     clearTimeout(timer);
@@ -904,11 +987,15 @@
     const s = state;
     endSummary = sim.summary();
 
+    let legacyStored = false;
     if (!saved) {
       const stored = U.store.addLife(endSummary);
+      legacyStored = U.store.setLegacy(endSummary.legacy);
       saved = true;
       $("endNote").textContent = stored
-        ? "这一世的记录已经留在本机。碑林里可以再看见它，命格卡可以带走。"
+        ? legacyStored
+          ? "这一世的记录与道果已经留在本机。碑林里可以再看见它，命格卡可以带走。"
+          : "这一世的记录已经留下，但道果没能写入本机。命格卡仍然可以带走。"
         : "这个浏览器不让保存记录。这一世不会留在碑林，但命格卡仍然可以带走。";
     }
 
@@ -918,19 +1005,34 @@
       走火入魔: "道 消",
       心魔缠身: "道 消",
     };
-    $("endTitle").textContent = s.legendary ? "证 道" : soft ? "远 行" : titles[s.cause] || "陨 落";
-    $("endSub").textContent = `${worldName(s.world)} · ${sim.displayRealm()} · 享年 ${s.endedAt != null ? s.endedAt : s.age} 岁`;
+    const finale = endSummary.finale;
+    $("endTitle").textContent = soft && !s.legendary
+      ? "远 行"
+      : (finale && finale.title) || (s.legendary ? "证 道" : titles[s.cause] || "陨 落");
+    $("endSub").textContent = `${worldName(s.world)} · ${sim.displayRealm()} · 享年 ${s.endedAt != null ? s.endedAt : s.age} 岁${finale ? " · " + finale.karmaLabel : ""}`;
     $("endSeal").textContent = s.name[0];
     $("endName").textContent = s.name + (s.path === "cultivator" && s.daohao ? ` · ${s.daohao}` : "");
     $("endLife").textContent = `${s.origin.place} · ${s.origin.family} · ${soften(s.cause)}`;
     $("endEpitaph").textContent = "「" + soften(s.epitaph || "此人一生，不足为外人道。") + "」";
+    $("endNarrative").textContent = finale ? soften(finale.narrative || "") : "";
+    $("endActs").innerHTML = finale && finale.acts
+      ? finale.acts
+          .map(
+            (act) =>
+              `<div class="act"><span class="act-tag">${U.esc(act.tag)}</span><span class="act-age">${act.age == null ? "—" : act.age + "岁"}</span><span class="act-text">${U.esc(soften(act.text))}</span></div>`
+          )
+          .join("")
+      : "";
 
+    const endDisciples = (s.disciples || []).filter((d) => d.alive !== false).length;
+    const endRivals = (s.rivals || []).filter((r) => r.alive !== false).length;
     const fields = [
       ["最高境界", sim.displayRealm()],
       ["灵根", s.root.name],
-      ["宗门", s.sect || "散修"],
+      ["宗门", s.sect ? `${s.sect}${sim.sectRankName() ? " · " + sim.sectRankName() : ""}` : "散修"],
       ["道侣", s.partner ? s.partner.name : "无"],
-      ["弟子", s.disciples.length ? s.disciples.length + " 人" : "无"],
+      ["弟子", endDisciples ? `${endDisciples} 人在世` : "无"],
+      ["对手", endRivals ? `${endRivals} 人` : "无"],
       ["因果", (s.karma > 0 ? "+" : "") + Math.round(s.karma)],
       ["灵石", U.fmt(s.stones)],
       ["子嗣", s.flags.has_child ? "有" : "无"],
@@ -951,6 +1053,7 @@
         )
         .join("") || '<div class="deed"><span class="deed-age">—</span><span>这一世没有留下什么值得记下的事。</span></div>';
 
+    renderLegacy(endSummary.legacy);
     show("end");
   }
 
@@ -1018,9 +1121,9 @@
       ["生 于", s.origin.place],
       ["出 身", s.origin.family],
       ["灵 根", s.root.name],
-      ["宗 门", s.sect || "散修"],
+      ["宗 门", s.sect ? `${s.sect}${sim.sectRankName() ? " · " + sim.sectRankName() : ""}` : "散修"],
       ["道 侣", s.partner ? s.partner.name : "无"],
-      ["弟 子", s.disciples.length ? s.disciples.length + " 人" : "无"],
+      ["弟 子", ((s.disciples || []).filter((d) => d.alive !== false).length || 0) + " 人"],
     ];
     ctx.font = '21px "KaiTi","STKaiti",serif';
     rows.forEach((r, i) => {

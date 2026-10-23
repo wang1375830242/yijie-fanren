@@ -15,6 +15,7 @@
       opts = opts || {};
       this.seed = (opts.seed >>> 0) || (Math.random() * 4294967295) >>> 0;
       this.rng = new U.RNG(this.seed);
+      this.socialRng = new U.RNG((this.seed ^ 0x9e3779b9) >>> 0);
       this.opts = opts;
       this.state = null;
       this.generate(opts);
@@ -35,12 +36,14 @@
       }
 
       const origin = rng.pick(D0.ORIGINS[world] || D0.ORIGINS.human);
+      const legacy = this.sanitizeLegacy(opts.legacy);
+      this.legacyInput = legacy;
       let root;
       if (world === "human") {
-        root = rng.weighted(D0.ROOTS, (x) => x.w);
+        root = rng.weighted(D0.ROOTS, (x) => this.rootWeight(legacy && legacy.rootKey, x));
       } else {
         do {
-          root = rng.weighted(D0.ROOTS, (x) => x.w);
+          root = rng.weighted(D0.ROOTS, (x) => this.rootWeight(legacy && legacy.rootKey, x));
         } while (root.key === "none");
       }
 
@@ -88,22 +91,30 @@
         origin,
         place: origin.place,
         sect: world === "spirit" ? "天渊城 · 散修" : world === "immortal" ? "北寒仙域 · 散仙" : "凡俗",
+        sectRank: -1,
+        sectContrib: 0,
+        sectPromo: null,
         partner: null,
         partnerHistory: [],
         disciples: [],
         rivals: [],
+        discipleHistory: [],
+        rivalHistory: [],
         bottle,
         flags: {},
         seen: {},
         textUse: {},
+        legacy: null,
         focus: "cultivate",
         log: [],
         lastAmbient: null,
         recentAmbient: [],
+        stepsSinceEvent: 0,
         pending: null,
         alive: true,
         cause: null,
         epitaph: null,
+        finale: null,
         epitaphPool: [],
         history: [],
         tierHistory: [],
@@ -116,6 +127,7 @@
       this.state.flags.arrived_immortal = world === "immortal";
       if (world === "spirit") this.state.flags.arrived_spirit_seen = true;
       if (world === "immortal") this.state.flags.arrived_immortal_seen = true;
+      this.state.legacy = this.applyLegacy(legacy);
 
       this.buildPeers();
       this.pushLog(
@@ -131,6 +143,88 @@
         );
       }
       this.state.tierHistory.push({ age: this.state.age, tier: this.state.tier });
+    }
+
+    sanitizeLegacy(raw) {
+      if (!raw || raw.v !== 1) return null;
+      const keys = new Set(D.ROOTS.map((x) => x.key));
+      const rootKey =
+        typeof raw.rootKey === "string" && keys.has(raw.rootKey) && raw.rootKey !== "none"
+          ? raw.rootKey
+          : null;
+      const number = (value, min, max, fallback) =>
+        Number.isFinite(Number(value)) ? clamp(Number(value), min, max) : fallback;
+      return {
+        v: 1,
+        depth: Math.round(number(raw.depth, 1, 10, 1)),
+        rootKey,
+        insight: Math.round(number(raw.insight, 0, 8, 0)),
+        stones: Math.round(number(raw.stones, 0, 120, 0)),
+        karma: Math.round(number(raw.karma, -10, 10, 0)),
+        ward: raw.ward ? 1 : 0,
+        source: raw.source && typeof raw.source === "object" ? raw.source : null,
+      };
+    }
+
+    rootWeight(rootKey, root) {
+      if (!rootKey) return root.w;
+      const rank = { none: 0, wei: 1, si: 2, san: 3, shuang: 4, yi: 5, tian: 6 };
+      const base = rank[rootKey] || 0;
+      const current = rank[root.key] || 0;
+      if (root.key === "none") return root.w * 0.25;
+      if (current < base) return root.w * 0.72;
+      if (current > base) {
+        return root.w * (1 + Math.min(0.5, (current - base) * 0.18));
+      }
+      return root.w * 1.1;
+    }
+
+    applyLegacy(legacy) {
+      if (!legacy) return null;
+      const s = this.state;
+      const worldFactor = s.world === "human" ? 1 : s.world === "spirit" ? 5 : 15;
+      const beforeInsight = s.insight;
+      s.insight = clamp(s.insight + legacy.insight, 10, 90);
+      const stones = Math.round(legacy.stones * worldFactor);
+      s.stones += stones;
+      s.karma = clamp(s.karma + legacy.karma, -100, 100);
+      if (legacy.ward) s.ward = Math.max(s.ward, 1);
+      return {
+        v: 1,
+        depth: legacy.depth,
+        rootKey: legacy.rootKey,
+        source: legacy.source,
+        applied: {
+          insight: s.insight - beforeInsight,
+          stones,
+          karma: legacy.karma,
+          ward: legacy.ward ? 1 : 0,
+        },
+      };
+    }
+
+    legacySummary() {
+      const s = this.state;
+      const depth = (s.legacy && s.legacy.depth ? s.legacy.depth : 0) + 1;
+      const decay = Math.pow(0.9, Math.max(0, depth - 1));
+      return {
+        v: 1,
+        depth,
+        rootKey: s.root.key !== "none" ? s.root.key : null,
+        rootName: s.root.name,
+        insight: Math.max(1, Math.round((2 + Math.floor(s.tier / 3)) * decay)),
+        stones: Math.max(5, Math.round((10 + s.tier * 5) * decay)),
+        karma: clamp(Math.round((s.karma || 0) * 0.15), -8, 8),
+        ward: s.tier >= 6 ? 1 : 0,
+        source: {
+          name: s.name,
+          seed: s.seed,
+          realm: this.displayRealm(),
+          tier: s.tier,
+          cause: s.cause || "尚在人世",
+          age: s.endedAt != null ? s.endedAt : s.age,
+        },
+      };
     }
 
     buildPeers() {
@@ -201,6 +295,63 @@
     }
     focusDef() {
       return D.FOCUS.find((f) => f.key === this.state.focus) || D.FOCUS[0];
+    }
+
+    isSectMember() {
+      const s = this.state;
+      return !!(
+        s.path === "cultivator" &&
+        s.tier > 0 &&
+        s.sect &&
+        !/散修|散仙|凡俗|杂役|天渊城|北寒仙域|青芦苏氏/.test(s.sect)
+      );
+    }
+
+    sectRankName() {
+      if (!this.isSectMember()) return "";
+      const rank = D.SECT_RANKS[this.state.sectRank];
+      return rank ? rank.name : "";
+    }
+
+    initSectRank() {
+      const s = this.state;
+      if (typeof s.sectRank !== "number" || !D.SECT_RANKS[s.sectRank]) {
+        s.sectRank = this.isSectMember() ? 0 : -1;
+      }
+      if (!this.isSectMember()) {
+        s.sectRank = -1;
+        s.sectContrib = 0;
+      }
+      if (typeof s.sectContrib !== "number") s.sectContrib = 0;
+    }
+
+    sectTick() {
+      const s = this.state;
+      this.initSectRank();
+      if (!this.isSectMember()) return;
+      const years = Math.min(8, Math.max(1, s.lastStepYears || 1));
+      const rank = D.SECT_RANKS[s.sectRank] || D.SECT_RANKS[0];
+      s.stones += rank.share || 0;
+      if (s.focus === "sect") {
+        s.sectContrib += Math.max(1, Math.round((2 + Math.floor(s.tier / 2)) * years * 0.5));
+      }
+      let target = s.sectRank;
+      for (let i = target + 1; i < D.SECT_RANKS.length; i++) {
+        const next = D.SECT_RANKS[i];
+        if (s.sectContrib >= next.need && s.tier >= next.tierMin) target = i;
+        else break;
+      }
+      if (target > s.sectRank) s.sectPromo = target;
+    }
+
+    maybeSectPromotion() {
+      const s = this.state;
+      if (!s.sectPromo || s.pending || !this.isSectMember()) return false;
+      const target = s.sectPromo;
+      s.sectPromo = null;
+      s.sectRank = target;
+      this.trigger("sect_promotion");
+      return true;
     }
     pushLog(kind, text, extra) {
       const entry = Object.assign(
@@ -291,7 +442,7 @@
         if (f.insight && this.rng.chance(f.insight)) {
           s.insight = clamp(s.insight + 1, 0, 100);
         }
-        const base = 100 / this.realm().need;
+        const base = (100 / this.realm().need) * (this.realm().pace || 1);
         const mul =
           s.root.mul *
           (0.75 + s.insight / 200) *
@@ -360,9 +511,137 @@
       );
     }
 
+    createDisciple(title) {
+      const s = this.state;
+      const rng = this.socialRng;
+      const tier = Math.max(1, Math.min(12, s.tier - 1));
+      const age = Math.max(8, s.age - rng.int(15, 40));
+      const talent = 0.6 + rng.next() * 0.5;
+      const disciple = {
+        name: rng.pick(D.SURNAMES) + rng.pick(D.GIVEN),
+        title: title || "弟子",
+        since: s.age,
+        age,
+        ageOffset: age - s.age,
+        tier,
+        cult: 0,
+        talent,
+        maxAge: Math.max(age + 10, D.REALMS[tier].life),
+        affinity: 55 + rng.int(0, 20),
+        nextAt: age + Math.max(10, Math.round(D.REALMS[tier].need / Math.max(0.6, talent * 1.6))),
+        alive: true,
+        status: "present",
+        world: s.world,
+        place: s.place,
+      };
+      s.disciples.push(disciple);
+      this.pushLog("system", `你收了${disciple.name}为徒。他/她今年${age}岁。`);
+      return disciple;
+    }
+
+    createRival() {
+      const s = this.state;
+      const rng = this.socialRng;
+      const tier = Math.max(1, Math.min(12, s.tier));
+      const age = Math.max(8, s.age + rng.int(-5, 5));
+      const talent = 0.8 + rng.next() * 0.5;
+      const rival = {
+        name: rng.pick(D.SURNAMES) + rng.pick(D.GIVEN),
+        title: "对手",
+        since: s.age,
+        age,
+        ageOffset: age - s.age,
+        tier,
+        cult: 0,
+        talent,
+        maxAge: Math.max(age + 10, D.REALMS[tier].life),
+        hostility: 45 + rng.int(0, 25),
+        nextAt: age + Math.max(10, Math.round(D.REALMS[tier].need / Math.max(0.6, talent * 1.6))),
+        alive: true,
+        status: "active",
+        world: s.world,
+        place: s.place,
+      };
+      s.rivals.push(rival);
+      this.pushLog("system", `你和${rival.name}结了怨。这个人不会轻易忘记。`);
+      return rival;
+    }
+
+    maybeCreateSocial() {
+      const s = this.state;
+      if (s.path !== "cultivator" || s.tier <= 0) return;
+      const aliveRivals = s.rivals.filter((x) => x.alive !== false).length;
+      const aliveDisciples = s.disciples.filter((x) => x.alive !== false).length;
+      if (s.tier >= 2 && s.age >= 40 && aliveRivals < 2 && !s.flags.rival_intro) {
+        s.flags.rival_intro = true;
+        this.createRival();
+      }
+      if (s.tier >= 4 && s.age >= 120 && aliveDisciples < 3 && !s.flags.disciple_intro) {
+        s.flags.disciple_intro = true;
+        this.createDisciple("弟子");
+      }
+    }
+
+    tickSocialList(list, kind) {
+      const s = this.state;
+      const history = kind === "disciple" ? s.discipleHistory : s.rivalHistory;
+      const cap = kind === "disciple" ? Math.min(12, Math.max(1, s.tier)) : Math.min(13, Math.max(1, s.tier + 1));
+      for (const person of list) {
+        if (!person || person.alive === false) continue;
+        if (typeof person.age !== "number") person.age = person.since || s.age;
+        if (typeof person.ageOffset !== "number") person.ageOffset = person.age - s.age;
+        person.age = s.age + person.ageOffset;
+        if (typeof person.tier !== "number") person.tier = kind === "disciple" ? Math.max(1, s.tier - 1) : Math.max(1, s.tier);
+        if (typeof person.maxAge !== "number") person.maxAge = D.REALMS[person.tier].life;
+        if (person.age >= person.maxAge) {
+          person.alive = false;
+          person.endedAt = s.age;
+          person.fate = "寿尽";
+          history.push(Object.assign({}, person));
+          if (history.length > 20) history.shift();
+          this.pushLog("system", `${person.name}走了。${kind === "disciple" ? "你送走了自己的弟子。" : "那道旧怨，到这里就散了。"}`);
+          continue;
+        }
+        if (typeof person.nextAt !== "number") person.nextAt = person.age + 20;
+        if (person.age >= person.nextAt && person.tier < cap) {
+          let grown = 0;
+          while (person.age >= person.nextAt && grown < 3 && person.tier < cap) {
+            person.tier += 1;
+            person.cult = 0;
+            person.maxAge = Math.max(person.maxAge, D.REALMS[person.tier].life);
+            person.nextAt = person.age + Math.max(10, Math.round(D.REALMS[person.tier].need / Math.max(0.6, person.talent * 1.6)));
+            grown += 1;
+          }
+          if (grown) {
+            this.pushLog("system", `${person.name}破境了，如今是${D.REALMS[person.tier].name}。`);
+          }
+        } else if (person.age >= person.nextAt) {
+          person.nextAt = person.age + 999;
+        }
+        if (kind === "disciple" && typeof person.affinity === "number") {
+          if (person.tier < s.tier - 2) person.affinity = clamp(person.affinity - 1, 0, 100);
+          if (person.affinity < 15) person.status = "estranged";
+        }
+      }
+    }
+
+    socialTick() {
+      const s = this.state;
+      if (!Array.isArray(s.disciples)) s.disciples = [];
+      if (!Array.isArray(s.rivals)) s.rivals = [];
+      if (!Array.isArray(s.discipleHistory)) s.discipleHistory = [];
+      if (!Array.isArray(s.rivalHistory)) s.rivalHistory = [];
+      this.maybeCreateSocial();
+      this.tickSocialList(s.disciples, "disciple");
+      this.tickSocialList(s.rivals, "rival");
+    }
+
     afterStep() {
       this.partnerTick();
+      this.socialTick();
+      this.sectTick();
       const s = this.state;
+      s.stepsSinceEvent = (s.stepsSinceEvent || 0) + 1;
       // 十岁：测灵根（仅人界凡俗起点）
       if (
         s.tier === 0 &&
@@ -384,6 +663,8 @@
         s.pending = { kind: "break", chance: this.breakChance() };
         return;
       }
+      // 宗门提拔排在突破之后，避免抢掉破境/里程碑的 pending
+      if (!s.pending && this.maybeSectPromotion()) return;
       // 随机事件
       if (!s.pending && this.rng.chance(this.eventChance())) {
         const ev = this.pickEvent();
@@ -413,7 +694,9 @@
       const f = this.focusDef();
       const years = Math.max(1, this.state.lastStepYears || 1);
       const scale = Math.min(2.5, 1 + Math.log10(years));
-      return clamp((0.14 + (f.event || 0) * 0.05) * scale, 0.08, 0.5);
+      const baseChance = clamp((0.14 + (f.event || 0) * 0.05) * scale, 0.08, 0.5);
+      if ((this.state.stepsSinceEvent || 0) >= 2) return Math.max(baseChance, 0.45);
+      return baseChance;
     }
 
     maybeAgeQuestion() {
@@ -501,7 +784,7 @@
         return want("d_node", true);
       if (s.tier === 8 && s.cult >= 85 && !(s.flags.wait_immortal_until && s.age < s.flags.wait_immortal_until))
         return want("m_ascend", true);
-      if (s.tier === 12 && s.cult >= 90) return want("i_daozu", true);
+      if (s.tier === 12 && s.cult >= 90 && !s.flags.daozu_declined) return want("i_daozu", true);
       if (s.tier >= 1 && s.age >= s.maxAge * 0.82 && !s.seen.x_life)
         return want("x_life", true);
       return false;
@@ -553,6 +836,7 @@
       }
       const text = typeof ev.text === "function" ? ev.text(s) : ev.text;
       this.recordText(text);
+      s.stepsSinceEvent = 0;
       this.pushLog("event", text, { title: ev.title });
       s.pending = {
         kind: "event",
@@ -729,14 +1013,16 @@
       const chance = clamp(opt.p + (s.luck - 50) * 0.0005, 0.05, 0.95);
       if (this.rng.chance(chance)) {
         this.apply(opt.effects);
-        this.pushLog("choice", `你选择了「${opt.label}」。${opt.text}`);
+        const shown = this.uniqueText(opt.text);
+        this.pushLog("choice", `你选择了「${opt.label}」。${shown}`);
         s.pending = null;
-        return { status: "survived", text: opt.text, chance };
+        return { status: "survived", text: shown, chance };
       }
-      this.pushLog("choice", `你选择了「${opt.label}」。${p.cause}。`);
+      const failShown = this.uniqueText(p.cause || "身死");
+      this.pushLog("choice", `你选择了「${opt.label}」。${failShown}。`);
       s.pending = null;
       this.die(p.cause, { bypassWard: true });
-      return { status: "died", text: p.cause, chance };
+      return { status: "died", text: failShown, chance };
     }
 
     apply(effects) {
@@ -774,7 +1060,13 @@
       if (typeof effects.ward === "number") s.ward += effects.ward;
       if (typeof effects.cultRate === "number") s.cultRate += effects.cultRate;
       if (effects.flag) s.flags[effects.flag] = true;
-      if (effects.sect) s.sect = effects.sect;
+      if (effects.sect) {
+        s.sect = effects.sect;
+        this.initSectRank();
+      }
+      if (typeof effects.sectContrib === "number") {
+        s.sectContrib = Math.max(0, (s.sectContrib || 0) + effects.sectContrib);
+      }
       if (effects.partner) {
         const partnerAge = s.age + this.rng.int(-3, 3);
         s.partner = {
@@ -808,17 +1100,10 @@
         s.partner.status = "present";
       }
       if (effects.disciple) {
-        s.disciples.push({
-          name: this.rng.pick(D.SURNAMES) + this.rng.pick(D.GIVEN),
-          title: effects.disciple,
-          since: s.age,
-        });
+        this.createDisciple(effects.disciple);
       }
       if (effects.rival) {
-        s.rivals.push({
-          name: this.rng.pick(D.SURNAMES) + this.rng.pick(D.GIVEN),
-          since: s.age,
-        });
+        this.createRival();
       }
       if (effects.awaken && s.root.key === "none") {
         s.root = {
@@ -836,12 +1121,14 @@
       if (effects.path === "mortal" && s.path !== "mortal") {
         s.path = "mortal";
         if (s.tier === 0) s.maxAge = 78;
+        this.initSectRank();
       }
       if (effects.begin && s.tier === 0) {
         s.path = "cultivator";
         s.tier = 1;
         s.cult = 0;
         s.maxAge = Math.max(s.maxAge, D.REALMS[1].life);
+        this.initSectRank();
         this.pushLog("system", "你踏入炼气期。山门在身后合上，人间从此隔了一层。");
       }
       if (effects.wait === "spirit") {
@@ -881,6 +1168,9 @@
         s.flags.spirit_ascended = true;
         s.place = "灵界 · 天渊城";
         s.sect = "天渊城 · 散修";
+        s.sectRank = -1;
+        s.sectContrib = 0;
+        s.sectPromo = null;
         this.pushLog("system", "你穿过空间节点，落入了灵界。境界仍是化神，天地却换了。");
       } else if (world === "immortal") {
         s.world = "immortal";
@@ -890,6 +1180,9 @@
         s.flags.arrived_immortal = false;
         s.place = "仙界 · 北寒仙域";
         s.sect = "北寒仙域 · 散仙";
+        s.sectRank = -1;
+        s.sectContrib = 0;
+        s.sectPromo = null;
         this.pushLog("system", "九道天雷之后，你踏入了仙界。");
       }
       s.mood = clamp(s.mood + 8, 0, 100);
@@ -980,6 +1273,128 @@
       return /劫|天劫|走火入魔|空间乱流|道祖之争|寿元/.test(String(cause || ""));
     }
 
+    buildActs() {
+      const s = this.state;
+      const birth = s.log.find((l) => l.kind === "birth");
+      const events = s.log.filter(
+        (l) => (l.kind === "event" || l.kind === "break") && l.text && l.text.length > 5
+      );
+      const unique = [];
+      for (const event of events) {
+        if (!unique.some((item) => item.text === event.text)) unique.push(event);
+      }
+      const endAge = s.endedAt != null ? s.endedAt : s.age;
+      const mid = unique.reduce((best, item) => {
+        if (!best) return item;
+        return Math.abs(item.age - endAge / 2) < Math.abs(best.age - endAge / 2)
+          ? item
+          : best;
+      }, null);
+      const last = unique.length ? unique[unique.length - 1] : null;
+      const acts = [];
+      acts.push({
+        tag: "来处",
+        age: birth ? birth.age : 0,
+        text: birth ? birth.text : `你出生在${s.origin.place}，${s.origin.family}。`,
+      });
+      if (mid && mid.text !== acts[0].text) {
+        acts.push({ tag: "行路", age: mid.age, text: mid.text });
+      }
+      if (last && last.text !== acts[0].text && (!mid || last.text !== mid.text)) {
+        acts.push({ tag: "归处", age: last.age, text: last.text });
+      }
+      return acts.slice(0, 3);
+    }
+
+    finaleSummary(cause) {
+      const s = this.state;
+      const text = String(cause || s.cause || "身死道消");
+      const mortal = s.tier === 0 || s.path === "mortal";
+      let key = "accident";
+      let title = "远 行";
+      let sub = "你没能看见明天的天。";
+      if (s.legendary || /证道/.test(text)) {
+        key = "legend";
+        title = "证 道";
+        sub = "你走完了自己的路。";
+      } else if (mortal) {
+        key = "mortal";
+        title = "归 尘";
+        sub = "凡人的一生，也有它的重量。";
+      } else if (/走火入魔|心魔/.test(text)) {
+        key = "demon";
+        title = "道 消";
+        sub = "心火反噬，道途断在这里。";
+      } else if (/劫|雷|空间乱流|天劫/.test(text)) {
+        key = "tribulation";
+        title = "劫 尽";
+        sub = "天地的门槛，终究没有跨过去。";
+      } else if (/寿元|坐化|寿尽/.test(text)) {
+        key = "old";
+        title = "坐 化";
+        sub = "灯油燃尽，你合上了眼。";
+      } else if (/战|杀|血|兽|仇|袭|刀|剑|陨/.test(text)) {
+        key = "violent";
+        title = "陨 落";
+        sub = "你倒在了路上。";
+      }
+      const karmaLabel = s.karma >= 30 ? "余庆" : s.karma <= -30 ? "业债" : "两清";
+      const partnerLine = s.partner
+        ? `身边还有${s.partner.name}。`
+        : s.partnerHistory && s.partnerHistory.length
+        ? `${s.partnerHistory[s.partnerHistory.length - 1].name}先走了一步。`
+        : "";
+      const narratives = {
+        legend: [
+          "你走到了这条路的尽头。身后的人还在走，山门还在，风也还在。",
+          "最后一段路很安静。你没有回头，也不必回头。",
+          "你留下了名字，也留下了很多没有说完的话。",
+        ],
+        mortal: [
+          "你过了普通的一生。田里的庄稼、屋里的灯，都还在原来的地方。",
+          "你最后看见的是窗外的光。它和很多年前一样，慢慢移过门槛。",
+          "这一生没有惊天动地的事。你把日子过完了。",
+        ],
+        old: [
+          "你算过很多次寿元，最后还是没有算过天。",
+          "你把手边的东西一件件放好，然后坐下来，等那盏灯灭。",
+          "窗外有风。你想了很久，最后什么也没有说。",
+        ],
+        demon: [
+          "心火从丹田烧上来时，你还在想那句没有想通的话。",
+          "你看见了很多年前的自己，然后什么也看不见了。",
+          "道基碎得很轻，像一层薄冰。",
+        ],
+        tribulation: [
+          "雷声过去以后，山里安静了很久。",
+          "你伸手去够那道门，指尖最后停在了半空。",
+          "天没有回答。你也没有再问。",
+        ],
+        violent: [
+          "你倒下去的时候，手里还握着那件东西。",
+          "路上的人从你身边过去，没有人停下来。",
+          "你最后看见的是一线天光，离得很远。",
+        ],
+        accident: [
+          "事情来得很快，快到你来不及想明白。",
+          "你还有话没有说完。后来也没有人替你说。",
+          "这一世停在这里，像一笔没有收尾的账。",
+        ],
+      };
+      const list = narratives[key] || narratives.accident;
+      const narrative = list[(s.seed >>> 0) % list.length] + (partnerLine ? " " + partnerLine : "");
+      return {
+        v: 1,
+        key,
+        title,
+        sub,
+        narrative,
+        karmaLabel,
+        partnerLine,
+        acts: this.buildActs(),
+      };
+    }
+
     die(cause, opts) {
       if (!this.state.alive) return;
       const hard = this.isHardDeath(cause);
@@ -998,6 +1413,7 @@
       this.state.endedAt = this.state.age;
       const pool = D.EPITAPHS[Math.min(this.state.tier, 13)] || D.EPITAPHS[0];
       this.state.epitaph = this.rng.pick(pool);
+      this.state.finale = this.finaleSummary(cause);
       this.pushLog("death", `你死了。${cause}。`, { title: "终" });
       this.state.ended = true;
     }
@@ -1010,6 +1426,7 @@
       this.state.legendary = true;
       this.state.epitaph =
         (D.EPITAPHS[Math.min(this.state.tier, 13)] || D.EPITAPHS[0])[0];
+      this.state.finale = this.finaleSummary(kind);
       this.pushLog("death", `你的故事到此为止：${kind}。`, { title: "终" });
     }
 
@@ -1035,15 +1452,22 @@
         maxAge: s.maxAge,
         cause: s.cause || "尚在人世",
         epitaph: s.epitaph || "",
+        finale: s.finale || null,
         deeds,
         partner: s.partner,
         partnerHistory: s.partnerHistory,
-        disciples: s.disciples,
+        disciples: s.disciples || [],
+        rivals: s.rivals || [],
+        discipleHistory: s.discipleHistory || [],
+        rivalHistory: s.rivalHistory || [],
         karma: s.karma,
         stones: s.stones,
         sect: s.sect,
+        sectRank: this.sectRankName(),
+        sectContrib: Math.round(s.sectContrib || 0),
         place: s.place,
         bottle: s.bottle,
+        legacy: this.legacySummary(),
         legendary: !!s.legendary,
         ts: Date.now(),
       };
