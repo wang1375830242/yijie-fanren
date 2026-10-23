@@ -690,13 +690,23 @@ ok(
   "人生地图与曲线应按脏键渲染"
 );
 const breakBlock = gameSource.slice(
-  gameSource.indexOf("function openBreak"),
+  gameSource.indexOf("function startAutoBreak"),
   gameSource.indexOf("function handleWorldChange")
 );
 ok(
-  breakBlock.includes('$("choiceOverlay").hidden = true;') &&
-    (breakBlock.match(/if \(handleWorldChange\(\)\) return;/g) || []).length >= 2,
-  "突破后应关闭抉择遮罩，并在跨世界破境时停下播放飞升"
+  breakBlock.includes("paused = true") &&
+    breakBlock.includes('$("ascend").hidden = false') &&
+    breakBlock.includes("setTimeout(close") &&
+    breakBlock.includes("saveRun(true)"),
+  "突破应自动播放动画，并在动画结束后继续流程"
+);
+ok(
+  !gameSource.includes("return openBreak()") && !gameSource.includes("openBreak();"),
+  "突破不应再打开手动冲关弹窗"
+);
+ok(
+  gameSource.includes('state.pending.kind === "break") return startAutoBreak()'),
+  "破境 pending 应进入自动突破流程"
 );
 ok(
   fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("choicePeek") &&

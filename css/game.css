@@ -1625,6 +1625,13 @@ body:not(.in-life) #btnAuto {
   animation: ascend-in 1.4s var(--ease);
   margin-left: 0.3em;
 }
+.ascend.is-fail .ascend-word {
+  color: var(--cinnabar-2);
+  text-shadow: 0 0 44px rgba(174, 68, 48, 0.45);
+}
+.ascend.is-fail .ascend-sub {
+  color: var(--muted);
+}
 @keyframes ascend-in {
   from {
     opacity: 0;

@@ -846,7 +846,7 @@
     clearTimeout(autoTimer);
     resetPromptChrome();
     if (!state.pending) return;
-    if (state.pending.kind === "break") return openBreak();
+    if (state.pending.kind === "break") return startAutoBreak();
     if (state.pending.kind === "danger") return openDanger();
     const p = state.pending;
     const waitLocked =
@@ -1021,78 +1021,68 @@
     schedule();
   }
 
-  function openBreak() {
+  function startAutoBreak() {
+    if (!state || !state.pending || state.pending.kind !== "break") return;
+    clearTimeout(timer);
+    clearTimeout(autoTimer);
     stopWhisper();
-    resetPromptChrome();
-    const p = state.pending;
-    const target = D.REALMS[state.tier + 1];
-    $("choiceKicker").textContent = "冲 关";
-    $("choiceTitle").textContent = `冲击${target.name}`;
-    const pct = Math.round(p.chance * 100);
-    const waitMax = (state.breakWaits || 0) >= 3;
-    $("choiceText").innerHTML = soften(`修为已满，经脉里的灵力在撞关。跨过去，是${target.name}；跨不过去，轻则修为倒退，重则道消身死。`);
-    $("choiceOpts").innerHTML = `
-      <div class="break-figure">
-        <div class="break-chance">${pct}%<small>你估摸着，成算大约是这样。</small></div>
-      </div>
-      <button class="opt" type="button" data-act="push"><b>即刻冲关</b><span>把所有能用的都用上。成了，海阔天空。</span></button>
-      <button class="opt" type="button" data-act="wait" ${waitMax ? "disabled" : ""}><b>再缓几年</b><span>${waitMax ? "再压下去，心气就散了。" : "压住修为，稳固根基。成算会高一些，但寿元不等人。"}</span></button>
-    `;
-    $("choiceOpts").querySelectorAll(".opt").forEach((b) => {
-      b.addEventListener("click", () => {
-        clearTimeout(autoTimer);
-        if (releasePromptTrap) {
-          releasePromptTrap();
-          releasePromptTrap = null;
-        }
-        $("choiceOverlay").hidden = true;
-        resetPromptChrome();
-        const act = b.dataset.act;
-        const before = state.log.length;
-        const res = sim.chooseBreak(act);
-        appendLogs(before);
-        refreshAll();
-        if (!state.alive) return endLife();
-        if (state.pending) return openPrompt();
-        if (handleWorldChange()) return;
-        paused = false;
-        $("btnPause").textContent = "❚❚";
-        if (act === "push" && XD.Audio) XD.Audio.bell(act === "push" ? "break" : "soft");
-        saveRun();
-        schedule();
-      });
-    });
-    $("choiceOverlay").hidden = false;
-    trapChoicePrompt();
-    const first = $("choiceOpts").querySelector(".opt:not([disabled])");
-    if (first) first.focus();
-
-    if (auto) {
-      autoTimer = setTimeout(() => {
-        const before = state.log.length;
-        const push = waitMax || p.chance >= 0.62 || state.age + 8 >= state.maxAge;
-        $("choiceOverlay").hidden = true;
-        resetPromptChrome();
-        sim.chooseBreak(push ? "push" : "wait");
-        if (releasePromptTrap) {
-          releasePromptTrap();
-          releasePromptTrap = null;
-        }
-        appendLogs(before);
-        refreshAll();
-        if (!state.alive) return endLife();
-        if (state.pending) return openPrompt();
-        if (handleWorldChange()) return;
-        paused = false;
-        saveRun();
-        schedule();
-      }, 1400);
+    paused = true;
+    if (releasePromptTrap) {
+      releasePromptTrap();
+      releasePromptTrap = null;
     }
+    $("choiceOverlay").hidden = true;
+    resetPromptChrome();
+
+    const fromRealm = sim.displayRealm();
+    const target = D.REALMS[state.tier + 1];
+    const before = state.log.length;
+    const result = sim.chooseBreak("push");
+    appendLogs(before);
+    refreshAll();
+    const success = !!(result && result.status === "break");
+    const worldChanged = state.world !== themeWorld;
+    if (XD.Audio) XD.Audio.bell(success ? "break" : "soft");
+
+    $("ascendWord").textContent = success ? "破 境" : "功 亏";
+    $("ascendSub").textContent = success
+      ? `${fromRealm} → ${target ? target.name : sim.displayRealm()}${worldChanged ? " · 飞升" : ""}`
+      : `${fromRealm} · 冲关未成`;
+    $("ascend").classList.toggle("is-fail", !success);
+    $("ascendBolt").innerHTML = `<svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%">
+      <g stroke="#e0c98d" stroke-width="1.2" fill="none" opacity=".55">
+        <path d="M120 0 L160 120 L130 130 L190 250 L150 260 L220 430" />
+        <path d="M620 0 L590 90 L640 110 L600 230 L650 250 L600 400" />
+        <path d="M380 0 L400 80 L370 96 L410 190" stroke-width="2"/>
+      </g>
+    </svg>`;
+    $("ascend").hidden = false;
+
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      $("ascendSkip").removeEventListener("click", close);
+      $("ascend").hidden = true;
+      $("ascend").classList.remove("is-fail");
+      if (worldChanged) setTheme(state.world);
+      if (!state.alive) {
+        endLife();
+        return;
+      }
+      if (state.pending) {
+        openPrompt();
+        return;
+      }
+      paused = false;
+      $("btnPause").textContent = "❚❚";
+      saveRun(true);
+      schedule();
+    };
+    $("ascendSkip").addEventListener("click", close);
+    setTimeout(close, success ? 1900 : 1300);
   }
 
-  /* ======================================================================
-     飞升
-     ====================================================================== */
   function handleWorldChange() {
     if (!state || state.world === themeWorld) return false;
     paused = true;
