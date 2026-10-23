@@ -40,6 +40,7 @@ python server.py
 | `hall.html` | 碑林。读别人的一生，点灯、留言 |
 | `codex.html` | 万宝阁图鉴。境界 / 界域 / 宗门 / 法宝 / 丹药 / 妖兽 |
 | `about.html` | 这是怎么算的、数据与版权说明 |
+| `docs/zhihu/zhihu-article.md` | 知乎发布稿，含项目截图与试玩地址 |
 
 ## 这一世怎么算
 
