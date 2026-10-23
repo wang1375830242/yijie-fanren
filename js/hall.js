@@ -203,9 +203,9 @@
 
   const LEGEND_PROFILES = {
     "legend-hanli": { root: "伪灵根", sect: "黄枫谷" },
-    "legend-nangong": { root: "天灵根（推测）", sect: "掩月宗" },
+    "legend-nangong": { root: "冰灵根（推测）", sect: "掩月宗" },
     "legend-ziling": { root: "水灵根（推测）", sect: "妙音门" },
-    "legend-yinyue": { root: "妖修（银月狼族）", sect: "银月狼族" },
+    "legend-yinyue": { root: "七星月体", sect: "银月狼族" },
     "legend-lifeiyu": { root: "无灵根", sect: "七玄门" },
     "legend-mo-dafu": { root: "无灵根", sect: "七玄门" },
     "legend-mo-caihuan": { root: "无灵根", sect: "墨府" },
