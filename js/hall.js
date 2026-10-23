@@ -225,6 +225,22 @@
     "legend-gu-huo-jin": { root: "时间灵根（推测）", sect: "无宗门（时间道祖）" },
     "legend-li-yuanjiu": { root: "金灵根（推测）", sect: "九元观" },
     "legend-lunhui": { root: "轮回灵根（推测）", sect: "轮回殿" },
+    "legend-feng-laoguai": { root: "风灵根（推测）", sect: "散修" },
+    "legend-hu-qinglei": { root: "火灵根（推测）", sect: "天魔宗" },
+    "legend-chen-qiaoqian": { root: "双灵根（推测）", sect: "黄枫谷" },
+    "legend-dong-xuaner": { root: "水灵根（推测）", sect: "黄枫谷 / 合欢宗" },
+    "legend-hong-fu": { root: "火灵根（推测）", sect: "黄枫谷" },
+    "legend-li-yingning": { root: "金灵根（推测）", sect: "化刀坞" },
+    "legend-qi-yunxiao": { root: "土灵根（推测）", sect: "天南" },
+    "legend-xin-ruyin": { root: "木灵根（推测）", sect: "天南" },
+    "legend-tianfu-zhenren": { root: "双灵根（推测）", sect: "天符门" },
+    "legend-xuangu-shangren": { root: "鬼灵根（推测）", sect: "极阴岛" },
+    "legend-ji-yin": { root: "鬼灵根（推测）", sect: "极阴岛" },
+    "legend-wan-tianming": { root: "水灵根（推测）", sect: "万法门" },
+    "legend-ling-xiaofeng": { root: "雷灵根（推测）", sect: "星宫" },
+    "legend-wen-qing": { root: "水灵根（推测）", sect: "星宫" },
+    "legend-jin-kui": { root: "金灵根（推测）", sect: "星宫" },
+    "legend-qing-yi": { root: "木灵根（推测）", sect: "散修" },
   };
 
   const legends = D.LEGENDS.map((lg) => {

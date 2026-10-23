@@ -107,6 +107,18 @@ ok(
   !D.LEGENDS.some((legend) => String(legend.note || "").includes("原著结局")),
   "H5 碑林 note 不应再出现“原著结局”"
 );
+ok(D.LEGENDS.length === 39, `碑林原著人物应为 39 位，实际 ${D.LEGENDS.length}`);
+ok(
+  new Set(D.LEGENDS.map((legend) => legend.id)).size === D.LEGENDS.length,
+  "碑林人物 id 不应重复"
+);
+const hallSource = fs.readFileSync(path.join(ROOT, "js/hall.js"), "utf8");
+for (const legend of D.LEGENDS) {
+  ok(
+    hallSource.includes(`"${legend.id}"`),
+    `碑林人物 ${legend.name} 应有灵根/宗门资料`
+  );
+}
 ok(
   !(XD.CANON && XD.CANON.characters || []).some((character) =>
     String(character.meta || "").includes("原著结局")
@@ -154,12 +166,30 @@ ok(partnerSim.state.partner && partnerSim.state.partner.maxAge > 0, "M3 道侣�
 const rootEvent = XD.EVENTS.find((event) => event.id === "root_test");
 const maleSim = new Sim({ seed: 4, world: "human" });
 maleSim.state.gender = "男";
+maleSim.state.origin.place = "越国 · 青牛镇";
 const femaleSim = new Sim({ seed: 4, world: "human" });
 femaleSim.state.gender = "女";
+femaleSim.state.origin.place = "越国 · 青牛镇";
 const maleSects = rootEvent.choices(maleSim.state).map((choice) => choice.effects && choice.effects.sect);
 const femaleSects = rootEvent.choices(femaleSim.state).map((choice) => choice.effects && choice.effects.sect);
 ok(!maleSects.includes("掩月宗"), "M4 男角色不应能入掩月宗");
 ok(femaleSects.includes("掩月宗"), "M4 女角色应能入掩月宗");
+
+/* 出生地决定可选宗门。 */
+function sectLabelsAt(place, gender) {
+  const sim = new Sim({ seed: 31, world: "human" });
+  sim.state.origin.place = place;
+  sim.state.gender = gender;
+  return rootEvent.choices(sim.state).map((choice) => choice.effects && choice.effects.sect);
+}
+const yueSects = sectLabelsAt("越国 · 青牛镇", "男");
+const tiannanSects = sectLabelsAt("天南 · 临江府", "男");
+const dajinSects = sectLabelsAt("大晋 · 晋州", "男");
+const luantianSects = sectLabelsAt("乱星海 · 石螺岛", "男");
+ok(yueSects.includes("黄枫谷") && !yueSects.includes("落云宗"), "越国应匹配越国宗门");
+ok(tiannanSects.includes("落云宗") && !tiannanSects.includes("黄枫谷"), "天南应匹配天南宗门");
+ok(dajinSects.includes("太一门") && !dajinSects.includes("星宫"), "大晋应匹配大晋宗门");
+ok(luantianSects.includes("星宫") && !luantianSects.includes("太一门"), "乱星海应匹配乱星海宗门");
 
 /* M6：灵界不再写成两个月亮；仙界地理说明是总称。 */
 const dataSource = fs.readFileSync(path.join(ROOT, "js/data.js"), "utf8");

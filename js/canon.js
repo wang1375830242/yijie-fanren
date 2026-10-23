@@ -200,7 +200,23 @@
     { id: "legend-dayan", name: "大衍神君", title: "极西之地 · 上古", realm: "化神（推测）", world: "human", years: "不可考", line: "他死了很多年，还在替后来的人指路。", note: "原著人物 · 致敬（境界推测）" },
     { id: "legend-gu-huo-jin", name: "古或今", title: "仙界 · 时间道祖", realm: "道祖", world: "immortal", years: "不可考", line: "时间在他手里，像一条可以反复折返的河。", note: "原著人物 · 致敬" },
     { id: "legend-li-yuanjiu", name: "李元究", title: "仙界 · 九元观", realm: "金之本源道祖", world: "immortal", years: "不可考", line: "他捡到一只瓶子，后来成了一座道观。", note: "原著人物 · 致敬" },
-    { id: "legend-lunhui", name: "轮回殿主", title: "仙界 · 轮回殿", realm: "大罗巅峰（推测）", world: "immortal", years: "不可考", line: "他和韩立，像同一个人的两种走法。", note: "原著人物 · 致敬（境界推测）" }
+    { id: "legend-lunhui", name: "轮回殿主", title: "仙界 · 轮回殿", realm: "大罗巅峰（推测）", world: "immortal", years: "不可考", line: "他和韩立，像同一个人的两种走法。", note: "原著人物 · 致敬（境界推测）" },
+    { id: "legend-feng-laoguai", name: "风老怪", title: "大晋 · 化神散修", realm: "化神", world: "human", years: "不可考", line: "他一直在找一个人，找了很久。", note: "原著人物 · 致敬" },
+    { id: "legend-hu-qinglei", name: "呼庆雷", title: "天魔宗 · 太上长老", realm: "化神", world: "human", years: "不可考", line: "人界第一魔修，也有不肯让的东西。", note: "原著人物 · 致敬" },
+    { id: "legend-chen-qiaoqian", name: "陈巧倩", title: "黄枫谷 · 筑基", realm: "筑基", world: "human", years: "不可考", line: "她记得山门里那些很轻的日子。", note: "原著人物 · 致敬" },
+    { id: "legend-dong-xuaner", name: "董萱儿", title: "黄枫谷 / 合欢宗", realm: "结丹", world: "human", years: "不可考", line: "她走过的路，从来由不得别人替她选。", note: "原著人物 · 致敬" },
+    { id: "legend-hong-fu", name: "红拂", title: "黄枫谷 · 结丹", realm: "结丹", world: "human", years: "不可考", line: "她教过后辈，也送走过同门。", note: "原著人物 · 致敬" },
+    { id: "legend-li-yingning", name: "李缨宁", title: "化刀坞 · 结丹", realm: "结丹初期", world: "human", years: "不可考", line: "她握刀的时候，比说话的时候更自在。", note: "原著人物 · 致敬" },
+    { id: "legend-qi-yunxiao", name: "齐云霄", title: "天南 · 炼器师", realm: "筑基（推测）", world: "human", years: "不可考", line: "他炼过很多东西，最想留下的是一件小玩意。", note: "原著人物 · 致敬（境界推测）" },
+    { id: "legend-xin-ruyin", name: "辛如音", title: "天南 · 阵法", realm: "筑基（推测）", world: "human", years: "不可考", line: "她算得出阵眼，算不出自己的命。", note: "原著人物 · 致敬（境界推测）" },
+    { id: "legend-tianfu-zhenren", name: "天符真人", title: "天符门 · 元婴", realm: "元婴（推测）", world: "human", years: "不可考", line: "他画了一辈子符，最后一道符留给后来人。", note: "原著人物 · 致敬（境界推测）" },
+    { id: "legend-xuangu-shangren", name: "玄骨上人", title: "极阴岛 · 鬼道", realm: "元婴", world: "human", years: "不可考", line: "他在海底待了很久，久到忘了人界的路。", note: "原著人物 · 致敬" },
+    { id: "legend-ji-yin", name: "极阴", title: "极阴岛 · 元婴", realm: "元婴初期", world: "human", years: "不可考", line: "他信的东西不多，其中一样是力量。", note: "原著人物 · 致敬" },
+    { id: "legend-wan-tianming", name: "万天明", title: "万法门 · 元婴", realm: "元婴", world: "human", years: "不可考", line: "万法门的门主，喜欢把话说得很慢。", note: "原著人物 · 致敬" },
+    { id: "legend-ling-xiaofeng", name: "凌啸风", title: "星宫 · 元婴后期", realm: "元婴后期", world: "human", years: "不可考", line: "星宫的风浪，他见过太多次。", note: "原著人物 · 致敬" },
+    { id: "legend-wen-qing", name: "温青", title: "星宫 · 元婴后期", realm: "元婴后期", world: "human", years: "不可考", line: "她站在星辉里，很少让人看见她的疲惫。", note: "原著人物 · 致敬" },
+    { id: "legend-jin-kui", name: "金奎", title: "星宫 · 元婴中期", realm: "元婴中期巅峰", world: "human", years: "不可考", line: "他在星宫守了很多年，守到没人记得他的名字。", note: "原著人物 · 致敬" },
+    { id: "legend-qing-yi", name: "青易", title: "乱星海 · 散修", realm: "元婴", world: "human", years: "不可考", line: "一个散修能走到这里，靠的从来不是运气。", note: "原著人物 · 致敬" }
   );
 
   XD.CANON = {

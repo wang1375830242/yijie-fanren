@@ -203,22 +203,92 @@
         }
         return base;
       }
-      const sectChoices = [
-        {
-          label: "入黄枫谷",
-          effects: { sect: "黄枫谷", mood: 5, stones: 20, begin: true },
-          outcome: "黄枫谷的山门在云里。你走完九百级石阶，回头看见来路已经被雾吞了。",
-        },
-        {
-          label: "入掩月宗",
-          effects: { sect: "掩月宗", insight: 4, mood: 3, begin: true },
-          outcome: "掩月宗的师姐替你把脉，说你根骨不差，就是心太软。她说这话时在笑。",
-        },
-        {
-          label: "入灵兽山",
-          effects: { sect: "灵兽山", insight: 2, luck: 3, begin: true },
-          outcome: "灵兽山的师兄让你挑一只幼兽。你蹲了很久，最后是一只不起眼的灰羽鸟先跳到你手上。",
-        },
+      const place = (s.origin && s.origin.place) || "";
+      const region = place.includes("越国")
+        ? "yue"
+        : place.includes("天南")
+        ? "tiannan"
+        : place.includes("大晋")
+        ? "dajin"
+        : place.includes("乱星海")
+        ? "luantian"
+        : "yue";
+      const regionalSects = {
+        yue: [
+          {
+            label: "入黄枫谷",
+            effects: { sect: "黄枫谷", mood: 5, stones: 20, begin: true },
+            outcome: "黄枫谷的山门在云里。你走完九百级石阶，回头看见来路已经被雾吞了。",
+          },
+          {
+            label: "入掩月宗",
+            effects: { sect: "掩月宗", insight: 4, mood: 3, begin: true },
+            outcome: "掩月宗的师姐替你把脉，说你根骨不差，就是心太软。她说这话时在笑。",
+          },
+          {
+            label: "入灵兽山",
+            effects: { sect: "灵兽山", insight: 2, luck: 3, begin: true },
+            outcome: "灵兽山的师兄让你挑一只幼兽。你蹲了很久，最后是一只不起眼的灰羽鸟先跳到你手上。",
+          },
+          {
+            label: "入化刀坞",
+            effects: { sect: "化刀坞", insight: 2, mood: 2, begin: true },
+            outcome: "化刀坞的刀修在崖上试刀。刀风从你耳边过去，你第一次听见什么叫杀意。",
+          },
+        ],
+        tiannan: [
+          {
+            label: "入落云宗",
+            effects: { sect: "落云宗", insight: 4, mood: 4, begin: true },
+            outcome: "落云宗的山门在云梦山深处。你走进去时，闻到了满山的药香。",
+          },
+          {
+            label: "入古剑门",
+            effects: { sect: "古剑门", insight: 3, mood: 3, begin: true },
+            outcome: "古剑门的剑修在石坪上练剑。没有人看你，但每一道剑光都像在问你怕不怕。",
+          },
+          {
+            label: "入百巧院",
+            effects: { sect: "百巧院", insight: 2, stones: 15, begin: true },
+            outcome: "百巧院的炉火整夜不熄。你从搬矿石做起，手指很快磨出了茧。",
+          },
+        ],
+        dajin: [
+          {
+            label: "入太一门",
+            effects: { sect: "太一门", insight: 5, mood: 4, begin: true },
+            outcome: "太一门的白玉牌在日光下发光。你站在山门前，忽然觉得自己很小。",
+          },
+          {
+            label: "入化仙宗",
+            effects: { sect: "化仙宗", insight: 3, luck: 2, begin: true },
+            outcome: "化仙宗的山门在南疆的雾里。接引的修士看了你很久，才把名册翻开。",
+          },
+          {
+            label: "入天符门",
+            effects: { sect: "天符门", insight: 3, mood: 2, begin: true },
+            outcome: "天符门的院子里晒满了符纸。风一吹，朱砂的味道扑了你一脸。",
+          },
+        ],
+        luantian: [
+          {
+            label: "入星宫",
+            effects: { sect: "星宫", insight: 4, mood: 4, begin: true },
+            outcome: "星宫的星辉落在海面上。你抬头时，第一次觉得天并不是空的。",
+          },
+          {
+            label: "入妙音门",
+            effects: { sect: "妙音门", insight: 3, mood: 3, begin: true },
+            outcome: "妙音门的琴声从岛上飘过来。你站在船头，听见有人在唱一首很慢的歌。",
+          },
+          {
+            label: "入碧云门",
+            effects: { sect: "碧云门", insight: 2, luck: 3, begin: true },
+            outcome: "碧云门的海船停在礁石间。门主看了你一眼，问你敢不敢下海。",
+          },
+        ],
+      };
+      const sectChoices = regionalSects[region].concat([
         {
           label: "不入宗门，做个散修",
           effects: { sect: "散修", stones: 45, luck: 4, mood: -2, begin: true },
@@ -229,7 +299,7 @@
           effects: { path: "mortal", mood: 12, karma: 10 },
           outcome: "执事没有劝你。他说：「修行是逆天的事，孝顺是顺天的事。都不亏。」",
         },
-      ];
+      ]);
       const available =
         s.gender === "女"
           ? sectChoices
