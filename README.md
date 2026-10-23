@@ -2,6 +2,8 @@
 
 以《凡人修仙传》世界观为背景的修仙人生模拟。随机降生，一世修行，从人界走到灵界，再走到仙界。
 
+[![canon-regression](https://github.com/wang1375830242/yijie-fanren/actions/workflows/regression.yml/badge.svg)](https://github.com/wang1375830242/yijie-fanren/actions/workflows/regression.yml)
+
 参考了 [1in8b.life](https://1in8b.life/zh-hans/) 的「随机出生、活完一生」框架；界面、文案、数值与事件为本作原创，原著专有名词仅作同人致敬。非官方同人作品，不使用原著正文。
 
 ## 在线试玩
@@ -51,6 +53,7 @@ python server.py
 | `docs/late-game-nodes.md` | 斩三尸、大乘之门与大罗天 |
 | `docs/p5-name-gender-design.md` | 姓名性别池与凡人问心修正 |
 | `docs/reliability-fixes.md` | 灵界化神断链与 risk 失败结算修复 |
+| `docs/ci.md` | 自动化回归与飞升率断言 |
 
 ## 这一世怎么算
 

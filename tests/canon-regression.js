@@ -800,6 +800,7 @@ ok(
 /* 220 局回归：不变量 + 伪灵根可到灵界 + 单世对话/事件最多重复 2 次。 */
 let issues = 0;
 let pseudoReachedSpirit = 0;
+let naturalAscensions = 0;
 let worstRepeat = 0;
 function affordableChoice(state) {
   const choices = (state.pending && state.pending.choices) || [];
@@ -859,6 +860,13 @@ for (let seed = 1; seed <= 220; seed++) {
   if (sim.state.root.key === "wei" && sim.state.tier >= 6) {
     pseudoReachedSpirit++;
   }
+  if (
+    sim.state.startWorld === "human" &&
+    sim.state.world === "spirit" &&
+    sim.state.tier >= 6
+  ) {
+    naturalAscensions++;
+  }
   const texts = sim.state.log
     .filter((entry) => entry.kind === "event" || entry.kind === "choice")
     .map((entry) => entry.text);
@@ -867,6 +875,10 @@ for (let seed = 1; seed <= 220; seed++) {
   worstRepeat = Math.max(worstRepeat, ...Object.values(counts), 0);
 }
 ok(issues === 0, `220 局不变量问题：${issues}`);
+ok(
+  naturalAscensions > 0,
+  `至少应有一局从人界自然飞升并突破到炼虚，实际 ${naturalAscensions}`
+);
 const spiritBirth = new Sim({ seed: 910, world: "spirit" });
 const immortalBirth = new Sim({ seed: 911, world: "immortal" });
 const spiritExisting = new Sim({ seed: 912, world: "spirit", mode: "existing" });
@@ -897,4 +909,4 @@ ok(
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
 ok(XD.EVENTS.length === 3090, `事件总数应为 3090，实际 ${XD.EVENTS.length}`);
 
-console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; worst-repeat=${worstRepeat}`);
+console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; natural-ascensions=${naturalAscensions}; worst-repeat=${worstRepeat}`);
