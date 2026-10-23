@@ -108,7 +108,7 @@
     { key: "found_pill", name: "筑基丹", desc: "下次突破成功率 +15%。", cost: 90, tierMin: 1, tierMax: 2, effect: { breakBonus: 15 } },
     { key: "core_pill", name: "凝元丹", desc: "下次突破成功率 +12%。", cost: 260, tierMin: 2, tierMax: 4, effect: { breakBonus: 12 } },
     { key: "life_pill", name: "延寿丹", desc: "寿元 +40 年。此世只能求到一枚，药材一年比一年难寻。", cost: 160, tierMax: 5, once: true, effect: { maxAge: 40 } },
-    { key: "talisman", name: "护身玉符", desc: "替你挡下一次致命之灾。此世只能求得一枚。", cost: 120, once: true, effect: { ward: 1 } },
+    { key: "talisman", name: "护身玉符", desc: "极大概率挡下一次致命之灾，但玉碎之后仍可能保不住命。此世只能求得一枚。", cost: 120, once: true, effect: { ward: 1 } },
     { key: "cave", name: "灵脉洞府", desc: "修为速度永久 +20%，寿元 +20 年。", cost: 220, once: true, effect: { cultRate: 0.2, maxAge: 20 } },
     { key: "manual", name: "上乘功法", desc: "修为速度永久 +30%，寿元 +30 年。", cost: 400, once: true, effect: { cultRate: 0.3, maxAge: 30 } },
     { key: "wine", name: "灵酒", desc: "心境 +6。修士也是人。", cost: 12, effect: { mood: 6 } },
@@ -116,7 +116,7 @@
     { key: "dao_tea", name: "悟道茶", desc: "悟性 +8。一杯茶，坐三百年。", cost: 350, tierMin: 6, effect: { insight: 8 } },
     { key: "immortal_pill", name: "仙灵丹", desc: "修为 +10%。仙灵气凝成的丹，凡胎受不住。", cost: 800, tierMin: 9, effect: { cult: 10 } },
     { key: "immortal_jade", name: "仙宫玉简", desc: "悟性 +10。前人留下的一线道理。", cost: 700, tierMin: 9, effect: { insight: 10 } },
-    { key: "immortal_ward", name: "护道仙符", desc: "替你挡下一次致命之灾。此世只能求到一枚。", cost: 900, tierMin: 9, once: true, effect: { ward: 1 } },
+    { key: "immortal_ward", name: "护道仙符", desc: "极大概率挡下一次致命之灾，但仙符也会碎。此世只能求到一枚。", cost: 900, tierMin: 9, once: true, effect: { ward: 1 } },
   ];
 
   /* ---------------- 天候：每一年可能留下的痕迹 ---------------- */
@@ -273,6 +273,45 @@
       "云海翻涌，远处的界域像一枚快要熄灭的灯。",
     ],
   };
+
+  /* 濒死小选项：按任务场景取用；护身玉符由 Sim 动态加入 */
+  const DANGER = {
+    battlefield: [
+      { key: "feign", label: "倒在尸堆里装死", p: 0.3, effects: { mood: -8, karma: -2 }, text: "你把脸埋进泥里，连呼吸都放轻了。" },
+      { key: "drag", label: "拖一个垫背的", p: 0.22, effects: { karma: -8, mood: -5 }, text: "你抓住离你最近的人，把他挡在身前。" },
+      { key: "smoke", label: "掷出灵石制造烟尘", p: 0.28, costStones: 0.5, effects: { mood: -4 }, text: "灵石在地上炸开，烟尘遮住了半条街。" },
+    ],
+    wild: [
+      { key: "ledge", label: "贴着石壁退出去", p: 0.38, effects: { mood: -6, insight: 2 }, text: "你贴着冰冷的石壁，一步一步往后退。" },
+      { key: "crack", label: "跳进旁边的裂缝", p: 0.2, effects: { mood: -8, luck: 2 }, text: "你跳了下去。下面比你想的更深。" },
+      { key: "bait", label: "割破手掌引开它", p: 0.26, effects: { mood: -8, karma: 2 }, text: "血滴在地上，那东西转过了头。" },
+    ],
+    market: [
+      { key: "crowd", label: "混进人群里", p: 0.42, effects: { mood: -4, luck: 2 }, text: "你低下头，顺着人流拐进了一条窄巷。" },
+      { key: "pay", label: "把灵石袋丢出去", p: 0.34, costStones: 0.6, effects: { mood: -3 }, text: "灵石袋落在地上，追你的人停了半步。" },
+      { key: "fight", label: "反手一搏", p: 0.16, effects: { mood: -6, karma: -2 }, text: "你转过身，先动了手。" },
+    ],
+    sect: [
+      { key: "yield", label: "认输，退到一旁", p: 0.4, effects: { mood: -8, karma: 2 }, text: "你放下手里的东西，退出了斗法台。" },
+      { key: "drop", label: "弃剑，保命", p: 0.3, effects: { cult: -6, mood: -6 }, text: "剑落在地上，发出一声很轻的响。" },
+      { key: "burn", label: "燃血换一线生机", p: 0.18, effects: { maxAge: -5, mood: -12 }, text: "你烧掉了一部分精血，换来了一个空隙。" },
+    ],
+    alchemy: [
+      { key: "seal", label: "封炉，退出丹房", p: 0.34, effects: { cult: -4, mood: -5 }, text: "你封住炉火，退到门外。丹炉还在响。" },
+      { key: "swallow", label: "吞下那枚失败的丹药", p: 0.18, effects: { cult: -8, mood: -12 }, text: "丹药入喉，像一块烧红的铁。" },
+      { key: "smash", label: "撞开丹房后墙", p: 0.24, effects: { mood: -6, insight: 2 }, text: "你撞开墙，跌进了外面的雨里。" },
+    ],
+    immortal: [
+      { key: "sever", label: "斩去一缕元神", p: 0.22, effects: { cult: -10, maxAge: -8, mood: -10 }, text: "你斩掉了自己的一缕元神，痛得几乎站不住。" },
+      { key: "void", label: "遁入虚空裂缝", p: 0.28, effects: { mood: -8, luck: 2 }, text: "你钻进了裂缝。身后的一切瞬间远了。" },
+      { key: "name", label: "借仙宫的名头压它", p: 0.36, effects: { karma: -3, mood: -4 }, text: "你报出一个名字。对方迟疑了一瞬。" },
+    ],
+    generic: [
+      { key: "feign", label: "装死，等它过去", p: 0.3, effects: { mood: -8, karma: -2 }, text: "你闭上眼，把呼吸压到最低。" },
+      { key: "pay", label: "舍财保命", p: 0.32, costStones: 0.5, effects: { mood: -4 }, text: "你把身上值钱的东西都丢了出去。" },
+      { key: "desperate", label: "拼死一搏", p: 0.18, effects: { cult: -10, mood: -15, maxAge: -5 }, text: "你扑了上去。活下来的人只能有一个。" },
+    ],
+  };
   const EPITAPHS = {
     0: ["一生未出乡关，也未曾亏欠过谁。", "凡人的一生很短，短到只够爱几个人。", "他没有修成仙，但他把日子过完了。"],
     1: ["炼气未成，山门外的桃花开了又谢。", "他修了一辈子仙，最后还是死在了人间。", "资质平平，心气不低。这一生，算是尽力了。"],
@@ -401,7 +440,7 @@
       { name: "风雷翅", tag: "飞行法宝", desc: "以雷鹏之翼炼成，一展翅便是千里。逃命与追杀两相宜。" },
       { name: "元磁神山", tag: "重宝", desc: "以元磁之力镇压一切法宝。山一出，满天飞剑皆落。" },
       { name: "金蚨子母刃", tag: "本命法宝", desc: "子母双刃，一母九子。祭出时满天金芒，收回时只余一线。" },
-      { name: "护身玉符", tag: "符箓", desc: "以精血祭炼的保命之物。碎一次，便是替死一次。" },
+      { name: "护身玉符", tag: "符箓", desc: "以精血祭炼的保命之物。碎一次，未必真能替死。" },
     ],
     pills: [
       { name: "聚气丹", tag: "炼气", desc: "最寻常的修行丹药，胜在稳妥。穷修士的命，一半靠它。" },
@@ -436,6 +475,7 @@
     SHOP,
     AMBIENT,
     MICRO,
+    DANGER,
     EPITAPHS,
     LEGENDS,
     CODEX,

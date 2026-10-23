@@ -1290,6 +1290,9 @@ body:not(.in-life) #btnAuto {
   background: rgba(25, 29, 23, 0.055);
   border-color: rgba(25, 29, 23, 0.5);
 }
+.opt--danger {
+  border-left: 2px solid var(--cinnabar);
+}
 .opt:active {
   transform: translateY(1px);
 }

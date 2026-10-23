@@ -373,6 +373,15 @@
       s.sect || "散修",
       s.origin.family,
     ];
+    const stageNames = {
+      childhood: "童年",
+      mortal: "凡俗",
+      qi: "炼气",
+      core: "结丹 / 元婴",
+      spirit: "灵界",
+      immortal: "仙界",
+    };
+    tags.push(stageNames[sim.stage()]);
     if (s.bottle) tags.push("随身小瓶");
     if (s.traits) {
       const traitLabels = {
@@ -554,10 +563,82 @@
     whisperTimer = setInterval(tick, 5200);
   }
 
+  function openDanger() {
+    clearTimeout(autoTimer);
+    const p = state.pending;
+    if (!p || p.kind !== "danger") return;
+    $("choiceKicker").textContent = "濒 死";
+    $("choiceTitle").textContent = soften(p.title || "濒死");
+    $("choiceText").textContent = soften(p.text || "");
+    $("choiceOpts").innerHTML = p.options
+      .map((c, i) => {
+        const cost =
+          c.ward
+            ? "消耗 1 枚护身玉符"
+            : c.costStones > 0
+            ? `消耗 ${
+                c.costStones < 1
+                  ? Math.max(1, Math.floor(state.stones * c.costStones))
+                  : Math.floor(c.costStones)
+              } 灵石`
+            : "不消耗灵石";
+        const disabled =
+          (c.ward && state.ward < 1) ||
+          (c.costStones > 0 &&
+            state.stones <
+              (c.costStones < 1
+                ? Math.max(1, Math.floor(state.stones * c.costStones))
+                : Math.floor(c.costStones)));
+        const chance = Math.max(
+          0.05,
+          Math.min(0.95, c.p + (state.luck - 50) * 0.0005)
+        );
+        return `<button class="opt opt--danger" type="button" data-i="${i}" ${
+          disabled ? "disabled" : ""
+        }>
+          <b>${U.esc(soften(c.label))}</b>
+          <span class="risk risk--warn">生还 ${Math.round(chance * 100)}%</span>
+          <span>${cost}</span>
+        </button>`;
+      })
+      .join("");
+    $("choiceOpts").querySelectorAll(".opt").forEach((b) => {
+      b.addEventListener("click", () => choose(Number(b.dataset.i)));
+    });
+    $("choiceOverlay").hidden = false;
+    startWhisper();
+    if (releasePromptTrap) releasePromptTrap();
+    releasePromptTrap = U.trapFocus($("choiceOverlay"), () =>
+      U.toast("这一世的事，总得有个了断")
+    );
+    const first = $("choiceOpts").querySelector(".opt:not([disabled])");
+    if (first) first.focus();
+    if (auto) {
+      autoTimer = setTimeout(() => {
+        const usable = p.options
+          .map((c, i) => ({ c, i }))
+          .filter((x) => {
+            if (x.c.ward && state.ward < 1) return false;
+            if (x.c.costStones > 0) {
+              const cost =
+                x.c.costStones < 1
+                  ? Math.max(1, Math.floor(state.stones * x.c.costStones))
+                  : Math.floor(x.c.costStones);
+              return state.stones >= cost;
+            }
+            return true;
+          })
+          .sort((a, b) => b.c.p - a.c.p);
+        choose(usable.length ? usable[0].i : 0);
+      }, 1100);
+    }
+  }
+
   function openPrompt() {
     clearTimeout(autoTimer);
     if (!state.pending) return;
     if (state.pending.kind === "break") return openBreak();
+    if (state.pending.kind === "danger") return openDanger();
     const p = state.pending;
     const waitLocked =
       (p.id === "d_node" && (state.flags.wait_spirit_count || 0) >= 3) ||
@@ -713,7 +794,8 @@
     }
     $("choiceOverlay").hidden = true;
     const before = state.log.length;
-    const result = sim.choose(i, opts);
+    const isDanger = state.pending && state.pending.kind === "danger";
+    const result = isDanger ? sim.resolveDanger(i) : sim.choose(i, opts);
     if (result === null) {
       openPrompt();
       return;

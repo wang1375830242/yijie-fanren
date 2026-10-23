@@ -527,8 +527,20 @@
         );
         result.text = choice.failText || "事与愿违。";
         if (choice.risk.fail && choice.risk.fail.death) {
-          this.pushLog("choice", `—— ${choice.risk.fail.cause || "你死了"}。`);
-          this.die(choice.risk.fail.cause || "意外身亡");
+          const cause = choice.risk.fail.cause || "意外身亡";
+          const hardDeath =
+            choice.noRescue ||
+            /劫|天劫|走火入魔|空间乱流|道祖之争|寿元/.test(cause);
+          if (!hardDeath) {
+            const eventId = s.pending.id;
+            this.apply(effects);
+            this.enterDanger(choice, effects, cause, eventId);
+            result.status = "danger";
+            result.died = false;
+            return result;
+          }
+          this.pushLog("choice", `—— ${cause}。`);
+          this.die(cause);
           s.pending = null;
           result.died = true;
           return result;
@@ -541,6 +553,92 @@
       s.pending = null;
       this.apply(effects);
       return result;
+    }
+
+    dangerType(choice, eventId) {
+      const explicit = choice.danger || (choice.risk && choice.risk.danger);
+      if (explicit) return explicit;
+      const id = String(eventId || "");
+      if (/war|battle/i.test(id)) return "battlefield";
+      if (/travel|beast|ruin|wild/i.test(id)) return "wild";
+      if (/market|auction/i.test(id)) return "market";
+      if (/school|rival|disciple|clan|sect/i.test(id)) return "sect";
+      if (/alchemy|pill|furnace/i.test(id)) return "alchemy";
+      if (/^g_i_|immortal|palace|law/i.test(id)) return "immortal";
+      return "generic";
+    }
+
+    enterDanger(choice, effects, cause, eventId) {
+      const s = this.state;
+      const type = this.dangerType(choice, eventId);
+      const base = D.DANGER[type] || D.DANGER.generic;
+      const options = base.map((item) => ({
+        key: item.key,
+        label: item.label,
+        p: item.p,
+        effects: Object.assign({}, item.effects),
+        text: item.text,
+        costStones: item.costStones || 0,
+        ward: !!item.ward,
+      }));
+      if (s.ward > 0) {
+        options.unshift({
+          key: "ward",
+          label: "捏碎护身玉符",
+          p: 0.92,
+          effects: { mood: -14, cult: -4 },
+          text: "玉符在你掌心碎开，替你挡下了最重的一击。",
+          costStones: 0,
+          ward: true,
+        });
+      }
+      s.pending = {
+        kind: "danger",
+        title: "濒死",
+        text: `你选择了「${choice.label}」，事情没有按你想的走。${cause}。你还有一口气。`,
+        cause,
+        options,
+        eventId,
+        type,
+      };
+      this.pushLog("system", `你受了重伤。眼前发黑，必须马上做决定。`);
+      return s.pending;
+    }
+
+    resolveDanger(index) {
+      const s = this.state;
+      const p = s.pending;
+      if (!p || p.kind !== "danger") return null;
+      const opt = p.options[index];
+      if (!opt) return null;
+      if (opt.ward && s.ward < 1) {
+        this.pushLog("system", "你身上没有护身玉符。");
+        return { status: "blocked" };
+      }
+      let cost = 0;
+      if (opt.costStones > 0) {
+        cost =
+          opt.costStones < 1
+            ? Math.max(1, Math.floor(s.stones * opt.costStones))
+            : Math.floor(opt.costStones);
+        if (s.stones < cost) {
+          this.pushLog("system", "你拿不出这笔灵石。");
+          return { status: "blocked" };
+        }
+      }
+      if (opt.ward) s.ward -= 1;
+      if (cost > 0) s.stones = Math.max(0, s.stones - cost);
+      const chance = clamp(opt.p + (s.luck - 50) * 0.0005, 0.05, 0.95);
+      if (this.rng.chance(chance)) {
+        this.apply(opt.effects);
+        this.pushLog("choice", `你选择了「${opt.label}」。${opt.text}`);
+        s.pending = null;
+        return { status: "survived", text: opt.text, chance };
+      }
+      this.pushLog("choice", `你选择了「${opt.label}」。${p.cause}。`);
+      s.pending = null;
+      this.die(p.cause, { bypassWard: true });
+      return { status: "died", text: p.cause, chance };
     }
 
     apply(effects) {
@@ -753,9 +851,9 @@
     }
 
     /* ---------------- 结束 ---------------- */
-    die(cause) {
+    die(cause, opts) {
       if (!this.state.alive) return;
-      if (cause !== "寿元耗尽" && this.state.ward > 0) {
+      if (!(opts && opts.bypassWard) && cause !== "寿元耗尽" && this.state.ward > 0) {
         this.state.ward -= 1;
         this.state.mood = clamp(this.state.mood + 10, 0, 100);
         this.pushLog("system", "护身玉符碎了，替你挡下了这一劫。");

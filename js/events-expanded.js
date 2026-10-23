@@ -786,8 +786,31 @@
     i_law: "immortal",
     i_market: "immortal",
   };
+  const DANGER_BY_THEME = {
+    h_war: "battlefield",
+    s_war: "battlefield",
+    h_travel: "wild",
+    s_beast: "wild",
+    i_ruin: "wild",
+    h_market: "market",
+    s_market: "market",
+    s_city: "market",
+    i_market: "market",
+    h_school: "sect",
+    h_rival: "sect",
+    h_disciple: "sect",
+    s_clan: "sect",
+    s_disciple: "sect",
+    s_law: "sect",
+    h_alchemy: "alchemy",
+    i_palace: "immortal",
+    i_time: "immortal",
+    i_law: "immortal",
+  };
   THEMES.forEach((theme) => {
     if (STAGE_BY_THEME[theme.key]) theme.stage = STAGE_BY_THEME[theme.key];
+    if (DANGER_BY_THEME[theme.key]) theme.danger = DANGER_BY_THEME[theme.key];
+    if (theme.key === "h_trib") theme.noRescue = true;
   });
 
   THEMES.forEach((theme, ti) => {
@@ -830,6 +853,8 @@
             return {
               ...c,
               label: fill(c.label, s),
+              danger: theme.danger,
+              noRescue: theme.noRescue,
               outcome:
                 theme.key === "h_child" && typeof c.outcome !== "function"
                   ? `${text}${pool.outcomes[(i + ci) % pool.outcomes.length]}`
