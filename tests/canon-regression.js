@@ -161,6 +161,28 @@ const dataSource = fs.readFileSync(path.join(ROOT, "js/data.js"), "utf8");
 ok(!dataSource.includes("灵界的月有两个"), "M6 不应再写灵界有两个月亮");
 ok(dataSource.includes("真仙界是总称"), "M6 仙界地理应说明真仙界是总称");
 
+/* 散修不应出现宗门/山门对话。 */
+const rogue = new Sim({ seed: 21, world: "human" });
+rogue.state.tier = 1;
+rogue.state.path = "cultivator";
+rogue.state.sect = "散修";
+rogue.state.age = 15;
+const age15 = XD.EVENT_BY_ID.age_15;
+const rogueText = age15.text(rogue.state);
+ok(!/山门|师兄|执事|月例/.test(rogueText), "散修十五岁文本不应出现宗门/山门");
+ok(
+  !XD.EVENT_BY_ID.g_h_school_0.when(rogue.state),
+  "散修不应触发山门事件"
+);
+ok(
+  !XD.EVENT_BY_ID.q_sectwar.when(rogue.state),
+  "散修不应触发宗门攻山事件"
+);
+ok(
+  !XD.EVENT_BY_ID.q_first_sword.when(rogue.state),
+  "散修不应触发宗门发剑事件"
+);
+
 /* M9：灵石不足时不消耗事件，保留 pending 让玩家重选。 */
 const poor = new Sim({ seed: 6, world: "human" });
 poor.state.stones = 0;

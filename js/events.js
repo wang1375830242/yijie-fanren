@@ -586,7 +586,7 @@
 
   add({
     id: "q_sectwar",
-    when: (s) => s.tier >= 1 && s.tier <= 3 && s.age >= 20,
+    when: (s) => s.tier >= 1 && s.tier <= 3 && s.age >= 20 && s.sect && s.sect !== "散修",
     w: 9,
     title: "魔道攻山",
     text: "护山大阵在半夜亮了。天边一片血色，魔道的人踩着飞舟压过来。执事堂的钟敲得又急又乱。",
@@ -1144,7 +1144,7 @@
      ====================================================================== */
   add({
     id: "q_first_sword",
-    when: (s) => s.tier === 1 && s.age >= 12 && s.age <= 25,
+    when: (s) => s.tier === 1 && s.age >= 12 && s.age <= 25 && s.sect && s.sect !== "散修",
     w: 8,
     title: "第一柄剑",
     text: "宗门发下第一柄制式飞剑，青钢所铸，剑柄上还留着上一位主人的手汗。你握着它，忽然不知道该做什么。",
@@ -1387,6 +1387,15 @@
     w: 0,
     title: "问心 · 十五岁",
     text: (s) => {
+      if (s.tier > 0 && s.sect === "散修") {
+        const variants = [
+          "十五岁，你没有山门可回。天黑了就在破庙里歇脚，天亮后替人看风水换一顿饭。",
+          "十五岁，你一个人在河边练吐纳。没有人教，你只能照着那本翻烂的入门功法猜。",
+          "十五岁，你替一户人家驱邪，换了两块灵石。主家问你师承何处，你说没有师承。",
+          "十五岁，你听说某个宗门在收徒，走了三天赶到山门，才发现人家只收有灵根的少年。",
+        ];
+        return variants[(s.seed >>> 0) % variants.length];
+      }
       if (s.tier > 0) {
         const variants = [
           "十五岁，你已经在山门里待了几年。每天挑水、劈柴、听师兄讲那些听不太懂的道理。有人问你，为什么留在这里。",
@@ -1407,6 +1416,25 @@
       return variants[(s.seed >>> 0) % variants.length];
     },
     choices: (s) => {
+      if (s.tier > 0 && s.sect === "散修") {
+        return [
+          {
+            label: "想找个地方落脚",
+            effects: { mood: 4, insight: 2 },
+            outcome: "你说想找个能安心打坐的地方。对方看了你一眼，说散修最难的就是这个。",
+          },
+          {
+            label: "想拜个师父",
+            effects: { insight: 2, luck: 2 },
+            outcome: "你说想拜师。对方笑了笑，说山门不是想进就能进的。",
+          },
+          {
+            label: "一个人也能走",
+            effects: { mood: 2, karma: 2 },
+            outcome: "你把那本旧功法收进怀里，决定自己走。",
+          },
+        ];
+      }
       if (s.tier > 0) {
         const variants = [
           [
