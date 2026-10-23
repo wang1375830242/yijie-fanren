@@ -42,6 +42,7 @@ python server.py
 | `about.html` | 这是怎么算的、数据与版权说明 |
 | `docs/zhihu/zhihu-article.md` | 知乎发布稿，含项目截图与试玩地址 |
 | `docs/deploy-backend-linux.md` | Linux 公共碑林后端部署说明（可发给服务器 AI 执行） |
+| `docs/roadmap-2026-10-23.md` | 五项扩展后的下一阶段路线图与优先级 |
 
 ## 这一世怎么算
 
