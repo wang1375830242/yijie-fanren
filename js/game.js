@@ -429,7 +429,7 @@
         ico: "侣",
         name: s.partner.name,
         sub: `${s.partner.title} · ${partnerRealm} · ${partnerWorld}${partnerState}`,
-        when: s.partner.since + "岁",
+        when: `${typeof s.partner.age === "number" ? s.partner.age : s.partner.since}岁`,
       });
     }
     if (s.disciples.length)

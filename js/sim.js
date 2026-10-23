@@ -316,6 +316,9 @@
       if (!Array.isArray(s.partnerHistory)) s.partnerHistory = [];
       if (typeof p.tier !== "number") p.tier = s.tier;
       if (typeof p.world !== "string") p.world = s.world;
+      if (typeof p.age !== "number") p.age = p.since || s.age;
+      if (typeof p.ageOffset !== "number") p.ageOffset = p.age - s.age;
+      p.age = s.age + p.ageOffset;
       if (typeof p.affinity !== "number") p.affinity = 60;
       if (typeof p.talent !== "number") p.talent = 1;
       if (typeof p.cult !== "number") p.cult = 0;
@@ -323,7 +326,7 @@
       if (typeof p.maxAge !== "number") p.maxAge = Math.max(80, (D.REALMS[p.tier] || D.REALMS[0]).life);
       if (p.status !== "estranged") p.status = p.world === s.world ? "present" : "apart";
       else if (p.world !== s.world) p.status = "apart";
-      if (s.age >= p.maxAge) {
+      if (p.age >= p.maxAge) {
         p.alive = false;
         p.endedAt = s.age;
         p.fate = "寿尽";
@@ -773,10 +776,13 @@
       if (effects.flag) s.flags[effects.flag] = true;
       if (effects.sect) s.sect = effects.sect;
       if (effects.partner) {
+        const partnerAge = s.age + this.rng.int(-3, 3);
         s.partner = {
           name: this.rng.pick(D.SURNAMES) + this.rng.pick(D.GIVEN),
           title: effects.partner,
           since: s.age,
+          age: partnerAge,
+          ageOffset: partnerAge - s.age,
           tier: Math.max(0, s.tier),
           cult: 0,
           talent: 0.85 + this.rng.next() * 0.8,

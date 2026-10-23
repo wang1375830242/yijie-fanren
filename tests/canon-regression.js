@@ -242,10 +242,26 @@ const deathPartner = new Sim({ seed: 13, world: "human" });
 deathPartner.state.tier = 1;
 deathPartner.state.age = 80;
 deathPartner.apply({ partner: "道侣" });
-deathPartner.state.partner.maxAge = 80;
+deathPartner.state.partner.maxAge = 60;
 deathPartner.partnerTick();
 ok(deathPartner.state.partner === null, "道侣寿尽应离开");
 ok(deathPartner.state.partnerHistory.length === 1, "道侣寿尽应留下历史");
+const agePartner = new Sim({ seed: 14, world: "human" });
+agePartner.state.tier = 1;
+agePartner.state.age = 63;
+agePartner.apply({ partner: "道侣" });
+agePartner.state.partner.maxAge = 1000;
+const partnerAgeAtStart = agePartner.state.partner.age;
+agePartner.state.age = 357;
+agePartner.partnerTick();
+ok(
+  agePartner.state.partner && agePartner.state.partner.age >= 354,
+  "道侣岁数应随时间增长"
+);
+ok(
+  agePartner.state.partner.age > partnerAgeAtStart,
+  "道侣岁数不应固定在结伴年龄"
+);
 
 /* L1/L3/L4：低优先级文案与小口径。 */
 const dataText = fs.readFileSync(path.join(ROOT, "js/data.js"), "utf8");
