@@ -597,11 +597,15 @@
           0.05,
           Math.min(0.95, c.p + (state.luck - 50) * 0.0005)
         );
+        const tone =
+          chance >= 0.7 ? "生机较大" : chance >= 0.35 ? "凶险" : "九死一生";
+        const toneClass =
+          chance >= 0.7 ? "risk--safe" : chance >= 0.35 ? "risk--warn" : "risk--dead";
         return `<button class="opt opt--danger" type="button" data-i="${i}" ${
           disabled ? "disabled" : ""
         }>
           <b>${U.esc(soften(c.label))}</b>
-          <span class="risk risk--warn">生还 ${Math.round(chance * 100)}%</span>
+          <span class="risk ${toneClass}">${tone}</span>
           <span>${cost}</span>
         </button>`;
       })
