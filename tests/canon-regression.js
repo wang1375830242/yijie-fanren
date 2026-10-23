@@ -191,6 +191,17 @@ const beforeMood = moodSim.state.mood;
 moodSim.yearTick();
 ok(moodSim.state.mood < beforeMood, "M10 苦修应带来心境损耗");
 
+/* L1/L3/L4：低优先级文案与小口径。 */
+const dataText = fs.readFileSync(path.join(ROOT, "js/data.js"), "utf8");
+ok(dataText.includes("寿四百八十载"), "L1 结丹文案应与 480 年寿元一致");
+const indexText = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+ok(indexText.includes("三千至一万五"), "L4 灵界寿元宣传应与数据一致");
+const codexText = fs.readFileSync(path.join(ROOT, "codex.html"), "utf8");
+ok(
+  codexText.includes('data-cat="characters"') && codexText.includes("<b>95</b>"),
+  "L3 图鉴初始计数应与数据一致"
+);
+
 /* 220 局回归：不变量 + 伪灵根可到灵界。 */
 let issues = 0;
 let pseudoReachedSpirit = 0;
