@@ -1147,18 +1147,42 @@
     $("choiceOverlay").hidden = true;
     if (XD.Audio) XD.Audio.bell(state.legendary ? "ascend" : "death");
     const s = state;
+    const lineageBefore = U.store.lineage();
+    const lifeNo = (Number(lineageBefore.total) || 0) + 1;
     endSummary = sim.summary();
+    endSummary.lifeNo = lifeNo;
 
     let legacyStored = false;
     if (!saved) {
       U.store.clearRun();
       const stored = U.store.addLife(endSummary);
+      const lineageStored = U.store.addLineage({
+        no: lifeNo,
+        lifeKey: `${endSummary.id}-${endSummary.ts}`,
+        name: endSummary.name,
+        world: endSummary.world,
+        realm: endSummary.realm,
+        cause: endSummary.cause,
+        age: endSummary.age,
+        sect: endSummary.sect,
+        partnerName:
+          (s.partner && s.partner.name) ||
+          (s.partnerHistory && s.partnerHistory.length
+            ? s.partnerHistory[s.partnerHistory.length - 1].name
+            : ""),
+        discipleNames: (s.disciples || []).slice(0, 3).map((d) => d.name),
+        wish: endSummary.wish,
+        seed: endSummary.seed,
+        ts: endSummary.ts,
+      });
       legacyStored = U.store.setLegacy(endSummary.legacy);
       saved = true;
       $("endNote").textContent = stored
-        ? legacyStored
-          ? "这一世的记录与道果已经留在本机。碑林里可以再看见它，命格卡可以带走。"
-          : "这一世的记录已经留下，但道果没能写入本机。命格卡仍然可以带走。"
+        ? lineageStored
+          ? legacyStored
+            ? "这一世的记录、谱系与道果已经留在本机。碑林里可以再看见它，命格卡可以带走。"
+            : "这一世的记录与谱系已经留下，但道果没能写入本机。命格卡仍然可以带走。"
+          : "这一世的记录已经留下，但谱系没能写入本机。命格卡仍然可以带走。"
         : "这个浏览器不让保存记录。这一世不会留在碑林，但命格卡仍然可以带走。";
     }
 
@@ -1172,11 +1196,12 @@
     $("endTitle").textContent = soft && !s.legendary
       ? "远 行"
       : (finale && finale.title) || (s.legendary ? "证 道" : titles[s.cause] || "陨 落");
-    $("endSub").textContent = `${worldName(s.world)} · ${sim.displayRealm()} · 享年 ${s.endedAt != null ? s.endedAt : s.age} 岁${finale ? " · " + finale.karmaLabel : ""}`;
+    $("endSub").textContent = `${worldName(s.world)} · ${sim.displayRealm()} · 享年 ${s.endedAt != null ? s.endedAt : s.age} 岁${finale ? " · " + finale.karmaLabel : ""} · 第 ${lifeNo} 世`;
     $("endSeal").textContent = s.name[0];
     $("endName").textContent = s.name + (s.path === "cultivator" && s.daohao ? ` · ${s.daohao}` : "");
     $("endLife").textContent = `${s.origin.place} · ${s.origin.family} · ${soften(s.cause)}`;
     $("endEpitaph").textContent = "「" + soften(s.epitaph || "此人一生，不足为外人道。") + "」";
+    $("endWish").textContent = endSummary.wish ? `遗愿：${soften(endSummary.wish.text)}` : "";
     $("endNarrative").textContent = finale ? soften(finale.narrative || "") : "";
     $("endActs").innerHTML = finale && finale.acts
       ? finale.acts

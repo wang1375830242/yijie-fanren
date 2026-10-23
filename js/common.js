@@ -67,6 +67,8 @@
   const KEY_CANDLES = "yijie.candles.v1";
   const KEY_LEGACY = "yijie.legacy.v1";
   const KEY_RUN = "yijie.run.v1";
+  const KEY_LINEAGE = "yijie.lineage.v1";
+  const KEY_STELES = "yijie.steles.v1";
 
   function read(key, fallback) {
     try {
@@ -126,6 +128,57 @@
     },
     clearRun() {
       write(KEY_RUN, null);
+    },
+    lineage() {
+      const v = read(KEY_LINEAGE, null);
+      if (v && v.v === 1 && Array.isArray(v.entries)) return v;
+      const lives = store.lives();
+      return {
+        v: 1,
+        total: lives.length,
+        streak: lives.length,
+        bestStreak: lives.length,
+        entries: [],
+      };
+    },
+    setLineage(lineage) {
+      return write(KEY_LINEAGE, lineage);
+    },
+    addLineage(entry) {
+      const lineage = store.lineage();
+      const no = Number(entry.no) || (Number(lineage.total) || 0) + 1;
+      const item = Object.assign({}, entry, {
+        no,
+        lifeKey: entry.lifeKey || `life-${entry.seed || "unknown"}-${Date.now()}`,
+      });
+      lineage.v = 1;
+      lineage.total = Math.max(Number(lineage.total) || 0, no);
+      lineage.streak = (Number(lineage.streak) || 0) + 1;
+      lineage.bestStreak = Math.max(Number(lineage.bestStreak) || 0, lineage.streak);
+      lineage.entries = [item].concat(lineage.entries || []).slice(0, 20);
+      return write(KEY_LINEAGE, lineage) ? lineage : null;
+    },
+    clearLineage() {
+      write(KEY_LINEAGE, null);
+    },
+    steles() {
+      const v = read(KEY_STELES, []);
+      return Array.isArray(v) ? v : [];
+    },
+    markStele(id) {
+      const list = store.steles();
+      if (!list.includes(id)) {
+        list.push(id);
+        write(KEY_STELES, list);
+      }
+      return list.length;
+    },
+    setSteles(ids) {
+      const list = Array.isArray(ids) ? ids.filter((id) => typeof id === "string") : [];
+      return write(KEY_STELES, Array.from(new Set(list)));
+    },
+    clearSteles() {
+      write(KEY_STELES, []);
     },
     prefs() {
       return read(KEY_PREFS, {});

@@ -274,6 +274,36 @@
       };
     }
 
+    wishSummary() {
+      const s = this.state;
+      const partnerLost =
+        (s.partner && (s.partner.alive === false || s.partner.status === "estranged")) ||
+        (!s.partner && Array.isArray(s.partnerHistory) && s.partnerHistory.length > 0);
+      if (partnerLost) {
+        const last =
+          s.partner ||
+          (s.partnerHistory && s.partnerHistory[s.partnerHistory.length - 1]);
+        return {
+          type: "partner",
+          text: `未守住${last && last.name ? last.name : "那个人"}。`,
+        };
+      }
+      const hasSect =
+        s.sect &&
+        !/散修|散仙|凡俗|杂役|天渊城|北寒仙域|青芦苏氏/.test(s.sect);
+      if (s.flags && (s.flags.sect_lost || (s.flags.had_sect && !hasSect))) {
+        return { type: "sect", text: "未守住当年入门的那个山门。" };
+      }
+      if (s.world === "human" && s.tier > 0 && s.tier < 6) {
+        return { type: "ascend", text: "终究没能飞升灵界。" };
+      }
+      const livingRival = (s.rivals || []).some((rival) => rival.alive !== false);
+      if (Math.abs(s.karma || 0) >= 12 || livingRival) {
+        return { type: "karma", text: "还有一段因果没有了结。" };
+      }
+      return { type: "unfinished", text: "还有一段路没走完。" };
+    }
+
     pickGivenName(rng, gender) {
       const pool =
         gender === "女"
@@ -1290,7 +1320,12 @@
       if (typeof effects.cultRate === "number") s.cultRate += effects.cultRate;
       if (effects.flag) s.flags[effects.flag] = true;
       if (effects.sect) {
-        s.sect = effects.sect;
+        const nextSect = effects.sect;
+        const actual = (value) =>
+          value && !/散修|散仙|凡俗|杂役|天渊城|北寒仙域|青芦苏氏/.test(value);
+        if (actual(s.sect) && !actual(nextSect)) s.flags.sect_lost = true;
+        if (actual(nextSect)) s.flags.had_sect = true;
+        s.sect = nextSect;
         this.initSectRank();
       }
       if (typeof effects.sectContrib === "number") {
@@ -1738,6 +1773,7 @@
         sectContrib: Math.round(s.sectContrib || 0),
         place: s.place,
         bottle: s.bottle,
+        wish: this.wishSummary(),
         legacy: this.legacySummary(),
         legendary: !!s.legendary,
         ts: Date.now(),

@@ -302,6 +302,9 @@
   function updateStats() {
     $("statTotal").textContent = ALL.length;
     $("statMine").textContent = mine.length;
+    $("statRead").textContent = U.store.steles().length;
+    const lineage = U.store.lineage();
+    $("statStreak").textContent = `${lineage.streak || 0}`;
     $("statCandles").textContent = U.fmt(totalCandles());
   }
 
@@ -341,6 +344,8 @@
   function open(id) {
     const x = ALL.find((v) => v.id === id);
     if (!x) return;
+    U.store.markStele(x.id);
+    updateStats();
     current = x;
     $("smName").textContent = x.name;
     $("smSub").textContent = `${(D.WORLD_META[x.world] || {}).name || ""} · ${x.realm}`;
@@ -404,6 +409,8 @@
     if (!mine.length) return U.toast("你还没有安放过任何一世");
     if (!confirm("清空你自己安放的碑？这个操作不能撤销，传说与无名碑不受影响。")) return;
     U.store.clearLives();
+    U.store.clearLineage();
+    U.store.clearSteles();
     location.reload();
   });
 

@@ -10,7 +10,8 @@
   function refresh() {
     const n = U.store.lives().length;
     const run = U.store.run();
-    $("dataCount").textContent = `目前本机存有 ${n} 段人生。${run ? "有一段未完成的人生可继续。" : ""}`;
+    const lineage = U.store.lineage();
+    $("dataCount").textContent = `目前本机存有 ${n} 段人生${lineage.total ? `，谱系累计 ${lineage.total} 世` : ""}。${run ? "有一段未完成的人生可继续。" : ""}`;
   }
 
   function mergeLives(incoming) {
@@ -33,6 +34,8 @@
     U.store.clearLives();
     U.store.clearLegacy();
     U.store.clearRun();
+    U.store.clearLineage();
+    U.store.clearSteles();
     ["yijie.messages.v1", "yijie.candles.v1"].forEach((k) => {
       try {
         localStorage.removeItem(k);
@@ -44,11 +47,13 @@
 
   $("btnExport").addEventListener("click", () => {
     const data = {
-      version: 2,
+      version: 3,
       lives: U.store.lives(),
       candles: U.store.candles(),
       legacy: U.store.legacy(),
       run: U.store.run(),
+      lineage: U.store.lineage(),
+      steles: U.store.steles(),
       exportedAt: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -76,6 +81,10 @@
       const lives = Array.isArray(data.lives) ? data.lives : [];
       const added = mergeLives(lives);
       if (data.legacy && !U.store.legacy()) U.store.setLegacy(data.legacy);
+      if (data.lineage && data.lineage.v === 1) U.store.setLineage(data.lineage);
+      if (Array.isArray(data.steles)) {
+        U.store.setSteles ? U.store.setSteles(data.steles) : data.steles.forEach((id) => U.store.markStele(id));
+      }
       if (data.run && data.run.v === 1) {
         if (!U.store.run() || confirm("导入会覆盖本机未完成的一世，继续吗？")) {
           U.store.setRun(data.run);

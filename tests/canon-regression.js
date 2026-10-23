@@ -668,6 +668,12 @@ ok(
   "游戏应接入自动保存与续存提示"
 );
 ok(
+  fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("endWish") &&
+    fs.readFileSync(path.join(ROOT, "hall.html"), "utf8").includes("statRead") &&
+    fs.readFileSync(path.join(ROOT, "hall.html"), "utf8").includes("statStreak"),
+  "终局遗愿与碑林跨局统计入口应存在"
+);
+ok(
   fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("choicePeek") &&
     fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("choiceResume"),
   "抉择弹框应提供看前情与继续抉择入口"
@@ -699,6 +705,27 @@ ok(echoSim.state.flags.legacy_echo_done, "旧梦选择应写入完成标记");
 const noEcho = new Sim({ seed: 905, world: "human" });
 noEcho.state.age = 16;
 ok(!noEcho.maybeLegacyEcho(), "没有前世道果不应触发旧梦");
+
+/* P2：谱系、遗愿与跨局统计。 */
+const storeRef = XD.util.store;
+storeRef.clearLives();
+storeRef.clearLineage();
+for (let i = 1; i <= 25; i++) {
+  storeRef.addLineage({ name: `第${i}人`, realm: "炼气期", cause: "寿元耗尽" });
+}
+const lineage = storeRef.lineage();
+ok(
+  lineage.total === 25 && lineage.entries.length === 20 && lineage.entries[0].no === 25,
+  "谱系应累计世次并只保留最近 20 世"
+);
+const wishPartner = new Sim({ seed: 940, world: "human" });
+wishPartner.state.tier = 5;
+wishPartner.state.partnerHistory = [{ name: "沈青棠" }];
+ok(wishPartner.wishSummary().type === "partner", "失去道侣应生成未守住道侣遗愿");
+const wishAscend = new Sim({ seed: 941, world: "human" });
+wishAscend.state.tier = 3;
+ok(wishAscend.wishSummary().type === "ascend", "人界未飞升应生成未飞升遗愿");
+storeRef.clearLineage();
 
 /* P1：残图主线与地域/宗门身份锚点。 */
 const mainline = new Sim({ seed: 901, world: "human" });

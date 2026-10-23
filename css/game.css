@@ -1727,7 +1727,14 @@ body:not(.in-life) #btnAuto {
   font-size: 12px;
   color: var(--paper-muted);
   letter-spacing: 0.1em;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
+}
+.end-wish {
+  margin: 0 0 18px;
+  color: var(--cinnabar-2);
+  font-family: var(--kai);
+  font-size: 13px;
+  letter-spacing: 0.08em;
 }
 .end-epitaph {
   font-family: var(--kai);
