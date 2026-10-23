@@ -182,6 +182,14 @@ ok(
   !XD.EVENT_BY_ID.q_first_sword.when(rogue.state),
   "散修不应触发宗门发剑事件"
 );
+ok(
+  !XD.EVENT_BY_ID.q_bully.when(rogue.state),
+  "散修不应触发同门相欺事件"
+);
+ok(
+  !XD.EVENT_BY_ID.q_valley.when(rogue.state),
+  "散修不应触发宗门落霞谷事件"
+);
 
 /* M9：灵石不足时不消耗事件，保留 pending 让玩家重选。 */
 const poor = new Sim({ seed: 6, world: "human" });
