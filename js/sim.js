@@ -976,7 +976,19 @@
         return want("d_node", true);
       if (s.tier === 8 && s.cult >= 85 && !(s.flags.wait_immortal_until && s.age < s.flags.wait_immortal_until))
         return want("m_ascend", true);
-      if (s.tier === 12 && s.cult >= 90 && !s.flags.daozu_declined) return want("i_daozu", true);
+      if (s.tier === 7 && s.cult >= 85 && !s.flags.dacheng_gate)
+        return want("i_dacheng_gate", true);
+      if (s.tier === 11 && s.cult >= 90 && !s.flags.daluo_gate)
+        return want("i_daluo_gate", true);
+      if (s.tier === 12 && !s.flags.sanshi_closed && !s.flags.daozu_declined) {
+        if (!s.flags.sanshi_e && s.cult >= 30) return want("i_sanshi_e", true);
+        if (s.flags.sanshi_e && !s.flags.sanshi_shan && s.cult >= 60)
+          return want("i_sanshi_shan", true);
+        if (s.flags.sanshi_shan && !s.flags.sanshi_wo && s.cult >= 90)
+          return want("i_sanshi_wo", true);
+        if (s.flags.sanshi_e && s.flags.sanshi_shan && s.flags.sanshi_wo && s.cult >= 90)
+          return want("i_daozu", true);
+      }
       if (s.tier >= 1 && s.age >= s.maxAge * 0.82 && !s.seen.x_life)
         return want("x_life", true);
       return false;
@@ -1654,6 +1666,8 @@
       });
       sim.state = run.state;
       sim.state.pending = null;
+      if (!sim.state.flags) sim.state.flags = {};
+      if (!sim.state.seen) sim.state.seen = {};
       if (!Array.isArray(sim.state.choiceTrace)) sim.state.choiceTrace = [];
       if (!Array.isArray(sim.state.log)) sim.state.log = [];
       if (!Array.isArray(sim.state.history)) sim.state.history = [];

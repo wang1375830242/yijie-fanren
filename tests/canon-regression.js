@@ -88,6 +88,57 @@ ok(
   daozuEvent.choices.some((choice) => choice.effects && choice.effects.flag === "daozu_declined"),
   "道祖事件退让后应记录已退标志"
 );
+ok(
+  !daozuEvent.when({ tier: 12, cult: 90, flags: {} }),
+  "未斩三尸不应触发道祖之争"
+);
+ok(
+  daozuEvent.when({
+    tier: 12,
+    cult: 90,
+    flags: { sanshi_e: true, sanshi_shan: true, sanshi_wo: true },
+  }),
+  "斩尽三尸后应允许道祖之争"
+);
+const sanshiSim = new Sim({ seed: 930, world: "immortal" });
+sanshiSim.state.tier = 12;
+sanshiSim.state.cult = 30;
+sanshiSim.state.maxAge = 100000;
+ok(sanshiSim.forceMilestone(), "大罗初期应触发恶尸");
+ok(sanshiSim.state.pending && sanshiSim.state.pending.id === "i_sanshi_e", "恶尸事件应正确");
+sanshiSim.choose(0);
+ok(sanshiSim.state.flags.sanshi_e, "斩恶尸后应记录进度");
+sanshiSim.state.cult = 60;
+ok(sanshiSim.forceMilestone(), "大罗中期应触发善尸");
+ok(sanshiSim.state.pending && sanshiSim.state.pending.id === "i_sanshi_shan", "善尸事件应正确");
+sanshiSim.choose(0);
+ok(sanshiSim.state.flags.sanshi_shan, "斩善尸后应记录进度");
+sanshiSim.state.cult = 90;
+sanshiSim.rng.chance = () => true;
+ok(sanshiSim.forceMilestone(), "大罗后期应触发自我尸");
+ok(sanshiSim.state.pending && sanshiSim.state.pending.id === "i_sanshi_wo", "自我尸事件应正确");
+sanshiSim.choose(0);
+ok(sanshiSim.state.flags.sanshi_wo, "斩自我尸后应记录进度");
+ok(sanshiSim.forceMilestone(), "三尸尽后应触发道祖之争");
+ok(sanshiSim.state.pending && sanshiSim.state.pending.id === "i_daozu", "道祖事件应正确");
+
+const dachengGate = new Sim({ seed: 931, world: "spirit" });
+dachengGate.state.tier = 7;
+dachengGate.state.cult = 85;
+dachengGate.state.maxAge = 100000;
+ok(dachengGate.forceMilestone(), "合体后期应触发大乘之门");
+ok(dachengGate.state.pending && dachengGate.state.pending.id === "i_dacheng_gate", "大乘之门应正确");
+dachengGate.choose(0);
+ok(dachengGate.state.flags.dacheng_gate, "大乘之门应记录已叩门");
+
+const daluoGate = new Sim({ seed: 932, world: "immortal" });
+daluoGate.state.tier = 11;
+daluoGate.state.cult = 90;
+daluoGate.state.maxAge = 100000;
+ok(daluoGate.forceMilestone(), "太乙后期应触发大罗天");
+ok(daluoGate.state.pending && daluoGate.state.pending.id === "i_daluo_gate", "大罗天应正确");
+daluoGate.choose(0);
+ok(daluoGate.state.flags.daluo_gate, "大罗天应记录已叩门");
 
 /* 结局：分类、三幕回顾与终局摘要。 */
 const endingSim = new Sim({ seed: 602, world: "human" });
@@ -721,6 +772,6 @@ ok(
   "现存修士模式应保留伪灵根高境界抽样"
 );
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
-ok(XD.EVENTS.length === 3085, `事件总数应为 3085，实际 ${XD.EVENTS.length}`);
+ok(XD.EVENTS.length === 3090, `事件总数应为 3090，实际 ${XD.EVENTS.length}`);
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; worst-repeat=${worstRepeat}`);

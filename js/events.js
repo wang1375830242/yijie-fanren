@@ -1562,11 +1562,175 @@
   });
 
   add({
+    id: "i_dacheng_gate",
+    when: (s) =>
+      s.world === "spirit" &&
+      s.tier === 7 &&
+      s.cult >= 85 &&
+      !s.flags.dacheng_gate,
+    w: 1,
+    major: true,
+    title: "大乘之门",
+    text: "合体后期，你第一次摸到大乘的门槛。门前没有台阶，只有一片压得很低的雷云。灵界的老修士说，大乘不是修出来的，是把自己的一半留在门里换来的。",
+    choices: [
+      {
+        label: "以自身道基硬叩",
+        effects: { cult: -6, breakBonus: 10, insight: 4, mood: -3, flag: "dacheng_gate" },
+        outcome: "你把道基压在门上，听见自己体内有什么东西轻轻裂开。门开了一线，雷云散了。",
+      },
+      {
+        label: "借雷云淬体，再叩一次",
+        effects: { cult: -4, breakBonus: 8, mood: 2, flag: "dacheng_gate" },
+        outcome: "你在雷云下坐了三年。再站起来时，骨头里还有雷声，但门槛已经矮了一截。",
+      },
+      {
+        label: "不叩，等水到渠成",
+        effects: { mood: 4, insight: 2 },
+        outcome: "你退回洞府。门还在那里，雷云也还在。你决定先把这一生过完。",
+      },
+    ],
+  });
+
+  add({
+    id: "i_daluo_gate",
+    when: (s) =>
+      s.world === "immortal" &&
+      s.tier === 11 &&
+      s.cult >= 90 &&
+      !s.flags.daluo_gate,
+    w: 1,
+    major: true,
+    title: "大罗天",
+    text: "太乙后期，你站在大罗天的边缘。这里没有敌人，也没有路标；只有一面看不见尽头的镜子，照出你从凡人走到今天的所有选择。",
+    choices: [
+      {
+        label: "以法则开路",
+        effects: { cult: -6, breakBonus: 10, insight: 5, mood: -3, flag: "daluo_gate" },
+        outcome: "你把这一生悟出的法则按在镜面上。镜子碎了一条缝，缝后面是大罗。",
+      },
+      {
+        label: "以功德叩门",
+        effects: { cult: -4, breakBonus: 8, karma: 5, flag: "daluo_gate" },
+        outcome: "你没有强破那面镜子，只是把救过的人、做过的事一件件放上去。镜子自己让开了。",
+      },
+      {
+        label: "再等等，先把道心稳住",
+        effects: { mood: 4, insight: 3 },
+        outcome: "你在边缘坐了很久。大罗天没有催你，时间在这里像一条很慢的河。",
+      },
+    ],
+  });
+
+  /* 大罗期三关：斩恶尸、斩善尸、斩自我尸。不是第十四重，是道祖门前的资格试炼。 */
+  add({
+    id: "i_sanshi_e",
+    when: (s) =>
+      s.world === "immortal" &&
+      s.tier === 12 &&
+      s.cult >= 30 &&
+      !s.flags.sanshi_closed &&
+      !s.flags.sanshi_e,
+    w: 1,
+    major: true,
+    title: "斩三尸 · 恶尸",
+    text: "大罗天上，你看见自己站在一片血海里。那些你杀过的人、没杀成的人、假装忘记的人，都在水里抬头看你。其中一个和你长得一模一样，说：你敢说，这不是你？",
+    choices: [
+      {
+        label: "认下恶念，亲手斩它",
+        effects: { cult: -8, mood: -8, karma: -4, insight: 4, flag: "sanshi_e" },
+        outcome: "你一剑落下，血海没有退，反而安静了。原来恶尸不是别人，是你终于肯承认的那部分自己。",
+      },
+      {
+        label: "任它砍一刀，把债认下",
+        effects: { cult: -10, mood: -4, karma: 2, insight: 3, flag: "sanshi_e" },
+        outcome: "那一刀从肩头穿过去，你没有还手。恶尸看了你很久，慢慢散了。",
+      },
+      {
+        label: "不斩，止步大罗",
+        effects: { mood: 4, karma: 2, flag: "sanshi_closed" },
+        outcome: "你转身离开血海。道祖的门还在远处，但你知道，这一世不会再去推它了。",
+      },
+    ],
+  });
+
+  add({
+    id: "i_sanshi_shan",
+    when: (s) =>
+      s.world === "immortal" &&
+      s.tier === 12 &&
+      s.cult >= 60 &&
+      s.flags.sanshi_e &&
+      !s.flags.sanshi_closed &&
+      !s.flags.sanshi_shan,
+    w: 1,
+    major: true,
+    title: "斩三尸 · 善尸",
+    text: "善尸来得比恶尸温柔。它把你救过的人、放过的仇、没能留住的那一点好心，一件件摆在你面前。它问你：这些是你，还是你舍不得的那个好人？",
+    choices: [
+      {
+        label: "斩去善尸，不让善念成为执念",
+        effects: { cult: -6, mood: -8, karma: -3, insight: 6, flag: "sanshi_shan" },
+        outcome: "剑落下去的时候，你听见很多人的声音一起消失。你仍然记得他们，只是不再被他们牵住。",
+      },
+      {
+        label: "留下善念，带着伤过关",
+        effects: { cult: -4, mood: 2, karma: 3, insight: 3, flag: "sanshi_shan" },
+        outcome: "你没有斩。善尸化作一点微光，落在你的道袍上。往后的路会更重，但你还想带着它走。",
+      },
+      {
+        label: "不斩，止步大罗",
+        effects: { mood: 6, karma: 4, flag: "sanshi_closed" },
+        outcome: "你把那些脸一张张收好。道祖的位置很好，但不是你此刻想去的地方。",
+      },
+    ],
+  });
+
+  add({
+    id: "i_sanshi_wo",
+    when: (s) =>
+      s.world === "immortal" &&
+      s.tier === 12 &&
+      s.cult >= 90 &&
+      s.flags.sanshi_shan &&
+      !s.flags.sanshi_closed &&
+      !s.flags.sanshi_wo,
+    w: 1,
+    major: true,
+    title: "斩三尸 · 自我尸",
+    text: "最后来的，是你自己。同样的道袍，同样的脸，同样记得这一路每一次选择。它站在道祖门前，问你：你修到今天，是为了长生，还是为了不肯认输？",
+    choices: [
+      {
+        label: "斩我",
+        risk: { p: 0.55, text: "你赢了。", fail: { death: true, cause: "陨于斩三尸" } },
+        noRescue: true,
+        effects: { insight: 12, mood: -10, flag: "sanshi_wo" },
+        outcome: "你一剑斩下去，镜子里的人先笑了，然后碎了。门后没有声音，只有一条很长的路。",
+      },
+      {
+        label: "把自我尸放逐进时空乱流",
+        effects: { cult: -8, insight: 8, mood: -4, flag: "sanshi_wo" },
+        outcome: "你没有杀它。你把它推进一道裂缝，连同它记得的那个你。门开了，但你知道它还会在某个地方看着你。",
+      },
+      {
+        label: "不斩，止步大罗",
+        effects: { mood: 6, karma: 4, insight: 2, flag: "sanshi_closed" },
+        outcome: "你从门前退开。镜子里的人没有追来。你们终于不必再问谁更像自己。",
+      },
+    ],
+  });
+
+  add({
     id: "i_daozu",
-    when: (s) => s.tier === 12 && s.cult >= 90,
+    when: (s) =>
+      s.tier === 12 &&
+      s.cult >= 90 &&
+      s.flags.sanshi_e &&
+      s.flags.sanshi_shan &&
+      s.flags.sanshi_wo &&
+      !s.flags.sanshi_closed,
     w: 60,
     title: "道祖之争",
-    text: "道祖不是唯一的位置。每一条大道走到尽头，都有一个位置。此刻，你面前那条路的尽头空着。你站在大罗天上，看见另外两道身影也在往这里来。",
+    text: "三尸已尽。道祖不是唯一的位置，但每一条大道走到尽头，都有一个位置。此刻，你面前那条路的尽头空着。你站在大罗天上，看见另外两道身影也在往这里来。",
     choices: [
       {
         label: "争",

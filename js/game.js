@@ -560,6 +560,11 @@
     if (s.flags && s.flags.xutian && !s.flags.xutian_closed) {
       tags.push(s.flags.xutian_3_done ? "残图 · 已了" : s.flags.xutian_2_done ? "残图 · 入殿" : "残图 · 半图");
     }
+    if (s.tier === 12 && s.flags) {
+      const sanshi = [s.flags.sanshi_e, s.flags.sanshi_shan, s.flags.sanshi_wo].filter(Boolean).length;
+      if (s.flags.sanshi_closed) tags.push("斩三尸 · 止步");
+      else if (sanshi) tags.push(`斩三尸 · ${sanshi}/3`);
+    }
     if (s.traits) {
       const traitLabels = {
         kind: "仁厚",
@@ -933,6 +938,14 @@
 
     if (auto) {
       autoTimer = setTimeout(() => {
+        if (p.id === "i_sanshi_wo") {
+          choose(1);
+          return;
+        }
+        if (p.id.indexOf("i_sanshi_") === 0) {
+          choose(0);
+          return;
+        }
         if (p.id === "d_node" || p.id === "m_ascend") {
           const i = p.choices.findIndex((c) => c.effects && c.effects.ascend);
           choose(i >= 0 ? i : 0);
