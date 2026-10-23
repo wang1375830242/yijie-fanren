@@ -63,6 +63,21 @@
   flex-wrap: wrap;
   margin: 20px 0 12px;
 }
+.canon-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 14px 0 8px;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 12px;
+  line-height: 1.8;
+  cursor: pointer;
+}
+.canon-toggle input {
+  margin-top: 3px;
+  accent-color: var(--jade);
+}
 @media (max-width: 880px) {
   .about-layout {
     grid-template-columns: 1fr;

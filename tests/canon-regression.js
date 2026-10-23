@@ -52,6 +52,7 @@ for (const file of [
   "js/data.js",
   "js/events.js",
   "js/events-expanded.js",
+  "js/canon-events.js",
   "js/sim.js",
   "js/canon.js",
 ]) {
@@ -940,7 +941,7 @@ ok(
   "现存修士模式应保留伪灵根高境界抽样"
 );
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
-ok(XD.EVENTS.length === 3098, `事件总数应为 3098，实际 ${XD.EVENTS.length}`);
+ok(XD.EVENTS.length === 3103, `事件总数应为 3103，实际 ${XD.EVENTS.length}`);
 const sceneCounts = Object.fromEntries(
   Object.entries(XD.SCENE_POOLS || {}).map(([key, pool]) => [key, pool.scenes.length])
 );
@@ -969,6 +970,22 @@ ok(ecoSim.annualUpkeep() >= 4, "洞府与弟子应产生长期支出");
 ok(
   D.SHOP.filter((it) => (it.tierMin || 0) >= 9).length >= 2,
   "货栈后期应至少有两件高境界商品"
+);
+
+/* 致敬事件包：默认关闭，开启后只进入原创事件。 */
+const homage = XD.EVENT_BY_ID.homage_yellow_valley;
+ok(homage && homage.source === "homage" && homage.quote === "", "致敬事件应有来源标记且不引用原文");
+XD.util.store.setPref("canonHomage", true);
+const homageSim = new Sim({ seed: 970, world: "human" });
+homageSim.state.sect = "黄枫谷";
+homageSim.state.tier = 1;
+homageSim.state.age = 20;
+ok(homage.when(homageSim.state), "开启致敬事件后应能触发黄枫谷旧碑");
+XD.util.store.setPref("canonHomage", false);
+ok(!homage.when(homageSim.state), "默认关闭时不应触发致敬事件");
+ok(
+  fs.readFileSync(path.join(ROOT, "about.html"), "utf8").includes("canonHomage"),
+  "关于页应提供致敬事件开关"
 );
 
 /* 灵界、仙界四步主线。 */

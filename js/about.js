@@ -99,5 +99,14 @@
     }
   });
 
+  const canonToggle = $("canonHomage");
+  if (canonToggle) {
+    canonToggle.checked = !!U.store.prefs().canonHomage;
+    canonToggle.addEventListener("change", () => {
+      U.store.setPref("canonHomage", canonToggle.checked);
+      U.toast(canonToggle.checked ? "已启用致敬事件" : "已关闭致敬事件");
+    });
+  }
+
   refresh();
 })();
