@@ -290,6 +290,53 @@ ok(tiannanSects.includes("落云宗") && !tiannanSects.includes("黄枫谷"), "�
 ok(dajinSects.includes("太一门") && !dajinSects.includes("星宫"), "大晋应匹配大晋宗门");
 ok(luantianSects.includes("星宫") && !luantianSects.includes("太一门"), "乱星海应匹配乱星海宗门");
 
+/* P5：角色姓名必须匹配性别，旧名字不受影响。 */
+ok(
+  D.MALE_GIVEN.length > 10 && D.FEMALE_GIVEN.length > 10 && D.NEUTRAL_GIVEN.length > 0,
+  "男女与中性名字池都应非空"
+);
+let nameMismatch = 0;
+for (let seed = 1; seed <= 50; seed++) {
+  const nameSim = new Sim({ seed, world: "human" });
+  const pool = nameSim.state.gender === "女" ? D.FEMALE_GIVEN : D.MALE_GIVEN;
+  if (!pool.includes(nameSim.state.name.slice(1))) nameMismatch++;
+}
+ok(nameMismatch === 0, `50 个主角名字应匹配性别，发现 ${nameMismatch} 个错配`);
+const nameSocial = new Sim({ seed: 950, world: "human" });
+nameSocial.state.gender = "女";
+nameSocial.apply({ partner: "道侣" });
+const socialPartner = nameSocial.state.partner;
+ok(
+  socialPartner &&
+    socialPartner.gender === "男" &&
+    D.MALE_GIVEN.includes(socialPartner.name.slice(1)),
+  "女性主角的道侣应为男性名字"
+);
+const socialDisciple = nameSocial.createDisciple();
+ok(
+  socialDisciple.gender &&
+    (socialDisciple.gender === "女" ? D.FEMALE_GIVEN : D.MALE_GIVEN).includes(
+      socialDisciple.name.slice(1)
+    ),
+  "弟子姓名应匹配自己的性别"
+);
+const socialRival = nameSocial.createRival();
+ok(
+  socialRival.gender &&
+    (socialRival.gender === "女" ? D.FEMALE_GIVEN : D.MALE_GIVEN).includes(
+      socialRival.name.slice(1)
+    ),
+  "对手姓名应匹配自己的性别"
+);
+ok(
+  nameSocial.state.peers.every(
+    (peer) =>
+      peer.gender &&
+      (peer.gender === "女" ? D.FEMALE_GIVEN : D.MALE_GIVEN).includes(peer.name.slice(1))
+  ),
+  "同劫姓名应匹配各自性别"
+);
+
 /* M6：灵界不再写成两个月亮；仙界地理说明是总称。 */
 const dataSource = fs.readFileSync(path.join(ROOT, "js/data.js"), "utf8");
 ok(!dataSource.includes("灵界的月有两个"), "M6 不应再写灵界有两个月亮");
@@ -354,6 +401,25 @@ moodSim.state.focus = "cultivate";
 const beforeMood = moodSim.state.mood;
 moodSim.yearTick();
 ok(moodSim.state.mood < beforeMood, "M10 苦修应带来心境损耗");
+
+/* 凡人不应被问“修行图什么”。 */
+const mortalQuestion = new Sim({ seed: 11, world: "human" });
+mortalQuestion.state.path = "mortal";
+mortalQuestion.state.age = 30;
+mortalQuestion.state.flags.asked5 = true;
+mortalQuestion.state.flags.asked15 = true;
+ok(!mortalQuestion.maybeAgeQuestion(), "凡人三十岁不应触发修行问心");
+const cultivatorQuestion = new Sim({ seed: 12, world: "human" });
+cultivatorQuestion.state.path = "cultivator";
+cultivatorQuestion.state.age = 30;
+cultivatorQuestion.state.flags.asked5 = true;
+cultivatorQuestion.state.flags.asked15 = true;
+ok(
+  cultivatorQuestion.maybeAgeQuestion() &&
+    cultivatorQuestion.state.pending &&
+    cultivatorQuestion.state.pending.id === "age_30",
+  "修士三十岁应正常触发问心"
+);
 
 /* 道侣自动线：突破、异地、死亡留档。 */
 const partnerLife = new Sim({ seed: 12, world: "human" });

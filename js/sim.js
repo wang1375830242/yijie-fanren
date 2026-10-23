@@ -48,7 +48,8 @@
       }
 
       const surname = rng.pick(D0.SURNAMES);
-      const given = rng.pick(D0.GIVEN);
+      const gender = rng.chance(0.5) ? "男" : "女";
+      const given = this.pickGivenName(rng, gender);
       const name = surname + given;
       const daohao =
         rng.pick(D0.DAOHAO_A) + rng.pick(D0.DAOHAO_B);
@@ -86,7 +87,7 @@
         seed: this.seed,
         name,
         daohao,
-        gender: rng.chance(0.5) ? "男" : "女",
+        gender,
         world,
         startWorld: world,
         path: startTier > 0 ? "cultivator" : "unsettled",
@@ -273,18 +274,30 @@
       };
     }
 
+    pickGivenName(rng, gender) {
+      const pool =
+        gender === "女"
+          ? D.FEMALE_GIVEN
+          : gender === "男"
+          ? D.MALE_GIVEN
+          : D.NEUTRAL_GIVEN;
+      return rng.pick(pool && pool.length ? pool : D.GIVEN);
+    }
+
     buildPeers() {
       const rng = this.rng;
       const names = [];
       const used = new Set([this.state.name]);
       while (names.length < 4) {
-        const n = rng.pick(D.SURNAMES) + rng.pick(D.GIVEN);
+        const gender = rng.chance(0.5) ? "男" : "女";
+        const n = rng.pick(D.SURNAMES) + this.pickGivenName(rng, gender);
         if (used.has(n)) continue;
         used.add(n);
-        names.push(n);
+        names.push({ name: n, gender });
       }
       const worlds = this.state.world === "human" ? ["human", "human", "human", "human"] : [this.state.world, this.state.world, "human", "spirit"];
-      this.state.peers = names.map((n, i) => {
+      this.state.peers = names.map((item, i) => {
+        const n = item.name;
         const w = worlds[i];
         const origin = rng.pick(D.ORIGINS[w] || D.ORIGINS.human);
         let root;
@@ -296,6 +309,7 @@
         const tier = w === "human" ? 1 : w === "spirit" ? 6 : 9;
         return {
           name: n,
+          gender: item.gender,
           world: w,
           place: origin.place,
           root: root.name,
@@ -703,8 +717,10 @@
       const tier = Math.max(1, Math.min(12, s.tier - 1));
       const age = Math.max(8, s.age - rng.int(15, 40));
       const talent = 0.6 + rng.next() * 0.5;
+      const gender = rng.chance(0.5) ? "男" : "女";
       const disciple = {
-        name: rng.pick(D.SURNAMES) + rng.pick(D.GIVEN),
+        name: rng.pick(D.SURNAMES) + this.pickGivenName(rng, gender),
+        gender,
         title: title || "弟子",
         since: s.age,
         age,
@@ -721,7 +737,7 @@
         place: s.place,
       };
       s.disciples.push(disciple);
-      this.pushLog("system", `你收了${disciple.name}为徒。他/她今年${age}岁。`);
+      this.pushLog("system", `你收了${disciple.name}为徒。${disciple.gender === "女" ? "她" : "他"}今年${age}岁。`);
       return disciple;
     }
 
@@ -731,8 +747,10 @@
       const tier = Math.max(1, Math.min(12, s.tier));
       const age = Math.max(8, s.age + rng.int(-5, 5));
       const talent = 0.8 + rng.next() * 0.5;
+      const gender = rng.chance(0.5) ? "男" : "女";
       const rival = {
-        name: rng.pick(D.SURNAMES) + rng.pick(D.GIVEN),
+        name: rng.pick(D.SURNAMES) + this.pickGivenName(rng, gender),
+        gender,
         title: "对手",
         since: s.age,
         age,
@@ -901,6 +919,8 @@
       }
       const ages = [5, 15, 30, 50, 70];
       for (const age of ages) {
+        // 三十岁以后的问题都在问“修行图什么”，凡人不应被问。
+        if (age >= 30 && s.path !== "cultivator") continue;
         if (s.age >= age && !s.flags["asked" + age]) {
           const id = "age_" + age;
           if (XD.EVENT_BY_ID[id]) {
@@ -1277,8 +1297,10 @@
         const partnerAge = s.age + this.rng.int(-3, 3);
         const partnerTier = Math.max(0, s.tier);
         const partnerTalent = 0.85 + this.rng.next() * 0.8;
+        const partnerGender = s.gender === "女" ? "男" : "女";
         s.partner = {
-          name: this.rng.pick(D.SURNAMES) + this.rng.pick(D.GIVEN),
+          name: this.rng.pick(D.SURNAMES) + this.pickGivenName(this.rng, partnerGender),
+          gender: partnerGender,
           title: effects.partner,
           since: s.age,
           age: partnerAge,

@@ -337,12 +337,12 @@
     when: (s) => s.path === "mortal" && s.age >= 18 && s.age <= 30 && !s.partner,
     w: 12,
     title: "婚事",
-    text: "媒人来了三回。邻村的姑娘你见过一次，在河边洗衣，挽着袖子，手腕很细。母亲问你中不中意。",
+    text: "媒人来了三回。邻村的人你见过一次，在河边洗衣，挽着袖子，手腕很细。母亲问你中不中意。",
     choices: [
       {
-        label: "中意，就她了",
-        effects: { partner: "妻子", mood: 10, karma: 3 },
-        outcome: "婚礼办得很简单，一桌酒，两床新被。她进门那天，院子里的枣树正好开花。",
+        label: "中意，就这个人了",
+        effects: { partner: "伴侣", mood: 10, karma: 3 },
+        outcome: "婚礼办得很简单，一桌酒，两床新被。对方进门那天，院子里的枣树正好开花。",
       },
       {
         label: "再等等，我想出去看看",
@@ -357,15 +357,15 @@
     when: (s) => s.path === "mortal" && s.partner && s.age >= 24 && s.age <= 42 && !s.flags.has_child,
     w: 10,
     title: "添丁",
-    text: "孩子出生在秋分。接生婆说是个男孩，哭声响得像打雷。你抱着他，手都不知道往哪放。",
+    text: "孩子出生在秋分。接生婆说哭声很响，像打雷。你抱着孩子，手都不知道往哪放。",
     choices: [
       {
-        label: "给他取名，教他做人",
+        label: "给孩子取名，教孩子做人",
         effects: { mood: 12, karma: 4, flag: "has_child" },
-        outcome: "你把自己没走过的路，都铺在了他脚下。",
+        outcome: "你把自己没走过的路，都铺在了孩子脚下。",
       },
       {
-        label: "让他将来读书，别像我",
+        label: "让孩子将来读书，别像我",
         effects: { mood: 8, insight: 4, stones: -20, flag: "has_child" },
         outcome: "你请了镇上的秀才开蒙。孩子很争气，字写得比你好看。",
       },
