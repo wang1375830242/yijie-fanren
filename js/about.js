@@ -29,6 +29,37 @@
     return added;
   }
 
+  function mergeLineage(incoming) {
+    if (!incoming || incoming.v !== 1) return;
+    const current = U.store.lineage();
+    const byKey = new Map();
+    [...(current.entries || []), ...(incoming.entries || [])].forEach((entry) => {
+      const key = entry.lifeKey || `no:${entry.no}`;
+      if (!byKey.has(key)) byKey.set(key, entry);
+    });
+    const entries = Array.from(byKey.values())
+      .sort((a, b) => (Number(b.no) || 0) - (Number(a.no) || 0))
+      .slice(0, 20);
+    const total = Math.max(
+      Number(current.total) || 0,
+      Number(incoming.total) || 0,
+      ...entries.map((entry) => Number(entry.no) || 0)
+    );
+    const streak = Math.max(Number(current.streak) || 0, Number(incoming.streak) || 0);
+    U.store.setLineage({
+      v: 1,
+      total,
+      streak,
+      bestStreak: Math.max(Number(current.bestStreak) || 0, Number(incoming.bestStreak) || 0, streak),
+      entries,
+    });
+  }
+
+  function mergeSteles(incoming) {
+    if (!Array.isArray(incoming)) return;
+    U.store.setSteles([...(U.store.steles() || []), ...incoming]);
+  }
+
   $("btnClear").addEventListener("click", () => {
     if (!confirm("清空本机所有人生记录、未完成的一世与道果？这个操作不能撤销。")) return;
     U.store.clearLives();
@@ -81,10 +112,8 @@
       const lives = Array.isArray(data.lives) ? data.lives : [];
       const added = mergeLives(lives);
       if (data.legacy && !U.store.legacy()) U.store.setLegacy(data.legacy);
-      if (data.lineage && data.lineage.v === 1) U.store.setLineage(data.lineage);
-      if (Array.isArray(data.steles)) {
-        U.store.setSteles ? U.store.setSteles(data.steles) : data.steles.forEach((id) => U.store.markStele(id));
-      }
+      mergeLineage(data.lineage);
+      mergeSteles(data.steles);
       if (data.run && data.run.v === 1) {
         if (!U.store.run() || confirm("导入会覆盖本机未完成的一世，继续吗？")) {
           U.store.setRun(data.run);

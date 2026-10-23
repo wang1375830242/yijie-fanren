@@ -420,12 +420,38 @@ ok(
   "散修不应触发宗门攻山事件"
 );
 ok(
-  !XD.EVENT_BY_ID.q_first_sword.when(rogue.state),
-  "散修不应触发宗门发剑事件"
+  !XD.EVENT_BY_ID.q_bully.when({ world: "spirit", tier: 1, age: 20, sect: "天渊城" }),
+  "灵界出生不应触发人界同门相欺"
+);
+const marketEvent = XD.EVENT_BY_ID.q_market;
+const marketChoiceCount = marketEvent.choices.length;
+const marketSim = new Sim({ seed: 972, world: "human" });
+marketSim.state.tier = 1;
+marketSim.state.age = 20;
+marketSim.trigger("q_market");
+marketSim.state.pending.choices.push({ label: "临时选项", effects: {} });
+ok(
+  marketEvent.choices.length === marketChoiceCount,
+  "弹窗临时选项不应污染全局事件"
+);
+const mainlineRetry = new Sim({ seed: 973, world: "spirit" });
+mainlineRetry.state.tier = 5;
+mainlineRetry.state.age = 80;
+mainlineRetry.state.stones = 1000;
+mainlineRetry.state.flags.s_main_1 = true;
+mainlineRetry.state.seen.s_main_2 = true;
+mainlineRetry.maybeMainline();
+ok(
+  mainlineRetry.state.pending && mainlineRetry.state.pending.id === "s_main_2",
+  "主线风险失败后应允许重试下一步"
 );
 ok(
   !XD.EVENT_BY_ID.q_bully.when(rogue.state),
   "散修不应触发同门相欺事件"
+);
+ok(
+  !XD.EVENT_BY_ID.q_first_sword.when(rogue.state),
+  "散修不应触发宗门发剑事件"
 );
 ok(
   !XD.EVENT_BY_ID.q_valley.when(rogue.state),

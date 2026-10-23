@@ -153,7 +153,7 @@
       });
       lineage.v = 1;
       lineage.total = Math.max(Number(lineage.total) || 0, no);
-      lineage.streak = (Number(lineage.streak) || 0) + 1;
+      lineage.streak = Math.max(Number(lineage.streak) || 0, no);
       lineage.bestStreak = Math.max(Number(lineage.bestStreak) || 0, lineage.streak);
       lineage.entries = [item].concat(lineage.entries || []).slice(0, 20);
       return write(KEY_LINEAGE, lineage) ? lineage : null;

@@ -428,9 +428,10 @@
       const s = this.state;
       this.initSectRank();
       if (!this.isSectMember()) return;
-      const years = Math.min(8, Math.max(1, s.lastStepYears || 1));
+      const stepYears = Math.max(1, s.lastStepYears || 1);
+      const years = Math.min(8, stepYears);
       const rank = D.SECT_RANKS[s.sectRank] || D.SECT_RANKS[0];
-      s.stones += rank.share || 0;
+      s.stones += (rank.share || 0) * stepYears;
       if (s.focus === "sect") {
         s.sectContrib += Math.max(1, Math.round((2 + Math.floor(s.tier / 2)) * years * 0.5));
       }
@@ -494,7 +495,7 @@
       }
       if (s.world === "spirit") {
         // 已经拿到最后一步资格时，即使突破到合体，也允许把余波走完。
-        if (s.flags.s_main_3 && !s.flags.s_main_closed && !s.seen.s_main_4) {
+        if (s.flags.s_main_3 && !s.flags.s_main_closed) {
           this.trigger("s_main_4");
           return true;
         }
@@ -521,15 +522,13 @@
             : !s.flags.s_main_3
             ? "s_main_3"
             : "s_main_4";
-          if (!s.seen[next]) {
-            this.trigger(next);
-            return true;
-          }
+          this.trigger(next);
+          return true;
         }
       }
       if (s.world === "immortal") {
         // 已经拿到最后一步资格时，即使突破到太乙，也允许把断界海走完。
-        if (s.flags.i_main_3 && !s.flags.i_main_closed && !s.seen.i_main_4) {
+        if (s.flags.i_main_3 && !s.flags.i_main_closed) {
           this.trigger("i_main_4");
           return true;
         }
@@ -556,10 +555,8 @@
             : !s.flags.i_main_3
             ? "i_main_3"
             : "i_main_4";
-          if (!s.seen[next]) {
-            this.trigger(next);
-            return true;
-          }
+          this.trigger(next);
+          return true;
         }
       }
       return false;
@@ -1201,8 +1198,11 @@
         title: ev.title,
         text,
         sceneKey: ev.sceneKey || "",
-        choices:
-          typeof ev.choices === "function" ? ev.choices(s) : ev.choices,
+        choices: (() => {
+          const choices = typeof ev.choices === "function" ? ev.choices(s) : ev.choices;
+          // 弹窗会追加“灵石不足”等临时选项，不能污染全局事件定义。
+          return Array.isArray(choices) ? choices.slice() : [];
+        })(),
         major: !!ev.major,
       };
     }

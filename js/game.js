@@ -217,7 +217,6 @@
     const run = sim.snapshot();
     run.pace = pace;
     const ok = U.store.setRun(run);
-    if (ok && state.legacy) U.store.markLegacyUsed(state.seed);
     if (!ok && !runSaveWarned) {
       runSaveWarned = true;
       toast("这一世暂时没能写入本机存档");
@@ -1104,7 +1103,12 @@
       </g>
     </svg>`;
     $("ascend").hidden = false;
+    let closed = false;
+    let fallback = null;
     const close = () => {
+      if (closed) return;
+      closed = true;
+      clearTimeout(fallback);
       $("ascend").hidden = true;
       $("ascendSkip").removeEventListener("click", close);
       refreshAll();
@@ -1115,7 +1119,7 @@
       }
     };
     $("ascendSkip").addEventListener("click", close);
-    setTimeout(close, 3600);
+    fallback = setTimeout(close, 3600);
   }
 
   /* ======================================================================
@@ -1501,6 +1505,11 @@
       if (!confirm("重新降生？当前这一世会结束。已经结束的人生仍会留在碑林。")) return;
       clearTimeout(timer);
       U.store.clearRun();
+      sim = null;
+      state = null;
+      endSummary = null;
+      saved = false;
+      paused = false;
       $("moreMenu").classList.remove("is-open");
       $("btnMore").setAttribute("aria-expanded", "false");
       show("birth");
@@ -1524,6 +1533,11 @@
     $("btnHall").addEventListener("click", () => (location.href = "hall.html"));
     $("btnAgain").addEventListener("click", () => {
       U.store.clearRun();
+      sim = null;
+      state = null;
+      endSummary = null;
+      saved = false;
+      paused = false;
       show("birth");
       setTheme("human");
       window.scrollTo(0, 0);
