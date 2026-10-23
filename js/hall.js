@@ -201,21 +201,50 @@
     cause: l.cause,
   }));
 
-  const legends = D.LEGENDS.map((lg) => ({
-    id: lg.id,
-    name: lg.name,
-    world: lg.world,
-    realm: lg.realm,
-    age: lg.years,
-    origin: lg.title,
-    root: "—",
-    sect: "—",
-    epitaph: lg.line,
-    deeds: [],
-    tag: "原著人物 · 致敬",
-    isLegend: true,
-    note: lg.note,
-  }));
+  const LEGEND_PROFILES = {
+    "legend-hanli": { root: "伪灵根", sect: "黄枫谷" },
+    "legend-nangong": { root: "天灵根（推测）", sect: "掩月宗" },
+    "legend-ziling": { root: "水灵根（推测）", sect: "妙音门" },
+    "legend-yinyue": { root: "妖修（银月狼族）", sect: "银月狼族" },
+    "legend-lifeiyu": { root: "无灵根", sect: "七玄门" },
+    "legend-mo-dafu": { root: "无灵根", sect: "七玄门" },
+    "legend-mo-caihuan": { root: "无灵根", sect: "墨府" },
+    "legend-zhang-tie": { root: "无灵根", sect: "七玄门" },
+    "legend-li-huayuan": { root: "双灵根（推测）", sect: "黄枫谷" },
+    "legend-linghu": { root: "天灵根（推测）", sect: "黄枫谷" },
+    "legend-xiangzhili": { root: "双灵根（推测）", sect: "散修" },
+    "legend-yuan-yao": { root: "水灵根（推测）", sect: "青阳门" },
+    "legend-wen-tianren": { root: "双灵根（推测）", sect: "逆星盟" },
+    "legend-liudao": { root: "异灵根（推测）", sect: "逆星盟" },
+    "legend-wangchan": { root: "暗灵根", sect: "鬼灵门" },
+    "legend-yanruyan": { root: "水系天灵根", sect: "燕家堡" },
+    "legend-lingyuling": { root: "天灵根", sect: "星宫" },
+    "legend-nanlong": { root: "双灵根（推测）", sect: "散修" },
+    "legend-bingfeng": { root: "妖修（冰凤）", sect: "冰凤一族" },
+    "legend-dayan": { root: "天灵根（推测）", sect: "散修" },
+    "legend-gu-huo-jin": { root: "时间灵根（推测）", sect: "无宗门（时间道祖）" },
+    "legend-li-yuanjiu": { root: "金灵根（推测）", sect: "九元观" },
+    "legend-lunhui": { root: "轮回灵根（推测）", sect: "轮回殿" },
+  };
+
+  const legends = D.LEGENDS.map((lg) => {
+    const profile = LEGEND_PROFILES[lg.id] || {};
+    return {
+      id: lg.id,
+      name: lg.name,
+      world: lg.world,
+      realm: lg.realm,
+      age: lg.years,
+      origin: lg.title,
+      root: profile.root || "—",
+      sect: profile.sect || "—",
+      epitaph: lg.line,
+      deeds: [],
+      tag: "原著人物 · 致敬",
+      isLegend: true,
+      note: lg.note,
+    };
+  });
 
   const anon = ANON.map((a) => Object.assign({}, a, { tag: "无名碑" }));
 
