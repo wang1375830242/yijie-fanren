@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 公共碑林运行时数据：每台部署实例自己生成，避免把留言/灯数提交进仓库
+data/hall.json
+data/*.tmp
+
+# 本地测试与系统文件
+.tmp/
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1139 @@
+/* ==========================================================================
+   一介凡人 · 界面驱动
+   ========================================================================== */
+(function () {
+  "use strict";
+  const XD = window.XD;
+  const D = XD.DATA;
+  const U = XD.util;
+  const A = XD.art;
+  const $ = (id) => document.getElementById(id);
+
+  const PACE = { short: 2600, mid: 4000, long: 5600 };
+
+  let sim = null;
+  let state = null;
+  let timer = null;
+  let speed = 1;
+  let paused = false;
+  let auto = false;
+  let pace = "mid";
+  let themeWorld = "human";
+  let logRendered = 0;
+  let endSummary = null;
+  let saved = false;
+  let autoTimer = null;
+  let shopPaused = false;
+  let rollingLife = false;
+  let soft = false;
+  let releasePromptTrap = null;
+  let releaseShopTrap = null;
+
+  /* ======================================================================
+     通用
+     ====================================================================== */
+  function show(name) {
+    ["screenBirth", "screenCard", "screenLife", "screenEnd"].forEach((id) => {
+      $(id).hidden = id !== "screen" + name[0].toUpperCase() + name.slice(1);
+    });
+    $("tbMid").hidden = name !== "life";
+    document.body.classList.toggle("in-life", name === "life");
+    window.scrollTo({ top: 0, behavior: "instant" in document.documentElement.style ? "instant" : "auto" });
+  }
+
+  function setTheme(world) {
+    themeWorld = world;
+    document.documentElement.dataset.realm = world;
+  }
+
+  function fmtSeed(seed) {
+    const s = (seed >>> 0).toString(16).toUpperCase().padStart(8, "0");
+    return "No. " + s.slice(0, 4) + "-" + s.slice(4);
+  }
+
+  function worldName(w) {
+    return (D.WORLD_META[w] || D.WORLD_META.human).name;
+  }
+
+  function toast(msg) {
+    U.toast(msg);
+  }
+
+  const SOFT_MAP = [
+    [/碎尸/g, "遗蜕"],
+    [/尸体/g, "遗蜕"],
+    [/死尸/g, "遗蜕"],
+    [/头颅/g, "影子"],
+    [/惨死/g, "离世"],
+    [/杀死/g, "了断"],
+    [/死亡/g, "离世"],
+    [/生死/g, "生离"],
+    [/鲜血/g, "微光"],
+    [/血迹/g, "痕迹"],
+    [/血流/g, "流光"],
+    [/死/g, "离去"],
+    [/血/g, "尘"],
+    [/杀/g, "了断"],
+  ];
+  function soften(text) {
+    if (!soft || text == null) return String(text == null ? "" : text);
+    let out = String(text);
+    for (const [re, to] of SOFT_MAP) out = out.replace(re, to);
+    return out;
+  }
+
+  function setSoft(value, quiet) {
+    soft = !!value;
+    const box = $("softMode");
+    if (box) box.checked = soft;
+    const btn = $("menuSoft");
+    if (btn) btn.textContent = `柔化模式：${soft ? "开" : "关"}`;
+    U.store.setPref("soft", soft);
+    if (!quiet) toast(soft ? "柔化模式已开" : "柔化模式已关");
+    if (state && state.log) renderLogAll();
+  }
+
+  /* ======================================================================
+     开场：择界
+     ====================================================================== */
+  function initBirth() {
+    $("birthDial").innerHTML = A.dial();
+    $("rollDial").innerHTML = A.dial({ spin: true });
+    const saved = U.store.prefs();
+    if (saved.speed) setSpeed(saved.speed);
+    setSoft(saved.soft, true);
+    $("softMode").addEventListener("change", () => setSoft($("softMode").checked));
+    const params = new URLSearchParams(location.search);
+    const qWorld = params.get("world");
+    const qPace = params.get("pace");
+    if (qWorld) {
+      const r = document.querySelector(`input[name="world"][value="${qWorld}"]`);
+      if (r) r.checked = true;
+    }
+    if (qPace && PACE[qPace]) {
+      const r = document.querySelector(`input[name="pace"][value="${qPace}"]`);
+      if (r) r.checked = true;
+      pace = qPace;
+    }
+
+    $("btnBirth").addEventListener("click", () => {
+      if (rollingLife) return;
+      rollingLife = true;
+      $("btnBirth").disabled = true;
+      const world = document.querySelector('input[name="world"]:checked').value;
+      pace = document.querySelector('input[name="pace"]:checked').value;
+      $("rolling").hidden = false;
+      setTimeout(() => {
+        $("rolling").hidden = true;
+        rollerDone();
+      }, 1500);
+      function rollerDone() {
+        rollingLife = false;
+        $("btnBirth").disabled = false;
+        startLife(world);
+      }
+    });
+
+    $("btnReroll").addEventListener("click", () => {
+      rollingLife = false;
+      $("btnBirth").disabled = false;
+      show("birth");
+      setTheme("human");
+      toast("再择一处降生");
+    });
+
+    $("btnBegin").addEventListener("click", () => {
+      show("life");
+      setTheme(state.world);
+      buildLifeUI();
+      logRendered = 0;
+      refreshAll(true);
+      paused = false;
+      $("btnPause").textContent = "❚❚";
+      schedule();
+    });
+  }
+
+  /* ======================================================================
+     降生
+     ====================================================================== */
+  function startLife(world) {
+    const params = new URLSearchParams(location.search);
+    const qSeed = params.get("seed");
+    const seed = qSeed ? Number(qSeed) >>> 0 : (Math.random() * 4294967295) >>> 0;
+    const modeEl = document.querySelector('input[name="mode"]:checked');
+    sim = new XD.Sim({ seed, world, mode: modeEl ? modeEl.value : "birth" });
+    state = sim.state;
+    endSummary = null;
+    saved = false;
+    setTheme(state.world);
+    renderFateCard();
+    show("card");
+  }
+
+  function renderFateCard() {
+    const s = state;
+    $("fateNo").textContent = fmtSeed(s.seed);
+    $("fateSeal").textContent = s.name[0];
+    $("fateName").textContent = s.name;
+    $("fateMeta").textContent = `${s.gender} · ${worldName(s.world)} · ${s.origin.place}`;
+    $("rootRing").innerHTML = A.rootRing(
+      A.rootValues(s.root, s.seed),
+      s.root.name === "凡骨" ? "" : s.root.name
+    );
+
+    const fields = [
+      ["界域", worldName(s.world)],
+      ["生于", s.origin.place],
+      ["出身", s.origin.family],
+      ["灵根", s.root.name],
+      ["悟性", s.insight],
+      ["气运", s.luck],
+      ["寿元", s.maxAge + " 年"],
+      ["随身", s.stones ? s.stones + " 块灵石" : "一无所有"],
+    ];
+    $("fateFields").innerHTML = fields
+      .map(
+        ([k, v]) =>
+          `<div class="fate-field"><dt>${U.esc(k)}</dt><dd>${U.esc(v)}</dd></div>`
+      )
+      .join("");
+
+    const notes = {
+      tian: "百中无一。若被宗门知晓，他们会为你打起来。",
+      yi: "修行极快，也极招祸。",
+      shuang: "上佳之资，足以入内门。",
+      san: "中人之姿，胜在一个稳字。",
+      si: "伪灵根，也能修出真金丹。",
+      wei: "五行俱全，等于五行皆废。",
+      none: "",
+    };
+    $("fateNote").textContent = s.root.text + (notes[s.root.key] && s.root.key !== "none" ? " " + notes[s.root.key] : "");
+    $("fateCard").style.opacity = "1";
+  }
+
+  /* ======================================================================
+     主界面骨架
+     ====================================================================== */
+  function renderActionBar() {
+    const bar = document.querySelector(".action-bar");
+    bar.innerHTML = `<span class="action-label">命运的重心</span><div class="chips" id="focusChips"></div><button class="btn btn--sm" id="btnShop" type="button">货栈</button>`;
+    if (state.path === "mortal") {
+      bar.innerHTML =
+        '<span class="action-label">凡人的日子</span><span class="tiny dim" style="font-family:var(--kai);letter-spacing:.08em">此身凡骨，日子只能一天一天地过。</span>';
+      return;
+    }
+    $("focusChips").innerHTML = D.FOCUS.map(
+      (f) =>
+        `<button class="chip${f.key === state.focus ? " on" : ""}" data-focus="${f.key}" type="button" title="${U.esc(f.desc)}">${f.name}</button>`
+    ).join("");
+    $("focusChips").querySelectorAll(".chip").forEach((b) => {
+      b.addEventListener("click", () => {
+        state.focus = b.dataset.focus;
+        U.store.setPref("focus", state.focus);
+        $("focusChips").querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b));
+        toast(`重心转为「${b.textContent}」`);
+      });
+    });
+    $("btnShop").addEventListener("click", openShop);
+  }
+
+  function buildLifeUI() {
+    renderActionBar();
+
+    $("log").innerHTML = "";
+    $("peersList").innerHTML = "";
+    $("ladder").innerHTML = "";
+    $("mapGrid").innerHTML = "";
+    $("mapLegend").innerHTML = "";
+    $("chartBox").innerHTML = "";
+    logRendered = 0;
+  }
+
+  /* ======================================================================
+     循环
+     ====================================================================== */
+  function schedule() {
+    clearTimeout(timer);
+    if (paused || !sim || !state.alive) return;
+    const delay = (PACE[pace] || PACE.mid) / speed;
+    timer = setTimeout(loop, delay);
+  }
+
+  function loop() {
+    if (!sim || paused) return;
+    const before = state.log.length;
+    const res = sim.step();
+    appendLogs(before);
+    refreshAll();
+    if (handleWorldChange()) return;
+    if (!state.alive) {
+      endLife();
+      return;
+    }
+    if (state.pending) {
+      openPrompt();
+      return;
+    }
+    schedule();
+  }
+
+  function fastForward() {
+    if (!sim || !state.alive) return;
+    paused = true;
+    let guard = 0;
+    while (guard++ < 800) {
+      const res = sim.step();
+      if (res.status !== "ok") break;
+    }
+    renderLogAll();
+    refreshAll();
+    if (handleWorldChange()) return;
+    if (!state.alive) {
+      endLife();
+      return;
+    }
+    if (state.pending) {
+      openPrompt();
+      return;
+    }
+    paused = false;
+    $("btnPause").textContent = "❚❚";
+    schedule();
+  }
+
+  function setSpeed(v) {
+    speed = v;
+    document.querySelectorAll("#speeds button").forEach((b) => {
+      b.classList.toggle("on", Number(b.dataset.speed) === v);
+    });
+    document.querySelectorAll("#menuSpeeds button").forEach((b) => {
+      b.classList.toggle("on", Number(b.dataset.mspeed) === v);
+    });
+    U.store.setPref("speed", v);
+    if (sim && !paused) schedule();
+  }
+
+  /* ======================================================================
+     日志
+     ====================================================================== */
+  function entryHTML(e, idx) {
+    const year = `<div class="log-year">${e.age}<span>岁</span></div>`;
+    let cls = "k-" + e.kind;
+    if (e.kind === "death") {
+      return `<div class="log-entry ${cls}">${year}<div class="log-text">${U.esc(soften(e.text))}</div></div>`;
+    }
+    const title = e.title ? `<span class="ev-title">${U.esc(soften(e.title))}</span>` : "";
+    return `<div class="log-entry ${cls}" data-i="${idx}">${year}<div class="log-text">${title}${U.esc(soften(e.text))}</div></div>`;
+  }
+
+  function appendLogs(from) {
+    const log = $("log");
+    const entries = state.log.slice(from);
+    if (!entries.length) return;
+    const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 120;
+    const frag = document.createElement("div");
+    frag.innerHTML = entries.map((e, i) => entryHTML(e, from + i)).join("");
+    while (frag.firstChild) log.appendChild(frag.firstChild);
+    if (nearBottom) log.scrollTop = log.scrollHeight;
+    logRendered = state.log.length;
+  }
+
+  function renderLogAll() {
+    const log = $("log");
+    log.innerHTML = state.log.map((e, i) => entryHTML(e, i)).join("");
+    log.scrollTop = log.scrollHeight;
+    logRendered = state.log.length;
+  }
+
+  /* ======================================================================
+     刷新
+     ====================================================================== */
+  function refreshAll(full) {
+    const s = state;
+    // 顶栏
+    $("ageNum").textContent = s.age;
+    $("tbRealm").textContent = sim.displayRealm();
+    const remain = Math.max(0, 1 - s.age / s.maxAge);
+    $("lifeBar").style.width = (remain * 100).toFixed(1) + "%";
+    $("lifeBar").style.background =
+      remain < 0.15 ? "var(--cinnabar-2)" : "var(--realm)";
+
+    // 命牌
+    $("idSeal").textContent = s.name[0];
+    $("idName").textContent = s.name;
+    $("idSub").textContent =
+      s.path === "cultivator" ? `${s.daohao} · ${s.gender}` : `凡俗 · ${s.gender}`;
+    $("idRealmName").textContent = sim.displayRealm();
+    $("idRealmTag").textContent = worldName(s.world);
+    const tags = [
+      s.root.name,
+      s.sect || "散修",
+      s.origin.family,
+    ];
+    if (s.bottle) tags.push("随身小瓶");
+    $("idTags").innerHTML = tags.map((t) => `<span>${U.esc(t)}</span>`).join("");
+
+    // 状态
+    $("vCult").textContent = s.tier === 0 ? "凡骨" : Math.round(s.cult) + "%";
+    $("bCult").style.width = (s.tier === 0 ? 0 : s.cult) + "%";
+    $("vMood").textContent = Math.round(s.mood);
+    $("bMood").style.width = s.mood + "%";
+    $("vKarma").textContent = (s.karma > 0 ? "+" : "") + Math.round(s.karma);
+    const k = Math.max(-100, Math.min(100, s.karma));
+    const karmaBar = $("bKarma");
+    if (k >= 0) {
+      karmaBar.style.left = "50%";
+      karmaBar.style.width = k / 2 + "%";
+    } else {
+      karmaBar.style.left = 50 + k / 2 + "%";
+      karmaBar.style.width = -k / 2 + "%";
+    }
+    $("vInsight").textContent = Math.round(s.insight);
+    $("bInsight").style.width = s.insight + "%";
+    $("vStones").textContent = U.fmt(s.stones);
+    $("vWard").textContent = s.ward;
+
+    // 关系
+    const rels = [];
+    rels.push({ ico: "门", name: s.sect || "无门无派", sub: "宗门 / 归属", when: "" });
+    if (s.partner)
+      rels.push({
+        ico: "侣",
+        name: s.partner.name,
+        sub: s.partner.title + (s.path === "cultivator" ? " · 同修" : ""),
+        when: s.partner.since + "岁",
+      });
+    if (s.disciples.length)
+      rels.push({
+        ico: "徒",
+        name: s.disciples[s.disciples.length - 1].name,
+        sub: `弟子 · 共 ${s.disciples.length} 人`,
+        when: s.disciples[s.disciples.length - 1].since + "岁",
+      });
+    if (s.rivals.length)
+      rels.push({ ico: "仇", name: s.rivals[s.rivals.length - 1].name, sub: "结下的因果", when: "" });
+    if (rels.length === 1)
+      rels.push({ ico: "影", name: "孤身一人", sub: "修行路上，暂无同行者", when: "" });
+    $("relList").innerHTML = rels
+      .map(
+        (r) =>
+          `<div class="rel"><div class="rel-ico">${r.ico}</div><div><div class="rel-name">${U.esc(r.name)}</div><div class="rel-sub">${U.esc(r.sub)}</div></div><div class="rel-when">${U.esc(r.when)}</div></div>`
+      )
+      .join("");
+
+    // 所在
+    $("placeScene").innerHTML = A.scene(s.world, s.seed);
+    $("placeName").textContent = s.place;
+    $("placeSub").textContent = `${worldName(s.world)} · ${s.origin.family}`;
+
+    // 同劫
+    $("peersList").innerHTML = s.peers
+      .map((p) => {
+        const dead = !p.alive;
+        return `<div class="peer${dead ? " dead" : ""}"><div class="peer-name">${p.name}</div><div class="peer-meta">${p.root} · ${p.place}</div><div class="peer-realm">${dead ? p.fate : D.REALMS[p.tier].name}</div></div>`;
+      })
+      .join("");
+
+    // 道途
+    const ladder = [];
+    D.REALMS.slice(1).forEach((r) => {
+      if (r.tier === 6 || r.tier === 9) {
+        ladder.push(`<div class="rung-world">${worldName(r.world)}</div>`);
+      }
+      const done = s.tier > r.tier;
+      const now = s.tier === r.tier;
+      ladder.push(
+        `<div class="rung ${done ? "done" : ""} ${now ? "now" : ""}"><span>${r.name}</span><span class="tier">${done ? "已过" : now ? "此身" : "第" + r.tier + "境"}</span></div>`
+      );
+    });
+    $("ladder").innerHTML = ladder.join("");
+
+    // 人生地图
+    renderMap();
+
+    // 曲线
+    $("chartBox").innerHTML = A.survivalChart(s.age, s.maxAge);
+    $("chartBox").style.color = "var(--realm)";
+
+    // 日志
+    if (full) renderLogAll();
+    else appendLogs(logRendered);
+    $("logHint").textContent = state.pending ? "有一个抉择正在等你" : "逐年记录 · 最新的在最下面";
+  }
+
+  function renderMap() {
+    const s = state;
+    const cells = 128;
+    const max = Math.max(20, s.maxAge);
+    const segs = s.tierHistory;
+    const tierAt = (age) => {
+      let t = s.tierHistory.length ? s.tierHistory[0].tier : s.tier;
+      for (let i = 0; i < segs.length; i++) {
+        if (segs[i].age <= age) t = segs[i].tier;
+        else break;
+      }
+      return t;
+    };
+    let html = "";
+    for (let i = 0; i < cells; i++) {
+      const age = (i / cells) * max;
+      const t = age <= s.age ? tierAt(age) : null;
+      const color = t == null ? null : D.REALMS[t].color;
+      html += `<span class="map-cell" title="${t == null ? "未至" : age.toFixed(0) + "岁 · " + D.REALMS[t].name}" style="background:${color || "rgba(255,255,255,.035)"};opacity:${t == null ? 1 : 0.85}"></span>`;
+    }
+    $("mapGrid").innerHTML = html;
+    $("mapScale").textContent = `一格 ≈ ${Math.max(1, Math.round(max / cells))} 年`;
+
+    const reached = [];
+    for (let i = segs.length - 1; i >= 0; i--) {
+      if (!reached.find((x) => x.tier === segs[i].tier)) reached.unshift(segs[i]);
+    }
+    const show = reached.slice(-5);
+    $("mapLegend").innerHTML = show
+      .map(
+        (x) =>
+          `<span><i style="background:${D.REALMS[x.tier].color}"></i>${D.REALMS[x.tier].name}</span>`
+      )
+      .join("");
+  }
+
+  /* ======================================================================
+     抉择
+     ====================================================================== */
+  function riskTag(p, lethal) {
+    if (p == null) return null;
+    if (lethal) {
+      if (p < 0.5) return { cls: "risk--dead", text: "九死一生" };
+      return { cls: "risk--warn", text: "有性命之危" };
+    }
+    if (p < 0.4) return { cls: "risk--dead", text: "九死一生" };
+    if (p < 0.68) return { cls: "risk--warn", text: "有凶险" };
+    return { cls: "risk--safe", text: "较稳妥" };
+  }
+
+  function openPrompt() {
+    clearTimeout(autoTimer);
+    if (!state.pending) return;
+    if (state.pending.kind === "break") return openBreak();
+    const p = state.pending;
+    const waitLocked =
+      (p.id === "d_node" && (state.flags.wait_spirit_count || 0) >= 3) ||
+      (p.id === "m_ascend" && (state.flags.wait_immortal_count || 0) >= 3);
+    const costOf = (c) => {
+      if (c.donate) return Number(c.donate.min) || 10;
+      return c.requires && c.requires.stones != null
+        ? c.requires.stones
+        : c.effects && c.effects.stones < 0
+        ? -c.effects.stones
+        : 0;
+    };
+    const anyAffordable = p.choices.some(
+      (c) =>
+        state.stones >= costOf(c) &&
+        !(waitLocked && c.effects && c.effects.wait)
+    );
+    if (!anyAffordable) {
+      p.choices.push({
+        label: "拿不出灵石，只能作罢",
+        effects: { mood: -2 },
+        outcome: "你摸了摸空空的储物袋，把话咽了回去。",
+      });
+    }
+    $("choiceKicker").textContent = "抉 择";
+    $("choiceTitle").textContent = soften(p.title || "");
+    $("choiceText").textContent = soften(p.text || "");
+    $("choiceOpts").innerHTML = p.choices
+      .map((c, i) => {
+        const lethal = !!(c.risk && c.risk.fail && c.risk.fail.death);
+        const pr = c.risk ? Math.min(0.96, c.risk.p + 0.34 + (state.luck - 50) * 0.002) : null;
+        const rt = c.risk ? riskTag(pr, lethal) : null;
+        const required =
+          c.requires && c.requires.stones != null
+            ? c.requires.stones
+            : c.effects && c.effects.stones < 0
+            ? -c.effects.stones
+            : 0;
+        const poor = required > state.stones;        const isWait = !!(c.effects && c.effects.wait);
+        const blockedWait = waitLocked && isWait;
+        const disabled = poor || blockedWait;
+        if (c.donate) {
+          const min = Number(c.donate.min) || 10;
+          const max = Math.min(Number(c.donate.max) || state.stones, state.stones);
+          const step = Number(c.donate.step) || 10;
+          const value = Math.min(max, min);
+          const affordable = max >= min && !poor;
+          return `<div class="opt opt--donate${affordable ? "" : " is-disabled"}" data-i="${i}">
+            <b>${U.esc(soften(c.label))}</b>
+            <div class="donate-row">
+              <input class="donate-range" type="range" min="${min}" max="${Math.max(min, max)}" step="${step}" value="${value}" aria-label="捐出灵石数量" ${affordable ? "" : "disabled"}>
+              <span class="donate-value">${affordable ? value + " 灵石" : "灵石不足"}</span>
+              <button class="donate-all" type="button" ${affordable ? "" : "disabled"}>全部</button>
+              <button class="donate-confirm" type="button" ${affordable ? "" : "disabled"}>捐出</button>
+            </div>
+            <span>${affordable ? `最多可捐 ${max} 块；捐得越多，因果越重。` : "身上没有足够的灵石。"}</span>
+          </div>`;
+        }
+        const sub = blockedWait
+          ? `<span>再等下去，心气就散了。此路只能走一次。</span>`
+          : poor
+          ? `<span>身上灵石不够，做不到。</span>`
+          : c.note
+          ? `<span>${U.esc(c.note)}</span>`
+          : c.risk
+          ? `<span>${lethal ? "失败会丧命。" : "事有凶险，代价不小。"}</span>`
+          : "";
+        return `<button class="opt" type="button" data-i="${i}" ${disabled ? "disabled" : ""}>
+          <b>${U.esc(soften(c.label))}</b>
+          ${rt ? `<span class="risk ${rt.cls}">${rt.text}</span>` : ""}
+          ${sub}
+        </button>`;
+      })
+      .join("");
+    $("choiceOpts").querySelectorAll(".opt").forEach((b) => {
+      if (b.classList.contains("opt--donate")) return;
+      b.addEventListener("click", () => choose(Number(b.dataset.i)));
+    });
+    $("choiceOpts").querySelectorAll(".opt--donate").forEach((box) => {
+      const range = box.querySelector(".donate-range");
+      const value = box.querySelector(".donate-value");
+      const confirm = box.querySelector(".donate-confirm");
+      const all = box.querySelector(".donate-all");
+      if (!range || !confirm) return;
+      range.addEventListener("input", () => {
+        value.textContent = `${range.value} 灵石`;
+      });
+      if (all) {
+        all.addEventListener("click", () => {
+          range.value = range.max;
+          value.textContent = `${range.value} 灵石`;
+        });
+      }
+      box.addEventListener("click", (e) => {
+        if (e.target.closest("input,button")) return;
+        confirm.click();
+      });
+      confirm.addEventListener("click", () =>
+        choose(Number(box.dataset.i), { donateAmount: Number(range.value) })
+      );
+    });
+    $("choiceOverlay").hidden = false;
+    if (releasePromptTrap) releasePromptTrap();
+    releasePromptTrap = U.trapFocus($("choiceOverlay"), () =>
+      U.toast("这一世的事，总得有个了断")
+    );
+    const first = $("choiceOpts").querySelector(".opt:not([disabled]):not(.is-disabled)");
+    if (first) {
+      const focusEl = first.classList.contains("opt--donate")
+        ? first.querySelector(".donate-confirm, .donate-range")
+        : first;
+      if (focusEl) focusEl.focus();
+    }
+
+    if (auto) {
+      autoTimer = setTimeout(() => {
+        if (p.id === "d_node" || p.id === "m_ascend") {
+          const i = p.choices.findIndex((c) => c.effects && c.effects.ascend);
+          choose(i >= 0 ? i : 0);
+          return;
+        }
+        const choices = p.choices;
+        const usable = choices
+          .map((c, i) => ({ c, i }))
+          .filter((x) => {
+            const cost =
+              x.c.requires && x.c.requires.stones != null
+                ? x.c.requires.stones
+                : x.c.effects && x.c.effects.stones < 0
+                ? -x.c.effects.stones
+                : 0;
+            return cost <= state.stones;
+          });
+        const score = (c) => {
+          if (c.risk && c.risk.fail && c.risk.fail.death) return 1000 + (1 - c.risk.p);
+          if (c.risk) return 10 + (1 - c.risk.p);
+          return 0;
+        };
+        usable.sort((a, b) => score(a.c) - score(b.c));
+        const chosen = usable.length ? usable[0] : { c: choices[0], i: 0 };
+        choose(chosen.i, chosen.c.donate ? { donateAmount: chosen.c.donate.min || 10 } : undefined);
+      }, 1100);
+    }
+  }
+
+  function choose(i, opts) {
+    clearTimeout(autoTimer);
+    if (releasePromptTrap) {
+      releasePromptTrap();
+      releasePromptTrap = null;
+    }
+    $("choiceOverlay").hidden = true;
+    const before = state.log.length;
+    const result = sim.choose(i, opts);
+    if (result === null) {
+      openPrompt();
+      return;
+    }
+    appendLogs(before);
+    renderActionBar();
+    refreshAll();
+    if (!state.alive) return endLife();
+    if (handleWorldChange()) return;
+    if (state.pending) return openPrompt();
+    paused = false;
+    $("btnPause").textContent = "❚❚";
+    schedule();
+  }
+
+  function openBreak() {
+    const p = state.pending;
+    const target = D.REALMS[state.tier + 1];
+    $("choiceKicker").textContent = "冲 关";
+    $("choiceTitle").textContent = `冲击${target.name}`;
+    const pct = Math.round(p.chance * 100);
+    const tone = pct >= 70 ? "稳" : pct >= 45 ? "险" : "凶";
+    const waitMax = (state.breakWaits || 0) >= 3;
+    $("choiceText").innerHTML = soften(`修为已满，经脉里的灵力在撞关。跨过去，是${target.name}；跨不过去，轻则修为倒退，重则道消身死。`);
+    $("choiceOpts").innerHTML = `
+      <div class="break-figure">
+        <div class="break-chance">${pct}%<small>你估摸着，成算大约是这样 / ${tone}</small></div>
+      </div>
+      <button class="opt" type="button" data-act="push"><b>即刻冲关</b><span class="risk ${pct >= 70 ? "risk--warn" : pct >= 45 ? "risk--warn" : "risk--dead"}">${pct >= 70 ? "成算较高" : pct >= 45 ? "有凶险" : "九死一生"}</span><span>把所有能用的都用上。成了，海阔天空。</span></button>
+      <button class="opt" type="button" data-act="wait" ${waitMax ? "disabled" : ""}><b>再缓几年</b><span class="risk risk--safe">${waitMax ? "无益" : "稳妥"}</span><span>${waitMax ? "再压下去，心气就散了。" : "压住修为，稳固根基。成算会高一些，但寿元不等人。"}</span></button>
+    `;
+    $("choiceOpts").querySelectorAll(".opt").forEach((b) => {
+      b.addEventListener("click", () => {
+        clearTimeout(autoTimer);
+        if (releasePromptTrap) {
+          releasePromptTrap();
+          releasePromptTrap = null;
+        }
+        $("choiceOverlay").hidden = true;
+        const act = b.dataset.act;
+        const before = state.log.length;
+        const res = sim.chooseBreak(act);
+        appendLogs(before);
+        refreshAll();
+        if (!state.alive) return endLife();
+        if (state.pending) return openPrompt();
+        paused = false;
+        $("btnPause").textContent = "❚❚";
+        if (act === "push" && XD.Audio) XD.Audio.bell(act === "push" ? "break" : "soft");
+        schedule();
+      });
+    });
+    $("choiceOverlay").hidden = false;
+    if (releasePromptTrap) releasePromptTrap();
+    releasePromptTrap = U.trapFocus($("choiceOverlay"), null);
+    const first = $("choiceOpts").querySelector(".opt:not([disabled])");
+    if (first) first.focus();
+
+    if (auto) {
+      autoTimer = setTimeout(() => {
+        const before = state.log.length;
+        const push = waitMax || p.chance >= 0.62 || state.age + 8 >= state.maxAge;
+        sim.chooseBreak(push ? "push" : "wait");
+        if (releasePromptTrap) {
+          releasePromptTrap();
+          releasePromptTrap = null;
+        }
+        appendLogs(before);
+        refreshAll();
+        if (!state.alive) return endLife();
+        if (state.pending) return openPrompt();
+        paused = false;
+        schedule();
+      }, 1400);
+    }
+  }
+
+  /* ======================================================================
+     飞升
+     ====================================================================== */
+  function handleWorldChange() {
+    if (!state || state.world === themeWorld) return false;
+    paused = true;
+    clearTimeout(timer);
+    playAscend(state.world);
+    return true;
+  }
+
+  function playAscend(world) {
+    if (XD.Audio) XD.Audio.bell("ascend");
+    setTheme(world);
+    $("ascendWord").textContent = "飞升";
+    $("ascendSub").textContent = world === "spirit" ? "人界 · 化神 → 灵界 · 炼虚" : "灵界 · 大乘 → 仙界 · 真仙";
+    $("ascendBolt").innerHTML = `<svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%">
+      <g stroke="#e0c98d" stroke-width="1.2" fill="none" opacity=".55">
+        <path d="M120 0 L160 120 L130 130 L190 250 L150 260 L220 430" />
+        <path d="M620 0 L590 90 L640 110 L600 230 L650 250 L600 400" />
+        <path d="M380 0 L400 80 L370 96 L410 190" stroke-width="2"/>
+      </g>
+    </svg>`;
+    $("ascend").hidden = false;
+    const close = () => {
+      $("ascend").hidden = true;
+      $("ascendSkip").removeEventListener("click", close);
+      refreshAll();
+      if (sim && !state.pending && state.alive) {
+        paused = false;
+        $("btnPause").textContent = "❚❚";
+        schedule();
+      }
+    };
+    $("ascendSkip").addEventListener("click", close);
+    setTimeout(close, 3600);
+  }
+
+  /* ======================================================================
+     终局
+     ====================================================================== */
+  function endLife() {
+    clearTimeout(timer);
+    clearTimeout(autoTimer);
+    if (XD.Audio) XD.Audio.bell(state.legendary ? "ascend" : "death");
+    const s = state;
+    endSummary = sim.summary();
+
+    if (!saved) {
+      const stored = U.store.addLife(endSummary);
+      saved = true;
+      $("endNote").textContent = stored
+        ? "这一世的记录已经留在本机。碑林里可以再看见它，命格卡可以带走。"
+        : "这个浏览器不让保存记录。这一世不会留在碑林，但命格卡仍然可以带走。";
+    }
+
+    const titles = {
+      证道: "证 道",
+      寿元耗尽: "坐 化",
+      走火入魔: "道 消",
+      心魔缠身: "道 消",
+    };
+    $("endTitle").textContent = s.legendary ? "证 道" : soft ? "远 行" : titles[s.cause] || "陨 落";
+    $("endSub").textContent = `${worldName(s.world)} · ${sim.displayRealm()} · 享年 ${s.endedAt != null ? s.endedAt : s.age} 岁`;
+    $("endSeal").textContent = s.name[0];
+    $("endName").textContent = s.name + (s.path === "cultivator" && s.daohao ? ` · ${s.daohao}` : "");
+    $("endLife").textContent = `${s.origin.place} · ${s.origin.family} · ${soften(s.cause)}`;
+    $("endEpitaph").textContent = "「" + soften(s.epitaph || "此人一生，不足为外人道。") + "」";
+
+    const fields = [
+      ["最高境界", sim.displayRealm()],
+      ["灵根", s.root.name],
+      ["宗门", s.sect || "散修"],
+      ["道侣", s.partner ? s.partner.name : "无"],
+      ["弟子", s.disciples.length ? s.disciples.length + " 人" : "无"],
+      ["因果", (s.karma > 0 ? "+" : "") + Math.round(s.karma)],
+      ["灵石", U.fmt(s.stones)],
+      ["子嗣", s.flags.has_child ? "有" : "无"],
+    ];
+    $("endFields").innerHTML = fields
+      .map(
+        ([k, v]) =>
+          `<div class="end-field"><dt>${U.esc(k)}</dt><dd>${U.esc(v)}</dd></div>`
+      )
+      .join("");
+
+    $("endDeeds").innerHTML =
+      (endSummary.deeds || [])
+        .slice(-5)
+        .map(
+          (d) =>
+            `<div class="deed"><span class="deed-age">${d.age}岁</span><span>${U.esc(soften(d.text))}</span></div>`
+        )
+        .join("") || '<div class="deed"><span class="deed-age">—</span><span>这一世没有留下什么值得记下的事。</span></div>';
+
+    show("end");
+  }
+
+  /* ======================================================================
+     命格卡
+     ====================================================================== */
+  function drawShareCard() {
+    const s = endSummary || sim.summary();
+    const c = $("shareCanvas");
+    const ctx = c.getContext("2d");
+    const W = c.width;
+    const H = c.height;
+    ctx.fillStyle = "#0b0f0b";
+    ctx.fillRect(0, 0, W, H);
+    const g = ctx.createRadialGradient(W * 0.75, 120, 40, W * 0.75, 120, 900);
+    g.addColorStop(0, "rgba(127,178,155,.16)");
+    g.addColorStop(1, "rgba(11,15,11,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "rgba(233,227,211,.16)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(56, 56, W - 112, H - 112);
+    ctx.strokeStyle = "rgba(233,227,211,.08)";
+    ctx.strokeRect(70, 70, W - 140, H - 140);
+
+    ctx.fillStyle = "rgba(233,227,211,.55)";
+    ctx.font = '22px "KaiTi","STKaiti",serif';
+    ctx.textAlign = "left";
+    ctx.fillText("一 介 凡 人", 110, 130);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "rgba(233,227,211,.35)";
+    ctx.font = '18px "KaiTi","STKaiti",serif';
+    ctx.fillText("凡人修仙传世界观 · 人生模拟", W - 110, 130);
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#e9e3d3";
+    ctx.font = '108px "KaiTi","STKaiti",serif';
+    ctx.fillText(s.name, 106, 330);
+    ctx.font = '26px "KaiTi","STKaiti",serif';
+    ctx.fillStyle = "rgba(233,227,211,.5)";
+    ctx.fillText(
+      s.path === "cultivator" ? `${s.daohao} · ${s.gender} · ${worldName(s.world)}` : `凡俗 · ${s.gender} · ${worldName(s.world)}`,
+      110,
+      382
+    );
+
+    ctx.fillStyle = "rgba(233,227,211,.08)";
+    ctx.fillRect(110, 430, W - 220, 1);
+
+    // 大字境界
+    ctx.fillStyle = "#7fb29b";
+    ctx.font = '600 64px "Songti SC","SimSun",serif';
+    ctx.fillText(s.realm, 110, 540);
+    ctx.fillStyle = "rgba(233,227,211,.45)";
+    ctx.font = '22px "KaiTi","STKaiti",serif';
+    ctx.fillText(`享年 ${s.age} 岁 · ${soften(s.cause)}`, 112, 588);
+
+    // 墓志
+    ctx.fillStyle = "#d9d2be";
+    ctx.font = '30px "KaiTi","STKaiti",serif';
+    wrapText(ctx, "「" + soften(s.epitaph || "此人一生，不足为外人道。") + "」", 110, 700, W - 220, 48);
+
+    // 数据
+    const rows = [
+      ["生 于", s.origin.place],
+      ["出 身", s.origin.family],
+      ["灵 根", s.root.name],
+      ["宗 门", s.sect || "散修"],
+      ["道 侣", s.partner ? s.partner.name : "无"],
+      ["弟 子", s.disciples.length ? s.disciples.length + " 人" : "无"],
+    ];
+    ctx.font = '21px "KaiTi","STKaiti",serif';
+    rows.forEach((r, i) => {
+      const y = 900 + i * 46;
+      ctx.fillStyle = "rgba(233,227,211,.35)";
+      ctx.fillText(r[0], 110, y);
+      ctx.fillStyle = "rgba(233,227,211,.78)";
+      ctx.fillText(r[1], 260, y);
+    });
+
+    // 印
+    ctx.save();
+    ctx.translate(W - 220, 980);
+    ctx.rotate(-0.04);
+    ctx.fillStyle = "#ae4430";
+    ctx.fillRect(0, 0, 120, 120);
+    ctx.fillStyle = "#f6ecda";
+    ctx.font = '78px "KaiTi","STKaiti",serif';
+    ctx.textAlign = "center";
+    ctx.fillText(s.name[0], 60, 92);
+    ctx.restore();
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(233,227,211,.3)";
+    ctx.font = '18px "KaiTi","STKaiti",serif';
+    ctx.fillText(fmtSeed(s.seed), 110, H - 100);
+    ctx.textAlign = "right";
+    ctx.fillText("yijie-fanren", W - 110, H - 100);
+
+    let url;
+    try {
+      url = c.toDataURL("image/png");
+    } catch (err) {
+      toast("这张命格卡没能生成，换一台设备或稍后再试");
+      return;
+    }
+    const safeRealm = String(s.realm || "凡人").replace(/[\\/:*?"<>|·\s]+/g, "-");
+    const filename = `一介凡人-${s.name}-${safeRealm}.png`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !("download" in a)) {
+      window.open(url, "_blank");
+    }
+    toast("命格卡已生成");
+  }
+
+  function wrapText(ctx, text, x, y, maxW, lineH) {
+    let line = "";
+    for (const ch of text) {
+      const test = line + ch;
+      if (ctx.measureText(test).width > maxW) {
+        ctx.fillText(line, x, y);
+        y += lineH;
+        line = ch;
+      } else line = test;
+    }
+    if (line) ctx.fillText(line, x, y);
+  }
+
+  /* ======================================================================
+     货栈
+     ====================================================================== */
+  function openShop() {
+    if (!sim) return;
+    if ($("shopOverlay").hidden) {
+      shopPaused = paused;
+      paused = true;
+      clearTimeout(timer);
+      clearTimeout(autoTimer);
+    }
+    const s = state;
+    const list = D.SHOP.filter(
+      (it) =>
+        (it.tierMin == null || s.tier >= it.tierMin) &&
+        (it.tierMax == null || s.tier <= it.tierMax)
+    );
+    $("shopPurse").textContent = U.fmt(s.stones);
+    $("shopList").innerHTML = list
+      .map((it) => {
+        const bought = s.flags["buy_" + it.key];
+        const disabled = s.stones < it.cost || (it.once && bought);
+        return `<div class="shop-item"><h4>${it.name}${it.once && bought ? " · 已有" : ""}</h4><p>${it.desc}</p><button class="shop-buy" data-key="${it.key}" ${disabled ? "disabled" : ""}>${it.once && bought ? "已购" : it.cost + " 灵石"}</button></div>`;
+      })
+      .join("");
+    $("shopList").querySelectorAll(".shop-buy").forEach((b) => {
+      b.addEventListener("click", () => {
+        const it = D.SHOP.find((x) => x.key === b.dataset.key);
+        if (!it || state.stones < it.cost) return;
+        if (it.once && state.flags["buy_" + it.key]) return;
+        sim.apply({ stones: -it.cost });
+        sim.apply(it.effect || {});
+        if (it.once) state.flags["buy_" + it.key] = true;
+        U.toast(`买下了${it.name}`);
+        refreshAll();
+        openShop();
+      });
+    });
+    $("shopOverlay").hidden = false;
+    if (!releaseShopTrap) releaseShopTrap = U.trapFocus($("shopOverlay"), closeShop);
+    const firstBuy = $("shopList").querySelector(".shop-buy:not([disabled])") || $("shopClose");
+    if (firstBuy) firstBuy.focus();
+  }
+
+  function closeShop() {
+    $("shopOverlay").hidden = true;
+    if (releaseShopTrap) {
+      releaseShopTrap();
+      releaseShopTrap = null;
+    }
+    if (state && state.pending) {
+      openPrompt();
+      return;
+    }
+    if (!shopPaused && state && state.alive && !state.pending) {
+      paused = false;
+      $("btnPause").textContent = "❚❚";
+      schedule();
+    }
+  }
+
+  /* ======================================================================
+     事件绑定
+     ====================================================================== */
+  function bind() {
+    $("btnPause").addEventListener("click", () => {
+      paused = !paused;
+      $("btnPause").textContent = paused ? "▶" : "❚❚";
+      if (paused) clearTimeout(timer);
+      else schedule();
+    });
+    document.querySelectorAll("#speeds button").forEach((b) => {
+      b.addEventListener("click", () => setSpeed(Number(b.dataset.speed)));
+    });
+    $("btnFF").addEventListener("click", fastForward);
+    function setAuto(next) {
+      auto = next;
+      $("btnAuto").classList.toggle("is-on", auto);
+      $("btnAuto").textContent = auto ? "自动中" : "自动";
+      $("menuAuto").textContent = `自动抉择：${auto ? "开" : "关"}`;
+      toast(auto ? "已开启自动抉择" : "已关闭自动抉择");
+      if (auto && state && state.pending) openPrompt();
+    }
+    $("btnAuto").addEventListener("click", () => setAuto(!auto));
+    $("menuAuto").addEventListener("click", () => setAuto(!auto));
+    $("menuSoft").addEventListener("click", () => setSoft(!soft));
+    $("menuSpeeds").querySelectorAll("button").forEach((b) => {
+      b.addEventListener("click", () => setSpeed(Number(b.dataset.mspeed)));
+    });
+    $("menuFF").addEventListener("click", () => {
+      $("moreMenu").classList.remove("is-open");
+      $("btnMore").setAttribute("aria-expanded", "false");
+      fastForward();
+    });
+    $("btnMore").addEventListener("click", () => {
+      const menu = $("moreMenu");
+      const open = menu.classList.toggle("is-open");
+      $("btnMore").setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    $("menuRestart").addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!confirm("重新降生？当前这一世会结束。已经结束的人生仍会留在碑林。")) return;
+      clearTimeout(timer);
+      $("moreMenu").classList.remove("is-open");
+      $("btnMore").setAttribute("aria-expanded", "false");
+      show("birth");
+      setTheme("human");
+    });
+    $("shopClose").addEventListener("click", closeShop);
+    $("shopOverlay").addEventListener("click", (e) => {
+      if (e.target === $("shopOverlay")) closeShop();
+    });
+    $("btnShare").addEventListener("click", drawShareCard);
+    $("btnHall").addEventListener("click", () => (location.href = "hall.html"));
+    $("btnAgain").addEventListener("click", () => {
+      show("birth");
+      setTheme("human");
+      window.scrollTo(0, 0);
+    });
+    $("btnHome").addEventListener("click", () => (location.href = "index.html"));
+
+    const sound = $("btnSound");
+    sound.addEventListener("click", () => {
+      const on = XD.Audio ? XD.Audio.toggle() : false;
+      sound.classList.toggle("is-on", on);
+      sound.setAttribute("aria-pressed", on ? "true" : "false");
+      toast(on ? "声音已开" : "声音已关");
+      if (on && XD.Audio) XD.Audio.bell("soft");
+    });
+
+    document.addEventListener("click", (e) => {
+      const menu = $("moreMenu");
+      if (!menu.classList.contains("is-open")) return;
+      if (e.target.closest("#moreMenu") || e.target.closest("#btnMore")) return;
+      menu.classList.remove("is-open");
+      $("btnMore").setAttribute("aria-expanded", "false");
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (!$("shopOverlay").hidden) {
+          closeShop();
+          return;
+        }
+        const menu = $("moreMenu");
+        if (menu.classList.contains("is-open")) {
+          menu.classList.remove("is-open");
+          $("btnMore").setAttribute("aria-expanded", "false");
+        }
+        return;
+      }
+      if (e.target.matches("input,textarea,select")) return;
+      if (e.code === "Space" && state && state.alive && document.body.classList.contains("in-life")) {
+        e.preventDefault();
+        $("btnPause").click();
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initBirth();
+    bind();
+  });
+})();

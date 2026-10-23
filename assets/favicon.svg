@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="4" fill="#0b0f0b"/>
+  <rect x="8" y="8" width="48" height="48" fill="#ae4430"/>
+  <rect x="11" y="11" width="42" height="42" fill="none" stroke="#f6ecda" stroke-opacity=".35"/>
+  <text x="32" y="45" text-anchor="middle" font-family="KaiTi, STKaiti, SimSun, serif" font-size="34" fill="#f6ecda">凡</text>
+</svg>

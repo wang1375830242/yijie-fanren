@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-Hans" data-realm="human">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>万宝阁 · 图鉴 · 一介凡人</title>
+<meta name="description" content="境界、界域、宗门、法宝、丹药、妖兽。一介凡人的世界设定图鉴。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="万宝阁 · 图鉴 · 一介凡人">
+<meta property="og:description" content="十三境、三重界、宗门、法宝、丹药与妖兽。">
+<meta property="og:image" content="assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b0f0b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="css/hall.css">
+<link rel="stylesheet" href="css/codex.css">
+</head>
+<body class="codex-page">
+<noscript><div class="noscript">这个站点需要 JavaScript 才能打开图鉴。请开启后刷新。</div></noscript>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="seal">凡</span><span class="brand-name">一介凡人<em>图鉴</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="hall.html">碑林</a>
+      <a href="about.html">关于</a>
+      <a class="btn btn--sm nav-cta" href="play.html">推演一世</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="菜单" aria-expanded="false">☰</button>
+  </div>
+</nav>
+<div class="nav-drawer">
+  <a href="index.html">首页</a>
+  <a href="hall.html">碑林</a>
+  <a href="about.html">关于</a>
+  <a href="play.html">推演一世</a>
+</div>
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="chapter-no">万宝阁</p>
+    <h1>图鉴</h1>
+    <p class="page-lede">
+      这里收着这个世界里会遇见的东西：十三重境界、三重界面、95 位人物、18 种灵根与体质、
+      45 个宗门与势力，还有一些法宝、丹药和你不一定打得过的妖兽。
+      人物、宗门、灵根词条参考公开读者 wiki；带「推测」标记的是推断或二创补写，不是原著明文。
+    </p>
+  </div>
+</header>
+
+<main class="wrap codex-layout">
+  <aside class="codex-side">
+    <p class="side-label kai">分类</p>
+    <nav class="codex-tabs" id="codexTabs">
+      <button type="button" data-cat="realms" class="on"><span>境界</span><b>13</b></button>
+      <button type="button" data-cat="worlds"><span>界域</span><b>4</b></button>
+      <button type="button" data-cat="characters"><span>人物</span><b>0</b></button>
+      <button type="button" data-cat="roots"><span>灵根</span><b>0</b></button>
+      <button type="button" data-cat="sects"><span>宗门</span><b>0</b></button>
+      <button type="button" data-cat="artifacts"><span>法宝</span><b>8</b></button>
+      <button type="button" data-cat="pills"><span>丹药</span><b>6</b></button>
+      <button type="button" data-cat="beasts"><span>妖兽</span><b>6</b></button>
+    </nav>
+    <div class="codex-search">
+      <label for="codexSearch" class="kai">搜一个名词</label>
+      <input id="codexSearch" type="search" placeholder="例如：韩立、灵根、黄枫谷" autocomplete="off">
+    </div>
+    <p class="codex-source-note">资料源：<a href="https://www.weqoocu.cn/fanren-wiki/" target="_blank" rel="noopener">凡人修仙传 Wiki（读者整理）</a>。人物 / 宗门 / 灵根词条含读者推断；带「推测」的是推断或二创补写，不是原著明文。</p>
+  </aside>
+
+  <section class="codex-main">
+    <div class="codex-titles">
+      <h2 id="codexTitle">境界</h2>
+      <span id="codexCount" class="kai">十三重</span>
+    </div>
+    <p class="codex-intro" id="codexIntro"></p>
+    <div class="codex-list" id="codexList"></div>
+    <p class="codex-empty" id="codexEmpty" hidden>没有找到。换个词试试，或者清空搜索。</p>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-bottom">
+      <span>一介凡人 · 万宝阁</span>
+      <span>非官方同人作品，世界观致敬忘语《凡人修仙传》。</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script src="js/canon.js"></script>
+<script src="js/codex.js"></script>
+</body>
+</html>

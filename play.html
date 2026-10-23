@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-Hans" data-realm="human">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>一介凡人 · 推演一世</title>
+<meta name="description" content="以《凡人修仙传》世界观为背景的修仙人生模拟。随机降生，从人界到灵界，再到仙界，看看这一世你能走到哪里。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="一介凡人 · 推演一世">
+<meta property="og:description" content="随机降生，一世修行。有人止步炼气，有人飞升灵界。">
+<meta property="og:image" content="assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b0f0b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body class="play">
+<noscript><div class="noscript">这个站点需要 JavaScript 才能推演一世。请开启后刷新。</div></noscript>
+
+<header class="topbar">
+  <a class="brand" href="index.html" aria-label="一介凡人 首页">
+    <span class="seal">凡</span>
+    <span class="brand-name">一介凡人<em>推演一世</em></span>
+  </a>
+
+  <div class="topbar-mid" id="tbMid" hidden>
+    <span class="tb-age"><b id="ageNum">0</b>岁</span>
+    <span class="tb-realm" id="tbRealm">凡人</span>
+    <span class="tb-life" aria-hidden="true"><i id="lifeBar"></i></span>
+  </div>
+
+  <div class="topbar-actions">
+    <button class="icon-btn" id="btnPause" type="button" title="暂停 / 继续" aria-label="暂停">❚❚</button>
+    <div class="speeds" id="speeds" role="group" aria-label="时间流速">
+      <button type="button" data-speed="1" class="on">1×</button>
+      <button type="button" data-speed="2">2×</button>
+      <button type="button" data-speed="4">4×</button>
+      <button type="button" data-speed="8">8×</button>
+    </div>
+    <button class="btn btn--sm" id="btnFF" type="button" title="快进到下一个抉择">快进</button>
+    <button class="btn btn--sm" id="btnAuto" type="button" title="自动抉择">自动</button>
+    <button class="icon-btn" id="btnSound" type="button" title="声音" aria-pressed="false">♪</button>
+    <button class="icon-btn" id="btnMore" type="button" title="更多" aria-expanded="false">⋯</button>
+  </div>
+</header>
+
+<div class="nav-drawer" id="moreMenu" style="top:60px">
+  <div class="menu-block">
+    <span class="menu-label">流速</span>
+    <div class="menu-speeds" id="menuSpeeds" role="group" aria-label="时间流速">
+      <button type="button" data-mspeed="1" class="on">1×</button>
+      <button type="button" data-mspeed="2">2×</button>
+      <button type="button" data-mspeed="4">4×</button>
+      <button type="button" data-mspeed="8">8×</button>
+    </div>
+  </div>
+  <button class="menu-action" id="menuFF" type="button">快进到下一抉择</button>
+  <button class="menu-action" id="menuAuto" type="button">自动抉择：关</button>
+  <button class="menu-action" id="menuSoft" type="button">柔化模式：关</button>
+  <a href="#" id="menuRestart">重新降生</a>
+  <a href="hall.html">去碑林看看</a>
+  <a href="codex.html">万宝阁 · 图鉴</a>
+  <a href="about.html">这是怎么算出来的</a>
+  <a href="index.html">回到凡间</a>
+</div>
+
+<!-- ======================================================================
+     择界
+====================================================================== -->
+<section class="screen screen--birth" id="screenBirth">
+  <div class="birth-head">
+    <p class="kicker">卷首 · 择界</p>
+    <h1>你要生<br><em>在哪里</em>？</h1>
+    <p class="lede">
+      此刻，天南的雨落在青牛镇，大晋的灯亮在皇城，灵界的天渊城外有异族在集结，仙界的雪落了三千年。
+      你会成为其中一个。生在何处、有无灵根、父母是谁，都由不得你。
+      你只有一次机会，把它活完。
+    </p>
+
+    <div class="birth-opts">
+      <fieldset class="opt-group">
+        <legend>降生之处</legend>
+        <div class="seg" id="worldSeg">
+          <label><input type="radio" name="world" value="any" checked><b>随缘</b><span>按万界降生比例</span></label>
+          <label><input type="radio" name="world" value="human"><b>人界</b><span>九成七的修士生于此</span></label>
+          <label><input type="radio" name="world" value="spirit"><b>灵界</b><span>跳过人界 · 炼虚开局</span></label>
+          <label><input type="radio" name="world" value="immortal"><b>仙界</b><span>真仙开局 · 极难</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="opt-group">
+        <legend>抽选方式</legend>
+        <div class="seg" id="modeSeg">
+          <label><input type="radio" name="mode" value="birth" checked><b>此刻降生</b><span>按各界每年的新生</span></label>
+          <label><input type="radio" name="mode" value="existing"><b>现存修士</b><span>按各界的修士存量</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="opt-group">
+        <legend>一世长度</legend>
+        <div class="seg" id="paceSeg">
+          <label><input type="radio" name="pace" value="short"><b>一炷香</b><span>快</span></label>
+          <label><input type="radio" name="pace" value="mid" checked><b>半日</b><span>中速</span></label>
+          <label><input type="radio" name="pace" value="long"><b>一昼夜</b><span>慢</span></label>
+        </div>
+      </fieldset>
+
+      <label class="soft-toggle">
+        <input type="checkbox" id="softMode">
+        <span>柔化模式</span>
+        <em>略过血腥与死亡细节，保留故事</em>
+      </label>
+    </div>
+
+    <div class="birth-cta">
+      <button class="btn btn--primary" id="btnBirth" type="button">降 生</button>
+      <p class="note">夭折、走火入魔、战死、坐化，都会如实发生。这里没有存档，也没有重来——除了再投一次胎。站内含死亡、争斗等虚构描写，建议十六岁以上；可在上方开启柔化模式。</p>
+    </div>
+  </div>
+
+  <aside class="birth-aside" aria-hidden="true">
+    <div class="dial" id="birthDial"></div>
+    <p class="quote">「大道无情，运行日月。<br>我辈修士，争的不过是一线生机。」</p>
+  </aside>
+</section>
+
+<!-- ======================================================================
+     命格
+====================================================================== -->
+<section class="screen" id="screenCard" hidden>
+  <div class="card-stage">
+    <article class="fate-card" id="fateCard">
+      <header class="fate-head">
+        <span>命格 · 推演结果</span>
+        <span id="fateNo">No. 0000-0000</span>
+      </header>
+      <div class="fate-main">
+        <div class="fate-seal" id="fateSeal">凡</div>
+        <div>
+          <h2 class="fate-name" id="fateName">无名</h2>
+          <p class="fate-meta" id="fateMeta">男 · 越国 · 青牛镇</p>
+        </div>
+        <div class="root-ring" id="rootRing"></div>
+      </div>
+      <dl class="fate-fields" id="fateFields"></dl>
+      <p class="fate-note" id="fateNote"></p>
+      <footer class="fate-foot">
+        <button class="btn btn--primary" id="btnBegin" type="button">开始此世</button>
+        <button class="btn" id="btnReroll" type="button">重新推演</button>
+      </footer>
+    </article>
+  </div>
+</section>
+
+<!-- ======================================================================
+     主界面
+====================================================================== -->
+<section class="screen screen--life" id="screenLife" hidden>
+  <div class="life-grid">
+    <aside class="col col--left">
+      <div class="panel p-id">
+        <div class="id-top">
+          <div class="id-seal" id="idSeal">凡</div>
+          <div>
+            <div class="id-name" id="idName">无名</div>
+            <div class="id-sub" id="idSub">凡俗 · 男</div>
+          </div>
+        </div>
+        <div class="id-realm">
+          <span class="rname" id="idRealmName">凡人</span>
+          <span class="rtag" id="idRealmTag">人界</span>
+        </div>
+        <div class="id-tags" id="idTags"></div>
+      </div>
+
+      <div class="panel p-stats">
+        <div class="panel-title"><span>状态</span><b id="statHint">此生</b></div>
+        <div class="stat">
+          <div class="stat-top"><span>修为</span><b id="vCult">0%</b></div>
+          <div class="bar bar--cult"><i id="bCult" style="width:0%"></i></div>
+        </div>
+        <div class="stat">
+          <div class="stat-top"><span>心境</span><b id="vMood">0</b></div>
+          <div class="bar bar--mood"><i id="bMood" style="width:0%"></i></div>
+        </div>
+        <div class="stat">
+          <div class="stat-top"><span>因果</span><b id="vKarma">0</b></div>
+          <div class="bar bar--karma"><i id="bKarma" style="width:50%"></i></div>
+        </div>
+        <div class="stat">
+          <div class="stat-top"><span>悟性</span><b id="vInsight">0</b></div>
+          <div class="bar"><i id="bInsight" style="width:0%"></i></div>
+        </div>
+        <div class="stat-row"><span>灵石</span><b id="vStones">0</b></div>
+        <div class="stat-row" style="border-top:0;padding-top:0;margin-top:6px"><span>护身玉符</span><b id="vWard">0</b></div>
+      </div>
+
+      <div class="panel p-rel">
+        <div class="panel-title"><span>身边人</span><b>缘</b></div>
+        <div class="rel-list" id="relList"></div>
+      </div>
+
+      <div class="panel p-place">
+        <div class="place-scene" id="placeScene"></div>
+        <div class="place-name" id="placeName">青牛镇</div>
+        <div class="place-sub" id="placeSub">人界 · 越国</div>
+      </div>
+
+      <div class="panel p-path">
+        <div class="panel-title"><span>道途</span><b>十三境</b></div>
+        <div class="ladder" id="ladder"></div>
+      </div>
+    </aside>
+
+    <section class="col col--main">
+      <div class="action-bar">
+        <span class="action-label">命运的重心</span>
+        <div class="chips" id="focusChips"></div>
+        <button class="btn btn--sm" id="btnShop" type="button">货栈</button>
+      </div>
+      <div class="panel p-log">
+        <div class="log-head">
+          <b>人生录</b>
+          <span id="logHint">逐年记录 · 最新的在最下面</span>
+        </div>
+        <div class="log" id="log" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <aside class="col col--right">
+      <div class="panel p-peers">
+        <div class="panel-title"><span>同劫而生</span><b>四人</b></div>
+        <div id="peersList"></div>
+      </div>
+
+      <div class="panel p-map">
+        <div class="panel-title"><span>人生地图</span><b id="mapScale">一格 = 1 年</b></div>
+        <div class="map-grid" id="mapGrid"></div>
+        <div class="map-legend" id="mapLegend"></div>
+      </div>
+
+      <div class="panel p-chart">
+        <div class="panel-title"><span>同批而降</span><b>存活</b></div>
+        <div class="chart-box" id="chartBox"></div>
+        <p class="chart-cap">同时降生的一万人中，仍活着的大致比例（按虚构寿元推演，不是真实统计）。</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ======================================================================
+     终局
+====================================================================== -->
+<section class="screen screen--end" id="screenEnd" hidden>
+  <header class="end-head">
+    <p class="kai">此 世 已 尽</p>
+    <h1 id="endTitle">坐化</h1>
+    <p id="endSub">一介凡人，止于炼气</p>
+  </header>
+  <div class="end-grid">
+    <article class="end-card">
+      <div class="end-name">
+        <span class="seal" id="endSeal">凡</span>
+        <h2 id="endName">无名</h2>
+      </div>
+      <p class="end-life" id="endLife">生卒不详</p>
+      <p class="end-epitaph" id="endEpitaph"></p>
+      <dl class="end-fields" id="endFields"></dl>
+    </article>
+    <aside class="end-side">
+      <div class="end-actions">
+        <button class="btn btn--primary" id="btnShare" type="button">下载命格卡</button>
+        <button class="btn" id="btnHall" type="button">安放于碑林</button>
+        <button class="btn" id="btnAgain" type="button">再投一世</button>
+        <button class="btn" id="btnHome" type="button">回到凡间</button>
+      </div>
+      <div class="end-deeds">
+        <h3>生平数事</h3>
+        <div id="endDeeds"></div>
+      </div>
+      <p class="end-note" id="endNote">这一世的记录只留在这个浏览器里。碑林是公开的，命格卡可以带走。</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ======================================================================
+     浮层
+====================================================================== -->
+<div class="overlay" id="choiceOverlay" hidden>
+  <div class="prompt" role="dialog" aria-modal="true" aria-labelledby="choiceTitle">
+    <p class="prompt-kicker" id="choiceKicker">抉择</p>
+    <h3 id="choiceTitle"></h3>
+    <p id="choiceText"></p>
+    <div class="opts" id="choiceOpts"></div>
+  </div>
+</div>
+
+<div class="overlay" id="shopOverlay" hidden>
+  <div class="prompt" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+    <p class="prompt-kicker">货栈</p>
+    <h3 id="shopTitle">山下坊市</h3>
+    <p class="prompt-sub">灵石是修士的胆。买什么，怎么花，都是命。</p>
+    <div class="shop-purse"><span>你的灵石</span><b id="shopPurse">0</b></div>
+    <div class="shop-list" id="shopList"></div>
+    <div class="prompt-foot">
+      <button class="btn" id="shopClose" type="button">离开货栈</button>
+    </div>
+  </div>
+</div>
+
+<div class="rolling" id="rolling" hidden>
+  <div class="rolling-inner">
+    <div class="dial-spin" id="rollDial"></div>
+    <p>正 在 推 演 命 格</p>
+  </div>
+</div>
+
+<div class="ascend" id="ascend" hidden>
+  <div class="ascend-sky"></div>
+  <div class="ascend-bolt" id="ascendBolt"></div>
+  <div class="ascend-inner">
+    <div class="ascend-word" id="ascendWord">飞升</div>
+    <div class="ascend-sub" id="ascendSub">从此人间是故乡</div>
+    <div class="ascend-line"></div>
+  </div>
+  <button class="ascend-skip" id="ascendSkip" type="button">继 续</button>
+</div>
+
+<canvas id="shareCanvas" width="1080" height="1350" hidden></canvas>
+
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script src="js/events.js"></script>
+<script src="js/events-expanded.js"></script>
+<script src="js/art.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

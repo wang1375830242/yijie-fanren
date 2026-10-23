@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="zh-Hans" data-realm="human">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>一介凡人 · 凡人修仙传世界观 · 人生模拟</title>
+<meta name="description" content="随机降生，一世修行。以《凡人修仙传》的世界观为背景，从人界到灵界，再到仙界，看看你这一介凡人能走到哪里。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="一介凡人 · 凡人修仙传世界观 · 人生模拟">
+<meta property="og:description" content="随机降生，一世修行。有人止步炼气，有人飞升灵界。你只有一次机会。">
+<meta property="og:image" content="assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b0f0b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+<noscript><div class="noscript">这个站点需要 JavaScript 才能推演一世。请开启后刷新。</div></noscript>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="一介凡人 首页">
+      <span class="seal">凡</span>
+      <span class="brand-name">一介凡人<em>人生模拟</em></span>
+    </a>
+    <div class="nav-links">
+      <a href="#realms">三界</a>
+      <a href="#rules">法门</a>
+      <a href="#hall">碑林</a>
+      <a href="codex.html">图鉴</a>
+      <a href="about.html">关于</a>
+      <a class="btn btn--sm nav-cta" href="play.html">推演一世</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="菜单" aria-expanded="false">☰</button>
+  </div>
+</nav>
+<div class="nav-drawer">
+  <a href="#realms">三界</a>
+  <a href="#rules">法门</a>
+  <a href="#hall">碑林</a>
+  <a href="codex.html">图鉴</a>
+  <a href="about.html">关于</a>
+  <a href="play.html">推演一世</a>
+</div>
+
+<main>
+  <!-- ==================================================================
+       卷首
+  =================================================================== -->
+  <header class="hero">
+    <div class="hero-dial" id="heroDial" aria-hidden="true"></div>
+    <div class="hero-mountains" aria-hidden="true">
+      <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+        <path d="M0 250 L140 170 L250 225 L360 120 L470 210 L600 150 L720 240 L850 130 L980 220 L1100 160 L1230 235 L1340 180 L1440 240 L1440 320 L0 320Z" fill="#0a0d0a" opacity=".85"/>
+        <path d="M0 285 L180 235 L320 270 L500 220 L660 275 L820 230 L980 280 L1140 235 L1280 285 L1440 250 L1440 320 L0 320Z" fill="#060906"/>
+      </svg>
+    </div>
+
+    <div class="wrap hero-grid">
+      <div class="hero-text">
+        <p class="hero-kicker">凡人修仙传世界观 · 一世推演</p>
+        <h1 class="hero-title">
+          <span class="line1">一介</span>
+          <span class="line2">凡人</span>
+        </h1>
+        <p class="hero-lede">
+          此刻，天南的雨落在青牛镇，大晋的灯亮在皇城。每一年，有无数婴孩降生，
+          其中少数几人身上有一点灵光。你将成为其中一个。生在何处、有无灵根、父母是谁，
+          都由不得你。你只有一次机会，把这一世活完。
+        </p>
+        <div class="counters">
+          <div class="counter">
+            <strong id="cBirth">0</strong>
+            <span>你打开此页后降生的人</span>
+          </div>
+          <div class="counter">
+            <strong id="cDeath">0</strong>
+            <span>同一刻坐化的修士</span>
+          </div>
+        </div>
+        <div class="hero-cta">
+          <a class="btn btn--primary" href="play.html">降 生</a>
+          <a class="btn" href="hall.html">去碑林看看</a>
+        </div>
+        <p class="hero-note">免费 · 无需注册 · 一世约十到四十五分钟 · 建议十六岁以上</p>
+      </div>
+
+      <aside class="fate-slip" aria-labelledby="slipTitle">
+        <div class="slip-head">
+          <p class="kai">投胎签</p>
+          <span>No. ∞ / ∞</span>
+        </div>
+        <h2 id="slipTitle">若你此刻投胎</h2>
+        <p class="slip-sub">按万界此刻降生的婴孩计。绝大多数人，生在人界。</p>
+
+        <div class="world-pick" id="worldPick">
+          <label class="world-row" data-world="any">
+            <input type="radio" name="landingWorld" value="any" checked>
+            <span class="wr-name">随缘</span>
+            <span class="wr-bar"><i style="width:100%"></i></span>
+            <span class="wr-pct">按比例</span>
+          </label>
+          <label class="world-row" data-world="human">
+            <input type="radio" name="landingWorld" value="human">
+            <span class="wr-name">人界</span>
+            <span class="wr-bar"><i data-odds="human"></i></span>
+            <span class="wr-pct" data-pct="human">96.2%</span>
+          </label>
+          <label class="world-row" data-world="spirit">
+            <input type="radio" name="landingWorld" value="spirit">
+            <span class="wr-name">灵界</span>
+            <span class="wr-bar"><i data-odds="spirit"></i></span>
+            <span class="wr-pct" data-pct="spirit">3.7%</span>
+          </label>
+          <label class="world-row" data-world="immortal">
+            <input type="radio" name="landingWorld" value="immortal">
+            <span class="wr-name">仙界</span>
+            <span class="wr-bar"><i data-odds="immortal"></i></span>
+            <span class="wr-pct" data-pct="immortal">0.1%</span>
+          </label>
+        </div>
+
+        <div class="slip-pace">
+          <span class="kai">一世长度</span>
+          <div class="pace-pick" id="pacePick">
+            <button type="button" data-pace="short">一炷香</button>
+            <button type="button" data-pace="mid" class="on">半日</button>
+            <button type="button" data-pace="long">一昼夜</button>
+          </div>
+        </div>
+
+        <a class="btn btn--primary slip-cta" id="slipGo" href="play.html">降 生</a>
+        <p class="slip-note">灵界、仙界需跳过前尘，从炼虚或真仙开始。你也可以在推演中自己飞升上去。</p>
+        <span class="seal slip-seal" aria-hidden="true">道</span>
+      </aside>
+    </div>
+  </header>
+
+  <div class="ribbon">
+    <div class="wrap">
+      <span>人界</span><i></i><span>灵界</span><i></i><span>仙界</span>
+      <b>一个人，最多走完这三界。</b>
+    </div>
+  </div>
+
+  <!-- ==================================================================
+       卷一 · 三界
+  =================================================================== -->
+  <section class="section" id="realms">
+    <div class="wrap">
+      <div class="chapter" data-reveal>
+        <span class="chapter-no">卷一</span>
+        <h2 class="chapter-title">三界</h2>
+        <span class="chapter-note">向上是飞升，向下是回不去的人间</span>
+      </div>
+
+      <div class="realms">
+        <article class="realm realm--human" data-reveal>
+          <span class="realm-glyph">人</span>
+          <div class="realm-body">
+            <p class="realm-tag kai">下界</p>
+            <h3>人界</h3>
+            <p class="realm-where">天南 · 大晋 · 乱星海</p>
+            <p class="realm-text">
+              灵气稀薄，宗门林立。凡人如尘，修士如蚁。大多数人一辈子的野心，只是筑个基、
+              结个丹，在某个山头上被叫一声「老祖」。化神之后，才看得见天上的那道门。
+            </p>
+            <dl class="realm-facts">
+              <div><dt>灵气</dt><dd>稀薄</dd></div>
+              <div><dt>常见寿元</dt><dd>八十至二千</dd></div>
+              <div><dt>出路</dt><dd>化神渡劫</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <div class="ascension" aria-hidden="true">
+          <span>化神 · 空间节点</span>
+          <i></i>
+        </div>
+
+        <article class="realm realm--spirit" data-reveal data-delay="80">
+          <span class="realm-glyph">灵</span>
+          <div class="realm-body">
+            <p class="realm-tag kai">中界</p>
+            <h3>灵界</h3>
+            <p class="realm-where">天渊城 · 风元 · 雷鸣</p>
+            <p class="realm-text">
+              界面广袤，异族环伺。人界飞升者在这里只是最底层的客，连城墙都要自己去守。
+              风元大陆的荒原走三个月不见一个活人，天渊城的钟声一响，就是又要死人了。
+            </p>
+            <dl class="realm-facts">
+              <div><dt>灵气</dt><dd>浓郁</dd></div>
+              <div><dt>常见寿元</dt><dd>五千至三万</dd></div>
+              <div><dt>出路</dt><dd>大乘渡劫</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <div class="ascension" aria-hidden="true">
+          <span>大乘 · 九道天雷</span>
+          <i></i>
+        </div>
+
+        <article class="realm realm--immortal" data-reveal data-delay="160">
+          <span class="realm-glyph">仙</span>
+          <div class="realm-body">
+            <p class="realm-tag kai">上界</p>
+            <h3>仙界</h3>
+            <p class="realm-where">真仙界 · 北寒仙域</p>
+            <p class="realm-text">
+              仙灵气浓得化不开，寿元以万年计。这里的规矩比人界的刀更冷：
+              仙宫一句话，就能让一座城从地图上消失。到了这里你才发现，长生不是终点，是另一场苦役。
+            </p>
+            <dl class="realm-facts">
+              <div><dt>灵气</dt><dd>化不开</dd></div>
+              <div><dt>常见寿元</dt><dd>八万起</dd></div>
+              <div><dt>出路</dt><dd>道祖之争</dd></div>
+            </dl>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       卷二 · 法门
+  =================================================================== -->
+  <section class="section section--rules" id="rules">
+    <div class="wrap">
+      <div class="chapter" data-reveal>
+        <span class="chapter-no">卷二</span>
+        <h2 class="chapter-title">这一世怎么算</h2>
+        <span class="chapter-note">不是爽文，也不是鸡汤</span>
+      </div>
+
+      <p class="section-lede" data-reveal>
+        每一世都由一枚种子生成：出身、灵根、悟性、气运，在降生那一刻就定了大半。
+        剩下的一半，是你每一年选的活法，和每一次在岔路口的决定。
+      </p>
+
+      <div class="rules">
+        <article class="rule" data-reveal>
+          <span class="rule-glyph">根</span>
+          <h3>灵根</h3>
+          <p>天灵根百中无一，伪灵根与四灵根却占了半边天。灵根决定你修得快不快，不决定你能走多远。</p>
+        </article>
+        <article class="rule" data-reveal data-delay="60">
+          <span class="rule-glyph">境</span>
+          <h3>十三境</h3>
+          <p>炼气、筑基、结丹、元婴、化神，之后是灵界的炼虚、合体、大乘，再到仙界的真仙、金仙、太乙、大罗、道祖。</p>
+        </article>
+        <article class="rule" data-reveal data-delay="120">
+          <span class="rule-glyph">择</span>
+          <h3>抉择</h3>
+          <p>采药、斗法、结仇、收徒、渡劫。有些选择当场要命，有些会在三百年后回来找你。</p>
+        </article>
+        <article class="rule" data-reveal>
+          <span class="rule-glyph">因</span>
+          <h3>因果</h3>
+          <p>你救过的人会记得，你杀过的人也会。因果不写在脸上，写在你渡劫那天的雷里。</p>
+        </article>
+        <article class="rule" data-reveal data-delay="60">
+          <span class="rule-glyph">寿</span>
+          <h3>寿元</h3>
+          <p>境界决定寿元上限。延寿丹一次比一次贵，也一次比一次不管用。时间才是修仙界最贵的硬通货。</p>
+        </article>
+        <article class="rule" data-reveal data-delay="120">
+          <span class="rule-glyph">升</span>
+          <h3>飞升</h3>
+          <p>化神之后入灵界，大乘之后入仙界。每一次飞升都是一道鬼门关，过不去的人，连名字都留不下。</p>
+        </article>
+      </div>
+
+      <div class="rule-quote" data-reveal>
+        <p>「资质决定你走多快，心性决定你走多远，运气决定你有没有明天。」</p>
+        <span class="kai">—— 某个活了很久的人</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       卷三 · 碑林
+  =================================================================== -->
+  <section class="section" id="hall">
+    <div class="wrap">
+      <div class="chapter" data-reveal>
+        <span class="chapter-no">卷三</span>
+        <h2 class="chapter-title">碑林</h2>
+        <span class="chapter-note">这里安放着走到最后的人生</span>
+      </div>
+      <p class="section-lede" data-reveal>
+        没有名字，也没有联络方式，只留下一生。你可以点一盏灯，留一句话，或者只是看看：
+        那些和你生在同一片天下的人，都活成了什么样子。连上公共碑林后，灯与留言对所有访客可见；
+        只打开静态文件时，它们只留在你自己的浏览器里。
+      </p>
+      <div class="stele-row" id="steleRow" data-reveal></div>
+      <div class="hall-actions">
+        <a class="btn" href="hall.html">参观碑林</a>
+        <a class="btn" href="hall.html#random">随机遇见一段人生</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       卷四 · 起笔
+  =================================================================== -->
+  <section class="section section--final">
+    <div class="wrap final-wrap">
+      <p class="final-kicker kai" data-reveal>卷四 · 起笔</p>
+      <h2 class="final-title" data-reveal>你会生在哪里？</h2>
+      <p class="final-text" data-reveal>
+        这一次，灵根、出身、寿元，都由天定。<br>
+        但往后的每一年，怎么过，是你的事。
+      </p>
+      <div class="final-cta" data-reveal>
+        <a class="btn btn--primary" href="play.html">推 演 一 世</a>
+        <a class="tlink" href="codex.html">先看看这个世界</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div>
+        <h4>一介凡人</h4>
+        <p>
+          一个以《凡人修仙传》世界观为背景的免费人生模拟。
+          所有姓名、出身、事件均为随机生成，与本作之外的任何人无关。
+        </p>
+        <p class="tiny">
+          非官方同人作品。世界观与名词致敬忘语《凡人修仙传》，不使用原著文本。
+        </p>
+      </div>
+      <div>
+        <h4>去走走</h4>
+        <div class="footer-links">
+          <a href="play.html">推演一世</a>
+          <a href="hall.html">碑林</a>
+          <a href="codex.html">万宝阁 · 图鉴</a>
+          <a href="about.html">这是怎么算出来的</a>
+        </div>
+      </div>
+      <div>
+        <h4>说清楚</h4>
+        <p class="tiny">
+          本站不设账号、不收集数据。你的人生记录只保存在自己的浏览器里，随时可以删。
+          点灯与留言连上公共碑林后会公开显示；只打开静态文件时则留在本机。
+          碑林里的传说条目为原著人物致敬，其余均为随机生成。
+        </p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>一介凡人 · 2026</span>
+      <span>大道无情，运行日月。</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script src="js/canon.js"></script>
+<script src="js/art.js"></script>
+<script src="js/landing.js"></script>
+</body>
+</html>

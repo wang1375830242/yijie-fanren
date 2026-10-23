@@ -1,0 +1,385 @@
+/* ==========================================================================
+   碑林
+   ========================================================================== */
+body.hall-page {
+  background: var(--ink-900);
+}
+
+.page-head {
+  padding: 150px 0 44px;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.page-head::after {
+  content: "";
+  position: absolute;
+  right: -6%;
+  top: -30%;
+  width: 640px;
+  height: 640px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(199, 167, 95, 0.08), transparent 62%);
+  pointer-events: none;
+}
+.page-head .chapter-no {
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  color: var(--cinnabar-2);
+  margin-bottom: 14px;
+}
+.page-head h1 {
+  font-size: clamp(52px, 7vw, 96px);
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+  margin-bottom: 18px;
+}
+.page-lede {
+  max-width: 38em;
+  font-size: 15px;
+  line-height: 2.05;
+  color: var(--text-soft);
+  margin-bottom: 32px;
+}
+.hall-stats {
+  display: flex;
+  gap: 42px;
+  flex-wrap: wrap;
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.hall-stats b {
+  font-family: var(--latin);
+  font-weight: 400;
+  font-size: 26px;
+  color: var(--paper);
+  margin-right: 8px;
+  letter-spacing: 0;
+}
+.hall-status {
+  margin-top: 18px;
+  font-family: var(--kai);
+  font-size: 12px;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+  color: var(--muted-2);
+}
+.hall-status.is-online {
+  color: var(--jade-2);
+}
+
+.hall-main {
+  padding: 34px 0 100px;
+}
+.hall-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 28px;
+}
+.hall-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.hall-tabs button {
+  padding: 7px 14px;
+  font-family: var(--kai);
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  border: 1px solid transparent;
+  transition: all var(--dur);
+}
+.hall-tabs button:hover {
+  color: var(--text);
+}
+.hall-tabs button.on {
+  color: var(--realm);
+  border-color: var(--realm);
+  background: var(--realm-soft);
+}
+.hall-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stele-wall {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.wall-stele {
+  position: relative;
+  min-height: 330px;
+  padding: 22px 20px 18px;
+  text-align: left;
+  background:
+    linear-gradient(165deg, rgba(233, 227, 211, 0.06), transparent 55%),
+    linear-gradient(180deg, #1b201a, #101410);
+  border: 1px solid #2b3229;
+  color: var(--text-soft);
+  display: flex;
+  flex-direction: column;
+  transition:
+    transform 400ms var(--ease),
+    border-color 400ms var(--ease),
+    box-shadow 400ms var(--ease);
+}
+.wall-stele::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(233, 227, 211, 0.05);
+  pointer-events: none;
+}
+.wall-stele:hover {
+  transform: translateY(-5px);
+  border-color: var(--line-3);
+  box-shadow: var(--shadow-2);
+}
+.wall-stele .st-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--kai);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--muted-2);
+  margin-bottom: 22px;
+}
+.wall-stele .st-name {
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  color: var(--paper);
+  margin-bottom: 4px;
+}
+.wall-stele .st-sub {
+  font-family: var(--kai);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.wall-stele .st-line {
+  font-family: var(--kai);
+  font-size: 13px;
+  line-height: 1.95;
+  color: var(--text-soft);
+  flex: 1;
+}
+.wall-stele .st-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  font-family: var(--kai);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+}
+.wall-stele .st-foot b {
+  font-family: var(--latin);
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text-soft);
+  letter-spacing: 0;
+}
+.wall-stele.is-legend {
+  border-color: #3a3323;
+}
+.wall-stele.is-legend .st-name {
+  color: var(--gold-2);
+}
+.hall-empty {
+  text-align: center;
+  font-family: var(--kai);
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  padding: 80px 0;
+}
+
+/* 碑的详情 */
+.stele-modal {
+  max-width: 640px;
+}
+.sm-epitaph {
+  font-family: var(--kai);
+  font-size: 19px;
+  line-height: 2;
+  color: #2b2f27;
+  border-top: 1px solid var(--line-ink);
+  border-bottom: 1px solid var(--line-ink);
+  padding: 18px 0;
+  margin-bottom: 4px;
+}
+.sm-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 4px 0 12px;
+}
+.sm-field {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-ink);
+  display: grid;
+  gap: 2px;
+}
+.sm-field:nth-child(odd) {
+  border-right: 1px solid var(--line-ink);
+  padding-right: 14px;
+}
+.sm-field:nth-child(even) {
+  padding-left: 18px;
+}
+.sm-field dt {
+  font-family: var(--kai);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--paper-muted);
+}
+.sm-field dd {
+  margin: 0;
+  font-size: 13.5px;
+}
+.sm-deeds {
+  margin: 12px 0 4px;
+  border-top: 1px solid var(--line-ink);
+}
+.sm-deed {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line-ink);
+  font-family: var(--kai);
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: #3d4238;
+}
+.sm-deed b {
+  font-family: var(--latin);
+  font-weight: 400;
+  color: var(--paper-muted);
+  text-align: right;
+}
+.sm-candle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line-ink);
+  border-bottom: 1px solid var(--line-ink);
+  font-family: var(--kai);
+  font-size: 12px;
+  color: var(--paper-muted);
+}
+.sm-candle .btn {
+  --btn-fg: var(--paper-ink);
+  --btn-bd: rgba(25, 29, 23, 0.3);
+}
+.sm-candle .btn:hover {
+  color: var(--paper-ink);
+  border-color: var(--paper-ink);
+}
+.sm-flame {
+  width: 8px;
+  height: 12px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 50% 70%, #f6d68a, #c9634b 70%);
+  box-shadow: 0 0 12px rgba(201, 99, 75, 0.6);
+  opacity: 0;
+  transition: opacity 400ms;
+}
+.sm-flame.on {
+  opacity: 1;
+  animation: flame 1.4s ease-in-out infinite alternate;
+}
+@keyframes flame {
+  to {
+    transform: scaleY(1.18) translateY(-1px);
+    opacity: 0.8;
+  }
+}
+.sm-msg {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sm-msg input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid rgba(25, 29, 23, 0.24);
+  background: rgba(255, 255, 255, 0.2);
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--paper-ink);
+  outline: none;
+}
+.sm-msg input:focus {
+  border-color: var(--paper-ink);
+}
+.sm-msg input::placeholder {
+  color: var(--paper-muted);
+}
+.sm-msg .btn {
+  --btn-fg: var(--paper-ink);
+  --btn-bd: rgba(25, 29, 23, 0.3);
+}
+.sm-msgs {
+  display: grid;
+  gap: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-family: var(--kai);
+  font-size: 12px;
+  color: var(--paper-muted);
+}
+.sm-msgs div {
+  border-left: 2px solid rgba(25, 29, 23, 0.18);
+  padding-left: 10px;
+}
+
+@media (max-width: 1100px) {
+  .stele-wall {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 820px) {
+  .stele-wall {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .page-head {
+    padding-top: 120px;
+  }
+}
+@media (max-width: 560px) {
+  .stele-wall {
+    grid-template-columns: 1fr;
+  }
+  .hall-stats {
+    gap: 22px;
+  }
+  .hall-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 4px;
+  }
+  .hall-tabs button {
+    white-space: nowrap;
+  }
+  .wall-stele {
+    min-height: 240px;
+  }
+}

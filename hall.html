@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-Hans" data-realm="human">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>碑林 · 一介凡人</title>
+<meta name="description" content="这里安放着走到最后的人生。点一盏灯，留一句话，或者只是看看别人怎么活完这一世。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="碑林 · 一介凡人">
+<meta property="og:description" content="安放走到最后的人生。点灯、留言，或随机遇见一段人生。">
+<meta property="og:image" content="assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b0f0b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="css/game.css">
+<link rel="stylesheet" href="css/hall.css">
+</head>
+<body class="hall-page">
+<noscript><div class="noscript">这个站点需要 JavaScript 才能打开碑林。请开启后刷新。</div></noscript>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="seal">凡</span><span class="brand-name">一介凡人<em>碑林</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="codex.html">图鉴</a>
+      <a href="about.html">关于</a>
+      <a class="btn btn--sm nav-cta" href="play.html">推演一世</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="菜单" aria-expanded="false">☰</button>
+  </div>
+</nav>
+<div class="nav-drawer">
+  <a href="index.html">首页</a>
+  <a href="codex.html">图鉴</a>
+  <a href="about.html">关于</a>
+  <a href="play.html">推演一世</a>
+</div>
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="chapter-no">卷三</p>
+    <h1>碑林</h1>
+    <p class="page-lede">
+      这里安放着走到最后的人生。你可以在任何一座碑前点一盏灯，留一句话。
+      连上公共碑林后，灯与留言对所有访客可见；只打开静态文件时，它们只存在你的浏览器里。
+    </p>
+    <div class="hall-stats">
+      <span><b id="statTotal">0</b> 座碑</span>
+      <span><b id="statMine">0</b> 座是你的</span>
+      <span><b id="statCandles">0</b> 盏灯</span>
+    </div>
+    <p class="hall-status" id="hallStatus">正在连接公共碑林…</p>
+  </div>
+</header>
+
+<main class="wrap hall-main">
+  <div class="hall-bar">
+    <div class="hall-tabs" id="hallTabs">
+      <button type="button" data-filter="all" class="on">全部</button>
+      <button type="button" data-filter="mine">我的</button>
+      <button type="button" data-filter="human">人界</button>
+      <button type="button" data-filter="spirit">灵界</button>
+      <button type="button" data-filter="immortal">仙界</button>
+      <button type="button" data-filter="legend">传说</button>
+    </div>
+    <div class="hall-tools">
+      <button class="btn btn--sm" id="btnRandom" type="button">随机遇见一段人生</button>
+      <button class="btn btn--sm" id="btnWipe" type="button">清空我的碑</button>
+    </div>
+  </div>
+
+  <div class="stele-wall" id="steleWall"></div>
+  <p class="hall-empty" id="hallEmpty" hidden>这里还空着。去推演一世，把那个人安放进来。</p>
+</main>
+
+<div class="overlay" id="steleOverlay" hidden>
+  <div class="prompt stele-modal" role="dialog" aria-modal="true" aria-labelledby="smName">
+    <p class="prompt-kicker">碑</p>
+    <h3 id="smName"></h3>
+    <p class="prompt-sub" id="smSub"></p>
+    <p class="sm-epitaph" id="smEpitaph"></p>
+    <dl class="sm-fields" id="smFields"></dl>
+    <div class="sm-deeds" id="smDeeds"></div>
+    <div class="sm-candle">
+      <button class="btn btn--sm" id="smLight" type="button">点一盏灯</button>
+      <span id="smCandles">0 盏</span>
+      <span class="sm-flame" aria-hidden="true"></span>
+    </div>
+    <div class="sm-msg">
+      <input id="smMsgInput" maxlength="40" placeholder="留一句话。公共碑林连接后会公开显示。" aria-label="留言">
+      <button class="btn btn--sm" id="smMsgBtn" type="button">留</button>
+    </div>
+    <div class="sm-msgs" id="smMsgs"></div>
+    <div class="prompt-foot">
+      <button class="btn" id="smClose" type="button">合 上</button>
+      <span id="smNote">碑上的字是随机生成的，不必当真。</span>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-bottom">
+      <span>一介凡人 · 碑林</span>
+      <span>碑上的字会一直在；本机记录可以清空。</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script src="js/canon.js"></script>
+<script src="js/hall.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+/* ==========================================================================
+   一介凡人 · 设计变量
+   墨夜为底，宣纸为字，青玉为灵，朱砂为印。
+   ========================================================================== */
+
+:root {
+  /* 墨 —— 带一点青的夜色，不是纯黑 */
+  --ink-950: #070a07;
+  --ink-900: #0b0f0b;
+  --ink-850: #0f140e;
+  --ink-800: #131811;
+  --ink-750: #171d15;
+  --ink-700: #1c231a;
+  --ink-600: #262e22;
+  --ink-500: #35402e;
+
+  /* 纸 */
+  --paper: #e9e3d3;
+  --paper-2: #d9d2be;
+  --paper-3: #c3bba4;
+  --paper-ink: #191d17;
+  --paper-muted: #5c6153;
+
+  /* 字 */
+  --text: #e4dfd0;
+  --text-soft: #b9b7a7;
+  --muted: #8b9280;
+  --muted-2: #848b7c;
+
+  /* 灵光 */
+  --jade: #4d7d68;
+  --jade-2: #7fb29b;
+  --jade-3: #a9d4bf;
+  --cinnabar: #ae4430;
+  --cinnabar-2: #c9634b;
+  --gold: #c7a75f;
+  --gold-2: #e0c98d;
+
+  /* 界之色（由 JS 切换） */
+  --realm: #7fb29b;
+  --realm-soft: rgba(127, 178, 155, 0.16);
+  --realm-glow: rgba(127, 178, 155, 0.35);
+
+  /* 线 */
+  --line: rgba(233, 227, 211, 0.12);
+  --line-2: rgba(233, 227, 211, 0.2);
+  --line-3: rgba(233, 227, 211, 0.34);
+  --line-ink: rgba(25, 29, 23, 0.14);
+
+  /* 字体：宋体承担正文与标题，楷体只作批注 */
+  --serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong",
+    "SimSun", "宋体", serif;
+  --kai: "Kaiti SC", "STKaiti", "KaiTi", "楷体", "Kaiti TC", serif;
+  --latin: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia,
+    "Times New Roman", serif;
+  --sans: "Source Han Sans SC", "Noto Sans SC", "PingFang SC",
+    "Microsoft YaHei", "微软雅黑", sans-serif;
+
+  /* 尺度 */
+  --w-page: 1240px;
+  --w-wide: 1420px;
+  --pad-x: clamp(20px, 4vw, 64px);
+  --section-y: clamp(72px, 9vw, 148px);
+
+  --shadow-1: 0 2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-2: 0 18px 48px rgba(0, 0, 0, 0.42);
+  --shadow-3: 0 32px 90px rgba(0, 0, 0, 0.55);
+
+  --r: 2px;
+  --dur: 240ms;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 三界主题：整站的颜色气候 */
+html[data-realm="human"] {
+  --realm: #86a083;
+  --realm-soft: rgba(134, 160, 131, 0.14);
+  --realm-glow: rgba(134, 160, 131, 0.32);
+}
+html[data-realm="spirit"] {
+  --realm: #93a8d6;
+  --realm-soft: rgba(147, 168, 214, 0.15);
+  --realm-glow: rgba(147, 168, 214, 0.36);
+}
+html[data-realm="immortal"] {
+  --realm: #d8bd7c;
+  --realm-soft: rgba(216, 189, 124, 0.15);
+  --realm-glow: rgba(216, 189, 124, 0.38);
+}
+html[data-realm="mortal"] {
+  --realm: #a49b83;
+  --realm-soft: rgba(164, 155, 131, 0.13);
+  --realm-glow: rgba(164, 155, 131, 0.3);
+}

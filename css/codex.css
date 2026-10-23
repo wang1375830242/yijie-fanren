@@ -1,0 +1,239 @@
+/* ==========================================================================
+   万宝阁 · 图鉴
+   ========================================================================== */
+.codex-layout {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 76px);
+  padding: 52px 0 110px;
+}
+.codex-side {
+  position: sticky;
+  top: 92px;
+  align-self: start;
+  min-width: 0;
+}
+.side-label {
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: var(--muted-2);
+  margin-bottom: 14px;
+}
+.codex-tabs {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line);
+  max-width: 100%;
+  min-width: 0;
+}
+.codex-tabs button {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 0 11px 12px;
+  border-bottom: 1px solid var(--line);
+  border-left: 2px solid transparent;
+  font-family: var(--kai);
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  text-align: left;
+  transition: color var(--dur), border-color var(--dur), padding var(--dur);
+}
+.codex-tabs button b {
+  font-family: var(--latin);
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0;
+  color: var(--muted-2);
+}
+.codex-tabs button:hover {
+  color: var(--text-soft);
+}
+.codex-tabs button.on {
+  color: var(--realm);
+  border-left-color: var(--realm);
+  padding-left: 16px;
+}
+.codex-tabs button.on b {
+  color: var(--realm);
+}
+.codex-search {
+  margin-top: 30px;
+}
+.codex-search label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--muted-2);
+  margin-bottom: 8px;
+}
+.codex-search input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line-2);
+  padding: 9px 11px;
+  font-family: var(--serif);
+  font-size: 12.5px;
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--dur);
+}
+.codex-search input:focus {
+  border-color: var(--realm);
+}
+.codex-search input::placeholder {
+  color: var(--muted-2);
+}
+.codex-source-note {
+  margin-top: 14px;
+  font-family: var(--kai);
+  font-size: 10.5px;
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+  color: var(--muted-2);
+}
+.codex-source-note a {
+  color: var(--realm);
+  border-bottom: 1px solid var(--line-2);
+}
+
+.codex-main {
+  min-width: 0;
+}
+.codex-titles {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.codex-titles h2 {
+  font-size: clamp(30px, 3.4vw, 40px);
+  letter-spacing: 0.12em;
+}
+.codex-titles span {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+.codex-intro {
+  max-width: 42em;
+  margin: 20px 0 14px;
+  font-size: 14px;
+  line-height: 2.05;
+  color: var(--text-soft);
+}
+.codex-list {
+  border-top: 1px solid var(--line);
+}
+.codex-item {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: 30px;
+  padding: 24px 10px 24px 0;
+  border-bottom: 1px solid var(--line);
+  transition: background 300ms;
+}
+.codex-item:hover {
+  background: rgba(233, 227, 211, 0.022);
+}
+.ci-head {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.ci-name {
+  font-size: 22px;
+  letter-spacing: 0.1em;
+  color: var(--text);
+  line-height: 1.35;
+}
+.ci-index {
+  font-family: var(--latin);
+  font-size: 11px;
+  color: var(--cinnabar-2);
+  letter-spacing: 0.1em;
+  margin-right: 8px;
+  vertical-align: 0.15em;
+}
+.ci-tag {
+  font-family: var(--kai);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--realm);
+}
+.ci-spec {
+  font-family: var(--kai);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--cinnabar-2);
+  border: 1px solid rgba(174, 68, 48, 0.45);
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+.ci-meta {
+  font-family: var(--kai);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--muted-2);
+}
+.ci-desc {
+  font-size: 13.5px;
+  line-height: 2.05;
+  color: var(--muted);
+  margin: 0;
+}
+.codex-empty {
+  padding: 60px 0;
+  text-align: center;
+  font-family: var(--kai);
+  color: var(--muted-2);
+  letter-spacing: 0.14em;
+}
+
+@media (max-width: 900px) {
+  .codex-layout {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding-top: 34px;
+  }
+  .codex-side {
+    position: static;
+  }
+  .codex-tabs {
+    display: flex;
+    overflow-x: auto;
+    border-top: 1px solid var(--line);
+    gap: 4px;
+    width: 100%;
+  }
+  .codex-tabs button {
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    padding: 10px 12px;
+  }
+  .codex-tabs button.on {
+    border-left: 0;
+    border-bottom-color: var(--realm);
+    padding-left: 12px;
+  }
+  .codex-search {
+    margin-top: 14px;
+  }
+}
+@media (max-width: 640px) {
+  .codex-tabs {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .codex-item {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 20px 0;
+  }
+}
