@@ -286,6 +286,7 @@
         return;
       }
       // 人生节点：五、十五、三十、五十、七十
+      if (this.maybeChildVignette()) return;
       if (this.maybeAgeQuestion()) return;
       // 境界临界：强制剧情
       if (!s.pending && this.forceMilestone()) return;
@@ -303,7 +304,8 @@
         }
       }
       // 天候
-      if (!s.pending && this.rng.chance(0.62)) {
+      const ambientChance = s.tier === 0 && s.age < 10 ? 0.42 : 0.62;
+      if (!s.pending && this.rng.chance(ambientChance)) {
         const group = this.ambientGroup();
         const pool = D.AMBIENT[group];
         const recent = s.recentAmbient || [];
@@ -318,6 +320,7 @@
     }
 
     eventChance() {
+      if (this.state.tier === 0 && this.state.age < 10) return 0.34;
       const f = this.focusDef();
       const years = Math.max(1, this.state.lastStepYears || 1);
       const scale = Math.min(2.5, 1 + Math.log10(years));
@@ -344,6 +347,21 @@
         }
       }
       return false;
+    }
+
+    maybeChildVignette() {
+      const s = this.state;
+      if (s.startWorld !== "human" || s.tier !== 0 || s.path !== "unsettled") return false;
+      if (s.age !== 3 && s.age !== 7) return false;
+      const key = "child_asked_" + s.age;
+      if (s.flags[key]) return false;
+      s.flags[key] = true;
+      const pool = XD.EVENTS.filter(
+        (e) => e.id.indexOf("g_h_child_") === 0 && !s.seen[e.id]
+      );
+      if (!pool.length) return false;
+      this.trigger(this.rng.pick(pool).id);
+      return true;
     }
 
     ambientGroup() {

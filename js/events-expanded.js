@@ -1,6 +1,6 @@
 /* ==========================================================================
    一介凡人 · 事件扩展（程序化补编）
-   目标：把事件池从 63 条扩到约 638 条（10 倍量级），并让道侣在后续
+   目标：把事件池从 63 条扩到约 680 条（10 倍量级），并让道侣在后续
    人生里持续出现。所有条目仍是本地原创文案，不复制原著正文。
    ========================================================================== */
 (function () {
@@ -28,6 +28,14 @@
         "邻家女孩送你一颗糖，纸已经化了。",
         "父亲从集市回来，带了一小包盐和一段红绳。",
         "冬天来得早，井面结了一层薄冰。",
+        "你蹲在田埂上看蚂蚁搬家，一看就是一下午。",
+        "村里的老井枯了，大人们围着井口商量。",
+        "你捡到一只断线的风筝，纸面上画着一只鹤。",
+        "秋收后，村里搭了戏台，唱到半夜。",
+        "母亲病了几天，你学着煮粥，煮糊了。",
+        "你在山神庙里躲雨，看见供桌上放着半块饼。",
+        "邻村的孩子来走亲戚，你们在晒谷场上打了一架。",
+        "父亲用木头给你削了一把小剑。",
       ],
       details: [
         "那时候你还不知道山外有修仙者。",
@@ -38,6 +46,14 @@
         "没有人注意到你。",
         "你把它藏进了枕头底下。",
         "那一年，收成不好。",
+        "你不知道这些事后来有什么用。",
+        "你只记得那天的光。",
+        "大人们说，小孩子不要问。",
+        "你把它忘了很多年，后来又想起来。",
+        "那是你第一次觉得，日子会变。",
+        "你没有告诉别人。",
+        "后来你走过很多地方，再没见过那样的院子。",
+        "你当时觉得很平常。",
       ],
       outcomes: [
         "你后来常常想起这一天。",
@@ -437,7 +453,7 @@
   };
 
   const THEMES = [
-    { key: "h_child", pool: "child", when: (s) => s.world === "human" && s.age >= 6 && s.age <= 16, w: 4, titles: ["小时候", "村口", "旧事", "那年", "一枚铜钱", "雨夜"], hook: "那一年，你还小。" },
+    { key: "h_child", pool: "child", when: (s) => s.world === "human" && s.age >= 2 && s.age <= 16, w: 8, titles: ["小时候", "村口", "旧事", "那年", "一枚铜钱", "雨夜"], hook: "那一年，你还小。" },
     { key: "h_school", pool: "sect", when: (s) => s.world === "human" && s.age >= 10 && s.age <= 45 && s.tier <= 2, w: 5, titles: ["山门", "外门", "任务牌", "比试", "罚跪", "传功"], hook: "山门里的日子，和你想的不一样。" },
     { key: "h_alchemy", pool: "sect", when: (s) => s.world === "human" && s.tier >= 1 && s.tier <= 5 && s.age >= 16, w: 5, titles: ["丹房", "炉火", "药香", "一炉丹", "守火", "废丹"], hook: "丹炉边的日子，安静得能听见火。" },
     { key: "h_travel", pool: "wild", when: (s) => s.world === "human" && s.tier >= 1 && s.tier <= 5 && s.age >= 20, w: 5, titles: ["远行", "荒原", "古洞", "雾", "夜宿", "路上"], hook: "你离开熟悉的地方，走了很远。" },
@@ -467,10 +483,14 @@
 
   THEMES.forEach((theme, ti) => {
     const pool = POOLS[theme.pool];
-    for (let i = 0; i < N; i++) {
+    const count = theme.key === "h_child" ? 40 : N;
+    for (let i = 0; i < count; i++) {
       const title = theme.titles[i % theme.titles.length];
       const scene = pool.scenes[i % pool.scenes.length];
-      const detail = pool.details[(i * 5 + 2) % pool.details.length];
+      const detail =
+        pool.details[
+          (i * 3 + Math.floor(i / pool.scenes.length) * 3 + 2) % pool.details.length
+        ];
       const outcome = pool.outcomes[(i * 3 + 1) % pool.outcomes.length];
       const sets = theme.choices || pool.choices;
       const set = sets[i % sets.length];
