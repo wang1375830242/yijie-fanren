@@ -137,6 +137,60 @@ hard.state.ward = 1;
 hard.die("陨于飞升天劫");
 ok(hard.state.alive === false && hard.state.ward === 1, "H8 飞升天劫应绕过玉符");
 
+/* M3：道侣文本不再出现英文 ta，且道侣有寿元字段。 */
+const expandedSource = fs.readFileSync(path.join(ROOT, "js/events-expanded.js"), "utf8");
+ok(!/[\u4e00-\u9fff"']ta/.test(expandedSource), "M3 不应再出现中文语境里的 ta");
+const partnerSim = new Sim({ seed: 8, world: "human" });
+partnerSim.state.tier = 2;
+partnerSim.apply({ partner: "道侣" });
+ok(partnerSim.state.partner && partnerSim.state.partner.maxAge > 0, "M3 道侣应有寿元字段");
+
+/* M4：男角色不能入掩月宗，女角色可以。 */
+const rootEvent = XD.EVENTS.find((event) => event.id === "root_test");
+const maleSim = new Sim({ seed: 4, world: "human" });
+maleSim.state.gender = "男";
+const femaleSim = new Sim({ seed: 4, world: "human" });
+femaleSim.state.gender = "女";
+const maleSects = rootEvent.choices(maleSim.state).map((choice) => choice.effects && choice.effects.sect);
+const femaleSects = rootEvent.choices(femaleSim.state).map((choice) => choice.effects && choice.effects.sect);
+ok(!maleSects.includes("掩月宗"), "M4 男角色不应能入掩月宗");
+ok(femaleSects.includes("掩月宗"), "M4 女角色应能入掩月宗");
+
+/* M6：灵界不再写成两个月亮；仙界地理说明是总称。 */
+const dataSource = fs.readFileSync(path.join(ROOT, "js/data.js"), "utf8");
+ok(!dataSource.includes("灵界的月有两个"), "M6 不应再写灵界有两个月亮");
+ok(dataSource.includes("真仙界是总称"), "M6 仙界地理应说明真仙界是总称");
+
+/* M9：灵石不足时不消耗事件，保留 pending 让玩家重选。 */
+const poor = new Sim({ seed: 6, world: "human" });
+poor.state.stones = 0;
+poor.state.pending = {
+  kind: "event",
+  id: "test-poor",
+  choices: [
+    {
+      label: "买",
+      requires: { stones: 999 },
+      effects: {},
+      outcome: "买不起。",
+    },
+  ],
+};
+const blocked = poor.choose(0);
+ok(blocked && blocked.status === "blocked", "M9 灵石不足应返回 blocked");
+ok(poor.state.pending && poor.state.pending.kind === "event", "M9 灵石不足不应消耗事件");
+
+/* M10：心境不再长期只涨不跌。 */
+const moodSim = new Sim({ seed: 10, world: "human" });
+moodSim.state.tier = 1;
+moodSim.state.age = 30;
+moodSim.state.maxAge = 130;
+moodSim.state.mood = 50;
+moodSim.state.focus = "cultivate";
+const beforeMood = moodSim.state.mood;
+moodSim.yearTick();
+ok(moodSim.state.mood < beforeMood, "M10 苦修应带来心境损耗");
+
 /* 220 局回归：不变量 + 伪灵根可到灵界。 */
 let issues = 0;
 let pseudoReachedSpirit = 0;

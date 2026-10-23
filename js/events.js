@@ -214,6 +214,11 @@
           outcome: "掩月宗的师姐替你把脉，说你根骨不差，就是心太软。她说这话时在笑。",
         },
         {
+          label: "入灵兽山",
+          effects: { sect: "灵兽山", insight: 2, luck: 3, begin: true },
+          outcome: "灵兽山的师兄让你挑一只幼兽。你蹲了很久，最后是一只不起眼的灰羽鸟先跳到你手上。",
+        },
+        {
           label: "不入宗门，做个散修",
           effects: { sect: "散修", stones: 45, luck: 4, mood: -2, begin: true },
           outcome: "你没有师父，没有靠山，只有一间租来的洞府和一本翻烂的入门功法。",
@@ -224,8 +229,12 @@
           outcome: "执事没有劝你。他说：「修行是逆天的事，孝顺是顺天的事。都不亏。」",
         },
       ];
-      const offset = (s.seed >>> 0) % sectChoices.length;
-      return sectChoices.slice(offset).concat(sectChoices.slice(0, offset));
+      const available =
+        s.gender === "女"
+          ? sectChoices
+          : sectChoices.filter((c) => c.effects.sect !== "掩月宗");
+      const offset = (s.seed >>> 0) % available.length;
+      return available.slice(offset).concat(available.slice(0, offset));
     },
   });
 

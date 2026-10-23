@@ -259,7 +259,12 @@
         }
       } else {
         const f = this.focusDef();
-        const decay = s.age > s.maxAge * 0.6 ? 0.04 : 0.005;
+        if (s.partner && s.partner.alive !== false && s.age >= s.partner.maxAge) {
+          s.partner.alive = false;
+          this.pushLog("system", `${s.partner.name}走了。你在洞府里坐了很久。`);
+          s.partner = null;
+        }
+        const decay = s.age > s.maxAge * 0.6 ? 0.12 : 0.02;
         s.mood = clamp(s.mood + (f.mood || 0) - decay, 0, 100);
         s.stones = Math.max(0, s.stones + (f.stones || 0));
         if (f.insight && this.rng.chance(f.insight)) {
@@ -481,7 +486,6 @@
           ? -choice.effects.stones
           : 0;
       if (required > s.stones) {
-        s.pending = null;
         this.pushLog("system", "你拿不出这笔灵石，只能作罢。");
         return { status: "blocked" };
       }
@@ -491,7 +495,6 @@
         const min = Number(choice.donate.min) || 10;
         const max = Math.min(Number(choice.donate.max) || s.stones, s.stones);
         if (s.stones < min || max < min) {
-          s.pending = null;
           this.pushLog("system", "你拿不出这笔灵石，只能作罢。");
           return { status: "blocked" };
         }
@@ -682,6 +685,9 @@
           name: this.rng.pick(D.SURNAMES) + this.rng.pick(D.GIVEN),
           title: effects.partner,
           since: s.age,
+          tier: Math.max(1, s.tier),
+          maxAge: Math.max(80, this.realm().life),
+          alive: true,
         };
       }
       if (effects.disciple) {
