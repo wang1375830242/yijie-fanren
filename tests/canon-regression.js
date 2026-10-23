@@ -1046,6 +1046,53 @@ ok(
   Number.isFinite(longEco.state.stones) && longEco.state.stones >= 0,
   "1000 年经济循环不应产生负灵石或 NaN"
 );
+const longRun = new Sim({ seed: 981, world: "immortal" });
+longRun.state.tier = 9;
+longRun.state.age = 500;
+longRun.state.maxAge = 9999999;
+longRun.state.path = "cultivator";
+longRun.state.stones = 1000000;
+// 仅用于长局负载测试：把致命死亡改成继续运行，专门检查 1000 步内不会产生数值异常。
+longRun.die = () => {
+  longRun.state.alive = true;
+};
+let longSteps = 0;
+let longIssues = 0;
+while (longRun.state.alive && longSteps < 1000) {
+  const runState = longRun.state;
+  if (runState.pending) {
+    if (runState.pending.kind === "break") longRun.chooseBreak("push");
+    else if (runState.pending.kind === "danger") longRun.resolveDanger(0);
+    else {
+      const choices = runState.pending.choices || [];
+      let safe = 0;
+      for (let i = 0; i < choices.length; i++) {
+        if (!choices[i].risk && !(choices[i].effects && choices[i].effects.death)) {
+          safe = i;
+          break;
+        }
+      }
+      longRun.choose(safe);
+    }
+  } else {
+    longRun.step();
+  }
+  longSteps += 1;
+  if (
+    !Number.isFinite(runState.stones) ||
+    runState.stones < 0 ||
+    !Number.isFinite(runState.cult) ||
+    runState.cult < 0 ||
+    runState.cult > 100
+  ) {
+    longIssues += 1;
+    break;
+  }
+}
+ok(
+  longSteps === 1000 && longIssues === 0,
+  `1000 步长局应无经济/修为异常，实际 ${longSteps} 步，${longIssues} 个问题`
+);
 
 /* 致敬事件包：默认关闭，开启后只进入原创事件。 */
 const homage = XD.EVENT_BY_ID.homage_yellow_valley;
