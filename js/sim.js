@@ -104,6 +104,7 @@
         flags: {},
         seen: {},
         textUse: {},
+        choiceTrace: [],
         legacy: null,
         focus: "cultivate",
         log: [],
@@ -366,6 +367,17 @@
       const s = this.state;
       if (!s.textUse) s.textUse = {};
       s.textUse[text] = (s.textUse[text] || 0) + 1;
+    }
+
+    recordChoice(kind, index, extra) {
+      const s = this.state;
+      if (!Array.isArray(s.choiceTrace)) s.choiceTrace = [];
+      const entry = Object.assign(
+        { age: s.age, tier: s.tier, kind, eventId: s.pending && s.pending.id, choice: index },
+        extra || {}
+      );
+      s.choiceTrace.push(entry);
+      if (s.choiceTrace.length > 500) s.choiceTrace.shift();
     }
 
     uniqueText(text) {
@@ -902,6 +914,7 @@
           (effects.karma || 0) +
           Math.round((donateAmount / (choice.donate.unit || 10)) * (choice.donate.karmaPer || 1));
       }
+      this.recordChoice("event", index, donateAmount != null ? { donateAmount } : null);
       const outcomeText =
         typeof choice.outcome === "function"
           ? choice.outcome(s, donateAmount)
@@ -1026,6 +1039,7 @@
       }
       if (opt.ward) s.ward -= 1;
       if (cost > 0) s.stones = Math.max(0, s.stones - cost);
+      this.recordChoice("danger", index, { cause: p.cause || "", cost });
       const chance = clamp(opt.p + (s.luck - 50) * 0.0005, 0.05, 0.95);
       if (this.rng.chance(chance)) {
         this.apply(opt.effects);
@@ -1224,6 +1238,7 @@
       const s = this.state;
       if (!s.pending || s.pending.kind !== "break") return null;
       const p = s.pending.chance;
+      this.recordChoice("break", 0, { action });
       s.pending = null;
       if (action === "wait") {
         if ((s.breakWaits || 0) >= 3) return { status: "blocked" };
@@ -1446,6 +1461,41 @@
         (D.EPITAPHS[Math.min(this.state.tier, 13)] || D.EPITAPHS[0])[0];
       this.state.finale = this.finaleSummary(kind);
       this.pushLog("death", `你的故事到此为止：${kind}。`, { title: "终" });
+    }
+
+    snapshot() {
+      const state = JSON.parse(JSON.stringify(this.state));
+      state.pending = null;
+      if (Array.isArray(state.log)) state.log = state.log.slice(-600);
+      if (Array.isArray(state.history)) state.history = state.history.slice(-400);
+      if (Array.isArray(state.choiceTrace)) state.choiceTrace = state.choiceTrace.slice(-500);
+      return {
+        v: 1,
+        seed: this.seed,
+        world: state.world,
+        mode: this.opts.mode || "birth",
+        rng: this.rng.getState(),
+        socialRng: this.socialRng.getState(),
+        state,
+        savedAt: new Date().toISOString(),
+      };
+    }
+
+    static restore(run) {
+      if (!run || run.v !== 1 || !run.state || typeof run.seed !== "number") return null;
+      const sim = new Sim({
+        seed: run.seed >>> 0,
+        world: run.world || run.state.world || "human",
+        mode: run.mode || "birth",
+      });
+      sim.state = run.state;
+      sim.state.pending = null;
+      if (!Array.isArray(sim.state.choiceTrace)) sim.state.choiceTrace = [];
+      if (!Array.isArray(sim.state.log)) sim.state.log = [];
+      if (!Array.isArray(sim.state.history)) sim.state.history = [];
+      sim.rng.setState(run.rng);
+      sim.socialRng.setState(run.socialRng);
+      return sim;
     }
 
     summary() {

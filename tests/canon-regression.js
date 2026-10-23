@@ -455,6 +455,46 @@ ok(
   "终局摘要应包含宗门职位与贡献"
 );
 
+/* P0：RNG 可序列化、运行快照可恢复、选择轨迹可记录。 */
+const rngA = new XD.util.RNG(123456);
+const rngFirst = [rngA.next(), rngA.next()];
+const rngSave = rngA.getState();
+const rngB = new XD.util.RNG(999);
+rngB.setState(rngSave);
+ok(rngB.next() === rngA.next(), "RNG 恢复后应保持同一随机序列");
+
+const saveSim = new Sim({ seed: 801, world: "human" });
+saveSim.state.tier = 2;
+saveSim.state.age = 44;
+const savedRun = saveSim.snapshot();
+const restoredSim = XD.Sim.restore(savedRun);
+ok(restoredSim && restoredSim.state.age === 44 && restoredSim.state.tier === 2, "运行快照应恢复年龄与境界");
+ok(restoredSim.seed === saveSim.seed, "运行快照应保留 seed");
+ok(restoredSim.state.pending === null, "运行快照不应带 pending");
+
+const traceSim = new Sim({ seed: 802, world: "human" });
+traceSim.state.pending = {
+  kind: "event",
+  id: "trace-test",
+  choices: [{ label: "记一笔", effects: {}, outcome: "记下了。" }],
+};
+traceSim.choose(0);
+ok(
+  traceSim.state.choiceTrace.length === 1 && traceSim.state.choiceTrace[0].eventId === "trace-test",
+  "选择轨迹应记录事件与选项"
+);
+XD.util.store.setRun(savedRun);
+ok(XD.util.store.run() && XD.util.store.run().seed === 801, "运行快照应可写入本机");
+ok(
+  fs.readFileSync(path.join(ROOT, "about.html"), "utf8").includes("btnImport"),
+  "关于页应提供导入入口"
+);
+ok(
+  gameSource.includes("saveRun") && gameSource.includes("maybeResume"),
+  "游戏应接入自动保存与续存提示"
+);
+
+
 /* 弟子/对手：自动入场、境界推进、寿尽与摘要。 */
 const socialSim = new Sim({ seed: 558, world: "human" });
 socialSim.state.path = "cultivator";

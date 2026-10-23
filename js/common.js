@@ -19,29 +19,45 @@
   class RNG {
     constructor(seed) {
       this.seed = seed >>> 0;
-      this._r = mulberry32(this.seed);
+      this.state = this.seed;
+      this.calls = 0;
     }
     next() {
-      return this._r();
+      let a = this.state | 0;
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      this.state = a;
+      this.calls = (this.calls || 0) + 1;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     }
     int(min, max) {
-      return Math.floor(this._r() * (max - min + 1)) + min;
+      return Math.floor(this.next() * (max - min + 1)) + min;
     }
     pick(arr) {
-      return arr[Math.floor(this._r() * arr.length)];
+      return arr[Math.floor(this.next() * arr.length)];
     }
     chance(p) {
-      return this._r() < p;
+      return this.next() < p;
     }
     weighted(items, key) {
       const w = items.map((it) => (typeof key === "function" ? key(it) : it.w || 1));
       const total = w.reduce((a, b) => a + b, 0);
-      let r = this._r() * total;
+      let r = this.next() * total;
       for (let i = 0; i < items.length; i++) {
         r -= w[i];
         if (r <= 0) return items[i];
       }
       return items[items.length - 1];
+    }
+    getState() {
+      return { state: this.state >>> 0, calls: this.calls || 0 };
+    }
+    setState(snapshot) {
+      if (!snapshot) return this;
+      this.state = (Number(snapshot.state) || this.seed) >>> 0;
+      this.calls = Number(snapshot.calls) || 0;
+      return this;
     }
   }
 
@@ -50,6 +66,7 @@
   const KEY_PREFS = "yijie.prefs.v1";
   const KEY_CANDLES = "yijie.candles.v1";
   const KEY_LEGACY = "yijie.legacy.v1";
+  const KEY_RUN = "yijie.run.v1";
 
   function read(key, fallback) {
     try {
@@ -78,6 +95,9 @@
       all.unshift(life);
       return write(KEY_LIVES, all.slice(0, 60));
     },
+    setLives(lives) {
+      return write(KEY_LIVES, Array.isArray(lives) ? lives.slice(0, 60) : []);
+    },
     clearLives() {
       write(KEY_LIVES, []);
     },
@@ -96,6 +116,16 @@
     },
     clearLegacy() {
       write(KEY_LEGACY, null);
+    },
+    run() {
+      const v = read(KEY_RUN, null);
+      return v && typeof v === "object" ? v : null;
+    },
+    setRun(run) {
+      return write(KEY_RUN, run);
+    },
+    clearRun() {
+      write(KEY_RUN, null);
     },
     prefs() {
       return read(KEY_PREFS, {});

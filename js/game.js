@@ -29,6 +29,7 @@
   let soft = false;
   let releasePromptTrap = null;
   let releaseShopTrap = null;
+  let runSaveWarned = false;
 
   /* ======================================================================
      通用
@@ -187,6 +188,8 @@
     const modeEl = document.querySelector('input[name="mode"]:checked');
     const storedLegacy = qSeed ? null : U.store.legacy();
     const legacy = storedLegacy && !storedLegacy.usedBy ? storedLegacy : null;
+    U.store.clearRun();
+    runSaveWarned = false;
     sim = new XD.Sim({
       seed,
       world,
@@ -194,12 +197,98 @@
       legacy,
     });
     state = sim.state;
-    if (legacy) U.store.markLegacyUsed(state.seed);
     endSummary = null;
     saved = false;
     setTheme(state.world);
     renderFateCard();
     show("card");
+  }
+
+  function saveRun() {
+    if (!sim || !state || !state.alive || state.pending) return false;
+    const run = sim.snapshot();
+    run.pace = pace;
+    const ok = U.store.setRun(run);
+    if (ok && state.legacy) U.store.markLegacyUsed(state.seed);
+    if (!ok && !runSaveWarned) {
+      runSaveWarned = true;
+      toast("这一世暂时没能写入本机存档");
+    }
+    return ok;
+  }
+
+  function resumeRun(run) {
+    const restored = XD.Sim.restore(run);
+    if (!restored) {
+      U.store.clearRun();
+      toast("这份存档版本不兼容，已保留原始人生记录");
+      return false;
+    }
+    sim = restored;
+    state = sim.state;
+    endSummary = null;
+    saved = false;
+    runSaveWarned = false;
+    if (run.pace && PACE[run.pace]) pace = run.pace;
+    setTheme(state.world);
+    show("life");
+    buildLifeUI();
+    logRendered = 0;
+    refreshAll(true);
+    paused = false;
+    $("btnPause").textContent = "❚❚";
+    schedule();
+    return true;
+  }
+
+  function maybeResume() {
+    const params = new URLSearchParams(location.search);
+    if (params.get("seed")) return;
+    const run = U.store.run();
+    if (!run) return;
+    if (run.v !== 1 || !run.state || !run.state.alive) {
+      U.store.clearRun();
+      return;
+    }
+    const age = run.state.age != null ? run.state.age : "?";
+    if (!confirm(`发现一段未完成的人生（${age}岁），继续吗？`)) {
+      U.store.clearRun();
+      return;
+    }
+    if (!resumeRun(run)) return;
+  }
+
+  function buildProblemReport() {
+    return {
+      v: 1,
+      seed: state.seed,
+      seedText: fmtSeed(state.seed),
+      world: state.world,
+      mode: (sim.opts && sim.opts.mode) || "birth",
+      age: state.age,
+      tier: state.tier,
+      realm: sim.displayRealm(),
+      trace: state.choiceTrace || [],
+      savedAt: new Date().toISOString(),
+    };
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    try {
+      document.execCommand("copy");
+    } finally {
+      area.remove();
+    }
+    return Promise.resolve();
   }
 
   function renderFateCard() {
@@ -267,6 +356,7 @@
         U.store.setPref("focus", state.focus);
         $("focusChips").querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b));
         toast(`重心转为「${b.textContent}」`);
+        saveRun();
       });
     });
     $("btnShop").addEventListener("click", openShop);
@@ -309,6 +399,7 @@
       openPrompt();
       return;
     }
+    saveRun();
     schedule();
   }
 
@@ -333,6 +424,7 @@
     }
     paused = false;
     $("btnPause").textContent = "❚❚";
+    saveRun();
     schedule();
   }
 
@@ -843,6 +935,7 @@
     if (state.pending) return openPrompt();
     paused = false;
     $("btnPause").textContent = "❚❚";
+    saveRun();
     schedule();
   }
 
@@ -880,6 +973,7 @@
         paused = false;
         $("btnPause").textContent = "❚❚";
         if (act === "push" && XD.Audio) XD.Audio.bell(act === "push" ? "break" : "soft");
+        saveRun();
         schedule();
       });
     });
@@ -903,6 +997,7 @@
         if (!state.alive) return endLife();
         if (state.pending) return openPrompt();
         paused = false;
+        saveRun();
         schedule();
       }, 1400);
     }
@@ -989,6 +1084,7 @@
 
     let legacyStored = false;
     if (!saved) {
+      U.store.clearRun();
       const stored = U.store.addLife(endSummary);
       legacyStored = U.store.setLegacy(endSummary.legacy);
       saved = true;
@@ -1221,6 +1317,7 @@
         if (it.once) state.flags["buy_" + it.key] = true;
         U.toast(`买下了${it.name}`);
         refreshAll();
+        saveRun();
         openShop();
       });
     });
@@ -1272,6 +1369,14 @@
     $("btnAuto").addEventListener("click", () => setAuto(!auto));
     $("menuAuto").addEventListener("click", () => setAuto(!auto));
     $("menuSoft").addEventListener("click", () => setSoft(!soft));
+    $("menuReport").addEventListener("click", () => {
+      $("moreMenu").classList.remove("is-open");
+      $("btnMore").setAttribute("aria-expanded", "false");
+      const report = buildProblemReport();
+      copyText(JSON.stringify(report, null, 2))
+        .then(() => toast(`回查包已复制：seed ${fmtSeed(report.seed)}`))
+        .catch(() => toast("复制失败，请打开关于页导出 JSON"));
+    });
     $("menuSpeeds").querySelectorAll("button").forEach((b) => {
       b.addEventListener("click", () => setSpeed(Number(b.dataset.mspeed)));
     });
@@ -1289,6 +1394,7 @@
       e.preventDefault();
       if (!confirm("重新降生？当前这一世会结束。已经结束的人生仍会留在碑林。")) return;
       clearTimeout(timer);
+      U.store.clearRun();
       $("moreMenu").classList.remove("is-open");
       $("btnMore").setAttribute("aria-expanded", "false");
       show("birth");
@@ -1299,8 +1405,10 @@
       if (e.target === $("shopOverlay")) closeShop();
     });
     $("btnShare").addEventListener("click", drawShareCard);
+    window.addEventListener("pagehide", saveRun);
     $("btnHall").addEventListener("click", () => (location.href = "hall.html"));
     $("btnAgain").addEventListener("click", () => {
+      U.store.clearRun();
       show("birth");
       setTheme("human");
       window.scrollTo(0, 0);
@@ -1348,5 +1456,6 @@
   document.addEventListener("DOMContentLoaded", () => {
     initBirth();
     bind();
+    maybeResume();
   });
 })();
