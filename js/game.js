@@ -529,17 +529,6 @@
   /* ======================================================================
      抉择
      ====================================================================== */
-  function riskTag(p, lethal) {
-    if (p == null) return null;
-    if (lethal) {
-      if (p < 0.5) return { cls: "risk--dead", text: "九死一生" };
-      return { cls: "risk--warn", text: "有性命之危" };
-    }
-    if (p < 0.4) return { cls: "risk--dead", text: "九死一生" };
-    if (p < 0.68) return { cls: "risk--warn", text: "有凶险" };
-    return { cls: "risk--safe", text: "较稳妥" };
-  }
-
   function stopWhisper() {
     if (whisperTimer) {
       clearInterval(whisperTimer);
@@ -593,19 +582,10 @@
               (c.costStones < 1
                 ? Math.max(1, Math.floor(state.stones * c.costStones))
                 : Math.floor(c.costStones)));
-        const chance = Math.max(
-          0.05,
-          Math.min(0.95, c.p + (state.luck - 50) * 0.0005)
-        );
-        const tone =
-          chance >= 0.7 ? "生机较大" : chance >= 0.35 ? "凶险" : "九死一生";
-        const toneClass =
-          chance >= 0.7 ? "risk--safe" : chance >= 0.35 ? "risk--warn" : "risk--dead";
         return `<button class="opt opt--danger" type="button" data-i="${i}" ${
           disabled ? "disabled" : ""
         }>
           <b>${U.esc(soften(c.label))}</b>
-          <span class="risk ${toneClass}">${tone}</span>
           <span>${cost}</span>
         </button>`;
       })
@@ -676,9 +656,6 @@
     $("choiceText").textContent = soften(p.text || "");
     $("choiceOpts").innerHTML = p.choices
       .map((c, i) => {
-        const lethal = !!(c.risk && c.risk.fail && c.risk.fail.death);
-        const pr = c.risk ? Math.min(0.96, c.risk.p + 0.34 + (state.luck - 50) * 0.002) : null;
-        const rt = c.risk ? riskTag(pr, lethal) : null;
         const required =
           c.requires && c.requires.stones != null
             ? c.requires.stones
@@ -711,12 +688,9 @@
           ? `<span>身上灵石不够，做不到。</span>`
           : c.note
           ? `<span>${U.esc(c.note)}</span>`
-          : c.risk
-          ? `<span>${lethal ? "失败会丧命。" : "事有凶险，代价不小。"}</span>`
           : "";
         return `<button class="opt" type="button" data-i="${i}" ${disabled ? "disabled" : ""}>
           <b>${U.esc(soften(c.label))}</b>
-          ${rt ? `<span class="risk ${rt.cls}">${rt.text}</span>` : ""}
           ${sub}
         </button>`;
       })
@@ -826,15 +800,14 @@
     $("choiceKicker").textContent = "冲 关";
     $("choiceTitle").textContent = `冲击${target.name}`;
     const pct = Math.round(p.chance * 100);
-    const tone = pct >= 70 ? "稳" : pct >= 45 ? "险" : "凶";
     const waitMax = (state.breakWaits || 0) >= 3;
     $("choiceText").innerHTML = soften(`修为已满，经脉里的灵力在撞关。跨过去，是${target.name}；跨不过去，轻则修为倒退，重则道消身死。`);
     $("choiceOpts").innerHTML = `
       <div class="break-figure">
-        <div class="break-chance">${pct}%<small>你估摸着，成算大约是这样 / ${tone}</small></div>
+        <div class="break-chance">${pct}%<small>你估摸着，成算大约是这样。</small></div>
       </div>
-      <button class="opt" type="button" data-act="push"><b>即刻冲关</b><span class="risk ${pct >= 70 ? "risk--warn" : pct >= 45 ? "risk--warn" : "risk--dead"}">${pct >= 70 ? "成算较高" : pct >= 45 ? "有凶险" : "九死一生"}</span><span>把所有能用的都用上。成了，海阔天空。</span></button>
-      <button class="opt" type="button" data-act="wait" ${waitMax ? "disabled" : ""}><b>再缓几年</b><span class="risk risk--safe">${waitMax ? "无益" : "稳妥"}</span><span>${waitMax ? "再压下去，心气就散了。" : "压住修为，稳固根基。成算会高一些，但寿元不等人。"}</span></button>
+      <button class="opt" type="button" data-act="push"><b>即刻冲关</b><span>把所有能用的都用上。成了，海阔天空。</span></button>
+      <button class="opt" type="button" data-act="wait" ${waitMax ? "disabled" : ""}><b>再缓几年</b><span>${waitMax ? "再压下去，心气就散了。" : "压住修为，稳固根基。成算会高一些，但寿元不等人。"}</span></button>
     `;
     $("choiceOpts").querySelectorAll(".opt").forEach((b) => {
       b.addEventListener("click", () => {

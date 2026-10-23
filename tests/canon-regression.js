@@ -126,6 +126,10 @@ ok(!eventsSource.includes('title: "小瓶"'), "H7 玩家事件不应再叫“小
 const gameSource = fs.readFileSync(path.join(ROOT, "js/game.js"), "utf8");
 ok(gameSource.includes("无名旧瓶"), "H7 角色面板应显示“无名旧瓶”");
 ok(!gameSource.includes("生还 ${"), "濒死选项不应显示生还率");
+ok(
+  !/生机较大|九死一生|有凶险/.test(gameSource),
+  "选项不应显示定性质风险标签"
+);
 
 /* H8：硬死亡绕过玉符；普通死亡玉符 92% 判定。 */
 const normal = new Sim({ seed: 2, world: "human" });
