@@ -1260,6 +1260,17 @@ body:not(.in-life) #btnAuto {
   letter-spacing: 0.06em;
   margin-bottom: 18px;
 }
+.prompt .choice-whisper {
+  margin: -10px 0 18px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(25, 29, 23, 0.18);
+  font-family: var(--kai);
+  font-size: 11.5px;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
+  color: var(--paper-muted);
+  min-height: 3.4em;
+}
 .opts {
   display: grid;
   gap: 9px;

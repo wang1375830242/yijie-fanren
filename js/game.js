@@ -23,6 +23,7 @@
   let endSummary = null;
   let saved = false;
   let autoTimer = null;
+  let whisperTimer = null;
   let shopPaused = false;
   let rollingLife = false;
   let soft = false;
@@ -33,6 +34,7 @@
      通用
      ====================================================================== */
   function show(name) {
+    stopWhisper();
     ["screenBirth", "screenCard", "screenLife", "screenEnd"].forEach((id) => {
       $(id).hidden = id !== "screen" + name[0].toUpperCase() + name.slice(1);
     });
@@ -372,6 +374,19 @@
       s.origin.family,
     ];
     if (s.bottle) tags.push("随身小瓶");
+    if (s.traits) {
+      const traitLabels = {
+        kind: "仁厚",
+        ruthless: "狠辣",
+        curious: "好奇",
+        bold: "冒险",
+        calm: "沉静",
+      };
+      const top = Object.entries(s.traits).sort((a, b) => b[1] - a[1])[0];
+      if (top && top[1] >= 3 && traitLabels[top[0]]) {
+        tags.push(`心性 · ${traitLabels[top[0]]}`);
+      }
+    }
     $("idTags").innerHTML = tags.map((t) => `<span>${U.esc(t)}</span>`).join("");
 
     // 状态
@@ -512,6 +527,33 @@
     return { cls: "risk--safe", text: "较稳妥" };
   }
 
+  function stopWhisper() {
+    if (whisperTimer) {
+      clearInterval(whisperTimer);
+      whisperTimer = null;
+    }
+    const el = $("choiceWhisper");
+    if (el) el.textContent = "";
+  }
+
+  function startWhisper() {
+    stopWhisper();
+    const el = $("choiceWhisper");
+    if (!el || !sim) return;
+    const stage = sim.stage();
+    const pool = (D.MICRO && D.MICRO[stage]) || D.AMBIENT.mortal || [];
+    if (!pool.length) return;
+    let last = -1;
+    const tick = () => {
+      let i = Math.floor(Math.random() * pool.length);
+      if (pool.length > 1 && i === last) i = (i + 1) % pool.length;
+      last = i;
+      el.textContent = `旁白 · ${pool[i]}`;
+    };
+    tick();
+    whisperTimer = setInterval(tick, 5200);
+  }
+
   function openPrompt() {
     clearTimeout(autoTimer);
     if (!state.pending) return;
@@ -618,6 +660,7 @@
       );
     });
     $("choiceOverlay").hidden = false;
+    startWhisper();
     if (releasePromptTrap) releasePromptTrap();
     releasePromptTrap = U.trapFocus($("choiceOverlay"), () =>
       U.toast("这一世的事，总得有个了断")
@@ -663,6 +706,7 @@
 
   function choose(i, opts) {
     clearTimeout(autoTimer);
+    stopWhisper();
     if (releasePromptTrap) {
       releasePromptTrap();
       releasePromptTrap = null;
@@ -686,6 +730,7 @@
   }
 
   function openBreak() {
+    stopWhisper();
     const p = state.pending;
     const target = D.REALMS[state.tier + 1];
     $("choiceKicker").textContent = "冲 关";
@@ -789,6 +834,7 @@
      终局
      ====================================================================== */
   function endLife() {
+    stopWhisper();
     clearTimeout(timer);
     clearTimeout(autoTimer);
     if (XD.Audio) XD.Audio.bell(state.legendary ? "ascend" : "death");
@@ -978,6 +1024,7 @@
      ====================================================================== */
   function openShop() {
     if (!sim) return;
+    stopWhisper();
     if ($("shopOverlay").hidden) {
       shopPaused = paused;
       paused = true;

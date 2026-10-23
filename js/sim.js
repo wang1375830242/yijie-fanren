@@ -77,6 +77,7 @@
         cult: 0,
         mood,
         karma: 0,
+        traits: { kind: 0, ruthless: 0, curious: 0, bold: 0, calm: 0 },
         stones,
         insight,
         luck,
@@ -184,6 +185,14 @@
       if (r.key === "daozu") return "道祖";
       const sub = s.cult < 34 ? "初期" : s.cult < 67 ? "中期" : "后期";
       return `${r.name} · ${sub}`;
+    }
+    stage() {
+      const s = this.state;
+      if (s.tier === 0) return s.age < 16 ? "childhood" : "mortal";
+      if (s.tier <= 2) return "qi";
+      if (s.tier <= 4) return "core";
+      if (s.tier <= 8) return "spirit";
+      return "immortal";
     }
     worldMeta() {
       return D.WORLD_META[this.state.world] || D.WORLD_META.human;
@@ -368,7 +377,8 @@
 
     ambientGroup() {
       const t = this.state.tier;
-      if (this.state.path !== "cultivator") return "mortal";
+      if (this.state.path !== "cultivator")
+        return this.state.age < 16 ? "mortal" : "mortal_adult";
       if (t <= 2) return "qi";
       if (t <= 4) return "foundation";
       if (t <= 5) return "core";
@@ -411,9 +421,14 @@
 
     pickEvent() {
       const s = this.state;
+      const stage = this.stage();
       let pool = XD.EVENTS.filter((e) => {
         if (e.id === "root_test") return false;
         if (e.once && s.seen[e.id]) return false;
+        if (e.stage) {
+          const stages = Array.isArray(e.stage) ? e.stage : [e.stage];
+          if (!stages.includes(stage)) return false;
+        }
         try {
           return e.when(s);
         } catch (err) {
@@ -424,7 +439,10 @@
       const recentScenes = new Set(s.recentScenes || []);
       const fresh = pool.filter((e) => !(e.sceneKey && recentScenes.has(e.sceneKey)));
       if (fresh.length) pool = fresh;
-      return this.rng.weighted(pool, (e) => e.w || 1);
+      return this.rng.weighted(pool, (e) => {
+        const trait = e.tone && s.traits ? s.traits[e.tone] || 0 : 0;
+        return (e.w || 1) * (1 + Math.min(0.75, trait * 0.06));
+      });
     }
 
     trigger(id) {
@@ -532,6 +550,22 @@
         s.cult = clamp(s.cult + effects.cult, 0, 100);
       if (typeof effects.mood === "number") s.mood = clamp(s.mood + effects.mood, 0, 100);
       if (typeof effects.karma === "number") s.karma = clamp(s.karma + effects.karma, -100, 100);
+      if (!s.traits) s.traits = { kind: 0, ruthless: 0, curious: 0, bold: 0, calm: 0 };
+      if (typeof effects.karma === "number" && effects.karma > 0) {
+        s.traits.kind += Math.min(3, Math.ceil(effects.karma / 2));
+      }
+      if (typeof effects.karma === "number" && effects.karma < 0) {
+        s.traits.ruthless += Math.min(3, Math.ceil(-effects.karma / 2));
+      }
+      if (typeof effects.insight === "number" && effects.insight > 0) {
+        s.traits.curious += Math.min(2, Math.ceil(effects.insight / 2));
+      }
+      if (typeof effects.luck === "number" && effects.luck > 0) {
+        s.traits.bold += 1;
+      }
+      if (typeof effects.mood === "number" && effects.mood > 0) {
+        s.traits.calm += 1;
+      }
       if (typeof effects.insight === "number")
         s.insight = clamp(s.insight + effects.insight, 0, 100);
       if (typeof effects.luck === "number") s.luck = clamp(s.luck + effects.luck, 0, 100);

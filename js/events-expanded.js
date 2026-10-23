@@ -152,6 +152,73 @@
       ],
     },
 
+    home: {
+      scenes: [
+        "院子里的灯亮着，屋里有人在等你。",
+        "桌上放着一封没有署名的信。",
+        "家里的旧物被翻了出来，落了一地灰。",
+        "门外有人敲门，说是来讨一笔旧账。",
+        "你在灶台边站了很久，锅里的水已经开了。",
+        "院子里那棵树今年没有开花。",
+        "亲人从远处回来，带了一身风尘。",
+        "你收拾出一间空屋，想留给谁住。",
+      ],
+      details: [
+        "你忽然发现自己已经很久没有回来过。",
+        "屋里的摆设和你离开时一样。",
+        "没有人先开口，只有灯芯在响。",
+        "你想起很多年前的一个下午。",
+        "这件事说大不大，说小也不小。",
+        "你把话咽了回去。",
+        "外面的风停了。",
+        "你坐了很久，直到茶凉。",
+      ],
+      outcomes: [
+        "你后来常想起这顿饭。",
+        "那封信你一直没拆。",
+        "旧物最后还是留下了。",
+        "你把门关上了。",
+        "那一夜你睡得很浅。",
+        "树没有再开花。",
+        "亲人走的时候，你没有送到门口。",
+        "空屋后来住进了别人。",
+      ],
+      choices: [
+        [
+          { label: "留下吃顿饭", effects: { mood: 5, karma: 2 }, outcome: "你坐下来，吃了很久。" },
+          { label: "说还有事", effects: { mood: -2, insight: 1 }, outcome: "你站起来，走到门口又停了一下。" },
+        ],
+        [
+          { label: "拆开信", effects: { insight: 3, mood: -1 }, outcome: "信很短，你看完又看了一遍。" },
+          { label: "先放着", effects: { mood: 2, luck: 1 }, outcome: "你把信压在灯下，后来忘了。" },
+        ],
+        [
+          { label: "把旧物收好", effects: { mood: 3, karma: 1 }, outcome: "你一件一件擦干净，放回原处。" },
+          { label: "扔掉", effects: { mood: 1, insight: 2 }, outcome: "你把它们丢进灶膛，火很快旺了起来。" },
+        ],
+        [
+          { label: "开门", effects: { karma: 2, mood: -1 }, outcome: "门外的人比你想象的更老。" },
+          { label: "装作没听见", effects: { mood: 2, luck: -1 }, outcome: "敲门声响了很久，最后停了。" },
+        ],
+        [
+          { label: "添一把柴", effects: { mood: 3 }, outcome: "火重新烧起来，屋里暖了一点。" },
+          { label: "熄了火", effects: { insight: 2, mood: 1 }, outcome: "你看着最后一点火星灭掉。" },
+        ],
+        [
+          { label: "浇水", effects: { karma: 2, mood: 2 }, outcome: "你给树浇了水，虽然不知道还有没有用。" },
+          { label: "砍掉", effects: { mood: -1, insight: 2 }, outcome: "斧头落下去时，你听见一声很轻的响。" },
+        ],
+        [
+          { label: "迎进去", effects: { karma: 3, mood: 3 }, outcome: "你接过他手里的包袱，发现比想象中轻。" },
+          { label: "问清楚", effects: { insight: 2, mood: -1 }, outcome: "你问了很多，最后只记住一句。" },
+        ],
+        [
+          { label: "铺好床", effects: { karma: 2, mood: 3 }, outcome: "你把床铺得很平整，像在等一个不会来的人。" },
+          { label: "关上门", effects: { mood: 1, insight: 2 }, outcome: "门关上后，屋里安静得能听见灰落下来。" },
+        ],
+      ],
+    },
+
     sect: {
       scenes: [
         "山门的钟响了三声，师兄们从各自洞府里出来。",
@@ -667,13 +734,13 @@
 
   const THEMES = [
     { key: "h_child", pool: "child", when: (s) => s.world === "human" && s.age >= 2 && s.age <= 16, w: 8, titles: ["小时候", "村口", "旧事", "那年", "一枚铜钱", "雨夜"], hook: "那一年，你还小。" },
-    { key: "h_school", pool: "sect", when: (s) => s.world === "human" && s.age >= 10 && s.age <= 45 && s.tier <= 2, w: 5, titles: ["山门", "外门", "任务牌", "比试", "罚跪", "传功"], hook: "山门里的日子，和你想的不一样。" },
+    { key: "h_school", pool: "sect", when: (s) => s.world === "human" && s.path === "cultivator" && s.age >= 10 && s.age <= 45 && s.tier <= 2, w: 5, titles: ["山门", "外门", "任务牌", "比试", "罚跪", "传功"], hook: "山门里的日子，和你想的不一样。" },
     { key: "h_alchemy", pool: "sect", when: (s) => s.world === "human" && s.tier >= 1 && s.tier <= 5 && s.age >= 16, w: 5, titles: ["丹房", "炉火", "药香", "一炉丹", "守火", "废丹"], hook: "丹炉边的日子，安静得能听见火。" },
     { key: "h_travel", pool: "wild", when: (s) => s.world === "human" && s.tier >= 1 && s.tier <= 5 && s.age >= 20, w: 5, titles: ["远行", "荒原", "古洞", "雾", "夜宿", "路上"], hook: "你离开熟悉的地方，走了很远。" },
     { key: "h_rival", pool: "sect", when: (s) => s.world === "human" && s.tier >= 2 && s.age >= 50, w: 5, titles: ["对手", "旧怨", "比试", "一步", "山门", "心气"], hook: "有人把你当成了对手。" },
     { key: "h_market", pool: "market", when: (s) => s.world === "human" && s.tier >= 1 && s.tier <= 4 && s.age >= 16, w: 5, titles: ["坊市", "摊子", "拍卖", "旧书", "假丹", "灵石"], hook: "坊市里什么都有，也什么都没有。" },
     { key: "h_war", pool: "war", when: (s) => s.world === "human" && s.tier >= 2 && s.tier <= 5 && s.age >= 80, w: 4, titles: ["城墙", "征召", "伤兵", "夜袭", "军帐", "断后"], hook: "战争不是一场架，是一年一年地耗。" },
-    { key: "h_family", pool: "child", when: (s) => s.world === "human" && s.tier <= 2 && s.age >= 18, w: 4, titles: ["家里", "婚事", "孩子", "旧屋", "年节", "回信"], hook: "凡俗的亲事，比修行更难算。" },
+    { key: "h_family", pool: "home", when: (s) => s.world === "human" && s.tier <= 2 && s.age >= 18, w: 4, titles: ["家里", "婚事", "孩子", "旧屋", "年节", "回信"], hook: "凡俗的亲事，比修行更难算。" },
     { key: "h_love", pool: "partner", when: (s) => s.world === "human" && !s.partner && s.tier >= 2 && s.age >= 30, w: 5, titles: ["心动", "同心结", "一个人", "山门", "雨", "道侣"], hook: "有个人，开始在你的日子里出现。", choices: [[{ label: "表明心意", effects: { partner: "道侣", mood: 12, karma: 3 }, outcome: "你把话说出口。对方愣了很久，然后笑了。" }, { label: "把心思收起来", effects: { insight: 4, mood: -3 }, outcome: "你什么也没说。那个人后来下了山。" }]] },
     { key: "h_trib", pool: "wild", when: (s) => s.world === "human" && s.tier >= 2 && s.age >= 100, w: 4, titles: ["关口", "雷声", "心魔", "冲关", "旧伤", "一线"], hook: "修行到某个地方，天会问你一句。" },
     { key: "h_disciple", pool: "sect", when: (s) => s.world === "human" && s.tier >= 3, w: 4, titles: ["收徒", "弟子", "传功", "山门", "旧书", "后辈"], hook: "你开始教别人。" },
@@ -693,6 +760,35 @@
     { key: "p_spirit", pool: "partner", when: (s) => s.world === "spirit" && s.partner, w: 16, titles: ["道侣", "灵界", "旧玉", "雪夜", "同行", "洞府"], hook: "在灵界，{p}是你少数认得的人。", extra: (s) => (s.partner ? `你们一起走过了 ${Math.max(1, s.age - s.partner.since)} 年。` : "") },
     { key: "p_immortal", pool: "partner", when: (s) => s.world === "immortal" && s.partner, w: 16, titles: ["道侣", "仙宫", "雪线", "旧事", "时间", "人间"], hook: "仙界的时间太长，{p}是少数还让你觉得时间在走的人。", extra: (s) => (s.partner ? `你们已经相伴 ${Math.max(1, s.age - s.partner.since)} 年。` : "") },
   ];
+
+  /* 每个主题只在对应阶段抽取，避免后期出现前期的童年/凡俗心境 */
+  const STAGE_BY_THEME = {
+    h_child: "childhood",
+    h_school: ["childhood", "mortal", "qi"],
+    h_alchemy: ["qi", "core", "spirit"],
+    h_travel: ["qi", "core", "spirit"],
+    h_rival: ["qi", "core", "spirit"],
+    h_market: ["qi", "core"],
+    h_war: ["qi", "core", "spirit"],
+    h_family: ["mortal", "qi"],
+    h_love: ["qi", "core", "spirit"],
+    h_trib: ["qi", "core", "spirit"],
+    h_disciple: ["core", "spirit"],
+    s_city: "spirit",
+    s_clan: "spirit",
+    s_war: "spirit",
+    s_market: "spirit",
+    s_beast: "spirit",
+    s_law: "spirit",
+    s_disciple: "spirit",
+    i_palace: "immortal",
+    i_time: "immortal",
+    i_law: "immortal",
+    i_market: "immortal",
+  };
+  THEMES.forEach((theme) => {
+    if (STAGE_BY_THEME[theme.key]) theme.stage = STAGE_BY_THEME[theme.key];
+  });
 
   THEMES.forEach((theme, ti) => {
     const pool = POOLS[theme.pool];
@@ -716,6 +812,8 @@
         w: theme.w + (i % 3),
         title,
         sceneKey: `${theme.key}:${scene}`,
+        stage: theme.stage,
+        tone: ["kind", "curious", "bold", "calm", "ruthless"][i % 5],
         text: (s) =>
           fill(
             `${scene}${detail}${theme.hook}${theme.extra ? theme.extra(s) : ""}`,
