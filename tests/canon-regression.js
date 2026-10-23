@@ -191,6 +191,31 @@ const beforeMood = moodSim.state.mood;
 moodSim.yearTick();
 ok(moodSim.state.mood < beforeMood, "M10 苦修应带来心境损耗");
 
+/* 道侣自动线：突破、异地、死亡留档。 */
+const partnerLife = new Sim({ seed: 12, world: "human" });
+partnerLife.state.tier = 1;
+partnerLife.state.age = 25;
+partnerLife.apply({ partner: "道侣" });
+const partner = partnerLife.state.partner;
+partner.tier = 1;
+partner.cult = 100;
+partner.nextAt = 0;
+partner.affinity = 70;
+partnerLife.rng.chance = () => true;
+partnerLife.partnerTick();
+ok(partner.tier >= 2, "道侣应能自动突破");
+ok(partnerLife.state.partner !== null, "道侣突破后应仍在");
+const partnerEvent = XD.EVENTS.find((event) => event.id === "p_letter");
+ok(partnerEvent && partnerEvent.when({ partner: { status: "apart" } }), "道侣异地应有书信事件");
+const deathPartner = new Sim({ seed: 13, world: "human" });
+deathPartner.state.tier = 1;
+deathPartner.state.age = 80;
+deathPartner.apply({ partner: "道侣" });
+deathPartner.state.partner.maxAge = 80;
+deathPartner.partnerTick();
+ok(deathPartner.state.partner === null, "道侣寿尽应离开");
+ok(deathPartner.state.partnerHistory.length === 1, "道侣寿尽应留下历史");
+
 /* L1/L3/L4：低优先级文案与小口径。 */
 const dataText = fs.readFileSync(path.join(ROOT, "js/data.js"), "utf8");
 ok(dataText.includes("寿四百八十载"), "L1 结丹文案应与 480 年寿元一致");

@@ -421,13 +421,17 @@
     // 关系
     const rels = [];
     rels.push({ ico: "门", name: s.sect || "无门无派", sub: "宗门 / 归属", when: "" });
-    if (s.partner)
+    if (s.partner) {
+      const partnerRealm = (D.REALMS[s.partner.tier || 0] || D.REALMS[0]).name;
+      const partnerWorld = (D.WORLD_META[s.partner.world || s.world] || {}).name || "";
+      const partnerState = s.partner.status === "apart" ? " · 异地" : "";
       rels.push({
         ico: "侣",
         name: s.partner.name,
-        sub: s.partner.title + (s.path === "cultivator" ? " · 同修" : ""),
+        sub: `${s.partner.title} · ${partnerRealm} · ${partnerWorld}${partnerState}`,
         when: s.partner.since + "岁",
       });
+    }
     if (s.disciples.length)
       rels.push({
         ico: "徒",

@@ -89,6 +89,7 @@
         place: origin.place,
         sect: world === "spirit" ? "天渊城 · 散修" : world === "immortal" ? "北寒仙域 · 散仙" : "凡俗",
         partner: null,
+        partnerHistory: [],
         disciples: [],
         rivals: [],
         bottle,
@@ -259,11 +260,6 @@
         }
       } else {
         const f = this.focusDef();
-        if (s.partner && s.partner.alive !== false && s.age >= s.partner.maxAge) {
-          s.partner.alive = false;
-          this.pushLog("system", `${s.partner.name}走了。你在洞府里坐了很久。`);
-          s.partner = null;
-        }
         const decay = s.age > s.maxAge * 0.6 ? 0.12 : 0.02;
         s.mood = clamp(s.mood + (f.mood || 0) - decay, 0, 100);
         s.stones = Math.max(0, s.stones + (f.stones || 0));
@@ -288,7 +284,56 @@
       }
     }
 
+    partnerTick() {
+      const s = this.state;
+      const p = s.partner;
+      if (!p || p.alive === false) return;
+      if (!Array.isArray(s.partnerHistory)) s.partnerHistory = [];
+      if (typeof p.tier !== "number") p.tier = s.tier;
+      if (typeof p.world !== "string") p.world = s.world;
+      if (typeof p.affinity !== "number") p.affinity = 60;
+      if (typeof p.talent !== "number") p.talent = 1;
+      if (typeof p.cult !== "number") p.cult = 0;
+      if (typeof p.nextAt !== "number") p.nextAt = s.age + 20;
+      if (typeof p.maxAge !== "number") p.maxAge = Math.max(80, (D.REALMS[p.tier] || D.REALMS[0]).life);
+      if (p.status !== "estranged") p.status = p.world === s.world ? "present" : "apart";
+      else if (p.world !== s.world) p.status = "apart";
+      if (s.age >= p.maxAge) {
+        p.alive = false;
+        p.endedAt = s.age;
+        p.fate = "寿尽";
+        s.partnerHistory.push(Object.assign({}, p));
+        this.pushLog("system", `${p.name}走了。你在洞府里坐了很久。`);
+        s.partner = null;
+        return;
+      }
+      if (s.age < p.nextAt) return;
+      p.nextAt = s.age + Math.max(8, Math.round(28 - p.talent * 10));
+      p.cult = clamp(p.cult + 20 + p.talent * 14, 0, 100);
+      if (p.cult < 100) return;
+      const chance = clamp(
+        0.45 + (p.talent - 1) * 0.2 + (p.affinity - 50) * 0.002,
+        0.2,
+        0.9
+      );
+      if (!this.rng.chance(chance) || p.tier >= 13) {
+        p.cult = 85;
+        return;
+      }
+      p.tier += 1;
+      p.cult = 0;
+      p.maxAge = Math.max(p.maxAge, D.REALMS[p.tier].life);
+      if (p.tier >= 6 && p.world === "human") p.world = "spirit";
+      if (p.tier >= 9 && p.world === "spirit") p.world = "immortal";
+      p.status = p.world === s.world ? "present" : "apart";
+      this.pushLog(
+        "system",
+        `${p.name}闭关有功，修为到了${D.REALMS[p.tier].name}${p.world === s.world ? "。" : "，人已在另一界。"}`
+      );
+    }
+
     afterStep() {
+      this.partnerTick();
       const s = this.state;
       // 十岁：测灵根（仅人界凡俗起点）
       if (
@@ -685,10 +730,29 @@
           name: this.rng.pick(D.SURNAMES) + this.rng.pick(D.GIVEN),
           title: effects.partner,
           since: s.age,
-          tier: Math.max(1, s.tier),
+          tier: Math.max(0, s.tier),
+          cult: 0,
+          talent: 0.85 + this.rng.next() * 0.8,
+          world: s.world,
           maxAge: Math.max(80, this.realm().life),
+          affinity: 60,
+          nextAt: s.age + this.rng.int(15, 35),
+          status: "present",
           alive: true,
+          place: s.place,
         };
+      }
+      if (s.partner && typeof effects.affinity === "number") {
+        s.partner.affinity = clamp(s.partner.affinity + effects.affinity, 0, 100);
+        if (s.partner.affinity < 15) s.partner.status = "estranged";
+        else if (s.partner.status === "estranged" && s.partner.affinity >= 30) {
+          s.partner.status = s.partner.world === s.world ? "present" : "apart";
+        }
+      }
+      if (s.partner && effects.partnerMoveToPlayer) {
+        s.partner.world = s.world;
+        s.partner.place = s.place;
+        s.partner.status = "present";
       }
       if (effects.disciple) {
         s.disciples.push({
@@ -919,6 +983,7 @@
         epitaph: s.epitaph || "",
         deeds,
         partner: s.partner,
+        partnerHistory: s.partnerHistory,
         disciples: s.disciples,
         karma: s.karma,
         stones: s.stones,

@@ -5,6 +5,7 @@
 (function () {
   "use strict";
   const XD = window.XD;
+  const D = XD.DATA;
 
   const E = [];
   function add(ev) {
@@ -652,6 +653,37 @@
         label: "婉拒，道心不稳",
         effects: { mood: -8, insight: 5, cult: 4 },
         outcome: "对方把同心结收了回去，笑了一下。后来对方成了亲，你送了一份厚礼。",
+      },
+    ],
+  });
+
+  add({
+    id: "p_letter",
+    when: (s) => s.partner && s.partner.status === "apart",
+    w: 18,
+    once: false,
+    title: "两地书",
+    text: (s) => {
+      const p = s.partner;
+      const world = (D.WORLD_META[p.world] || D.WORLD_META[s.world] || {}).name || "另一界";
+      const realm = (D.REALMS[p.tier] || D.REALMS[0]).name;
+      return `${p.name}从${world}捎来一封信。信纸上只有寥寥几行：对方如今已是${realm}，界门相隔，不知何时能再见。`;
+    },
+    choices: [
+      {
+        label: "回信，把最近的事都写进去",
+        effects: { mood: 4, affinity: 5 },
+        outcome: "你把信写了三遍，最后寄出去的是最短的一封。",
+      },
+      {
+        label: "托人带一件旧物过去",
+        effects: { stones: -30, mood: 2, affinity: 7 },
+        outcome: "你挑了一件旧物，交给商队。你不知道它能不能到她手里。",
+      },
+      {
+        label: "闭关，先把眼前的路走完",
+        effects: { cult: 3, mood: -2, affinity: -4 },
+        outcome: "你把信压在灯下，进了闭关室。",
       },
     ],
   });

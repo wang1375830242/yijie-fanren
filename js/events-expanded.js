@@ -28,6 +28,18 @@
       .replace(/\{world\}/g, (D.WORLD_META[s.world] && D.WORLD_META[s.world].name) || "此界");
   }
 
+  function partnerLine(s) {
+    const p = s.partner;
+    if (!p) return "";
+    const realm = D.REALMS[p.tier || 0];
+    const world = D.WORLD_META[p.world || s.world];
+    const where =
+      p.status === "apart"
+        ? `如今在${world ? world.name : "另一界"}`
+        : "如今还在你身边";
+    return `${p.name}${where}，修为是${realm ? realm.name : "凡人"}。`;
+  }
+
   const POOLS = {
     child: {
       scenes: [
@@ -573,22 +585,22 @@
       ],
       choices: [
         [
-          { label: "陪对方", effects: { mood: 8, cult: -1 }, outcome: "你放下手里的事，陪对方坐了一会儿。" },
-          { label: "闭关", effects: { cult: 4, mood: -4 }, outcome: "你进了闭关室。门关上时，ta还站在那里。" },
-          { label: "争执", effects: { mood: -6, insight: 3 }, outcome: "你们吵了几句。最后谁也没有赢。" },
+          { label: "陪对方", effects: { mood: 8, cult: -1, affinity: 5 }, outcome: "你放下手里的事，陪对方坐了一会儿。" },
+          { label: "闭关", effects: { cult: 4, mood: -4, affinity: -2 }, outcome: "你进了闭关室。门关上时，对方还站在那里。" },
+          { label: "争执", effects: { mood: -6, insight: 3, affinity: -8 }, outcome: "你们吵了几句。最后谁也没有赢。" },
         ],
         [
-          { label: "送对方一件东西", effects: { stones: -60, mood: 6 }, outcome: "你把东西放在对方手里。ta看了很久。" },
-          { label: "一起游历", effects: { mood: 5, luck: 2, insight: 2 }, outcome: "你们一起下了山。路上遇见一场很长的雨。" },
-          { label: "留下修炼", effects: { cult: 3, mood: 1 }, outcome: "你留在洞府。ta一个人出了门。" },
+          { label: "送对方一件东西", effects: { stones: -60, mood: 6, affinity: 5 }, outcome: "你把东西放在对方手里。对方看了很久。" },
+          { label: "一起游历", effects: { mood: 5, luck: 2, insight: 2, affinity: 5 }, outcome: "你们一起下了山。路上遇见一场很长的雨。" },
+          { label: "留下修炼", effects: { cult: 3, mood: 1, affinity: -1 }, outcome: "你留在洞府。对方一个人出了门。" },
         ],
         [
-          { label: "坦白", effects: { mood: 4, karma: 2 }, outcome: "你把心里的事说了。ta听完，没有笑你。" },
-          { label: "瞒着", effects: { mood: -3, insight: 2 }, outcome: "你把话咽了回去。ta看了你一眼，什么也没问。" },
+          { label: "坦白", effects: { mood: 4, karma: 2, affinity: 6 }, outcome: "你把心里的事说了。对方听完，没有笑你。" },
+          { label: "瞒着", effects: { mood: -3, insight: 2, affinity: -3 }, outcome: "你把话咽了回去。对方看了你一眼，什么也没问。" },
         ],
         [
-          { label: "等对方", effects: { mood: 2, karma: 2 }, outcome: "你在洞府里等。ta回来时，天已经黑了。" },
-          { label: "先走", effects: { cult: 3, mood: -2 }, outcome: "你先走了。回头时，门口没有人。" },
+          { label: "等对方", effects: { mood: 2, karma: 2, affinity: 4 }, outcome: "你在洞府里等。对方回来时，天已经黑了。" },
+          { label: "先走", effects: { cult: 3, mood: -2, affinity: -2 }, outcome: "你先走了。回头时，门口没有人。" },
         ],
       ],
     },
@@ -763,10 +775,10 @@
     { key: "i_time", pool: "immortal", when: (s) => s.world === "immortal" && s.age >= 1000, w: 4, titles: ["山中", "无历日", "醒来", "旧朝代", "雪线", "人间"], hook: "你开始记不清年份。" },
     { key: "i_law", pool: "immortal", when: (s) => s.world === "immortal" && s.age >= 2000, w: 3, titles: ["法则", "断界海", "无名之路", "天外", "一线", "旧规"], hook: "仙界也有规矩，只是规矩不写在纸上。" },
     { key: "i_market", pool: "market", when: (s) => s.world === "immortal" && s.age >= 500, w: 4, titles: ["仙市", "摊主", "旧物", "灵石", "拍卖", "假货"], hook: "仙市的摊主，很多比你活得久。" },
-    { key: "p_mortal", pool: "partner", when: (s) => s.world === "human" && s.partner && s.tier === 0, w: 16, titles: ["家里人", "灯下", "旧衣", "年节", "院子里", "孩子"], hook: "{p}还在你身边。", extra: (s) => (s.partner ? `你们已经一起过了 ${Math.max(1, s.age - s.partner.since)} 年。` : "") },
-    { key: "p_human", pool: "partner", when: (s) => s.world === "human" && s.partner && s.tier >= 2, w: 16, titles: ["道侣", "旧袍", "灯下", "同行", "争执", "桃树"], hook: "{p}还在你身边。", extra: (s) => (s.partner ? `你们在一起已经 ${Math.max(1, s.age - s.partner.since)} 年了。` : "") },
-    { key: "p_spirit", pool: "partner", when: (s) => s.world === "spirit" && s.partner, w: 16, titles: ["道侣", "灵界", "旧玉", "雪夜", "同行", "洞府"], hook: "在灵界，{p}是你少数认得的人。", extra: (s) => (s.partner ? `你们一起走过了 ${Math.max(1, s.age - s.partner.since)} 年。` : "") },
-    { key: "p_immortal", pool: "partner", when: (s) => s.world === "immortal" && s.partner, w: 16, titles: ["道侣", "仙宫", "雪线", "旧事", "时间", "人间"], hook: "仙界的时间太长，{p}是少数还让你觉得时间在走的人。", extra: (s) => (s.partner ? `你们已经相伴 ${Math.max(1, s.age - s.partner.since)} 年。` : "") },
+    { key: "p_mortal", pool: "partner", when: (s) => s.world === "human" && s.partner && s.partner.status !== "apart" && s.tier === 0, w: 16, titles: ["家里人", "灯下", "旧衣", "年节", "院子里", "孩子"], hook: "{p}还在你身边。", extra: (s) => (s.partner ? `你们已经一起过了 ${Math.max(1, s.age - s.partner.since)} 年。${partnerLine(s)}` : "") },
+    { key: "p_human", pool: "partner", when: (s) => s.world === "human" && s.partner && s.partner.status !== "apart" && s.tier >= 2, w: 16, titles: ["道侣", "旧袍", "灯下", "同行", "争执", "桃树"], hook: "{p}还在你身边。", extra: (s) => (s.partner ? `你们在一起已经 ${Math.max(1, s.age - s.partner.since)} 年了。${partnerLine(s)}` : "") },
+    { key: "p_spirit", pool: "partner", when: (s) => s.world === "spirit" && s.partner && s.partner.status !== "apart", w: 16, titles: ["道侣", "灵界", "旧玉", "雪夜", "同行", "洞府"], hook: "在灵界，{p}是你少数认得的人。", extra: (s) => (s.partner ? `你们一起走过了 ${Math.max(1, s.age - s.partner.since)} 年。${partnerLine(s)}` : "") },
+    { key: "p_immortal", pool: "partner", when: (s) => s.world === "immortal" && s.partner && s.partner.status !== "apart", w: 16, titles: ["道侣", "仙宫", "雪线", "旧事", "时间", "人间"], hook: "仙界的时间太长，{p}是少数还让你觉得时间在走的人。", extra: (s) => (s.partner ? `你们已经相伴 ${Math.max(1, s.age - s.partner.since)} 年。${partnerLine(s)}` : "") },
   ];
 
   /* 每个主题只在对应阶段抽取，避免后期出现前期的童年/凡俗心境 */
