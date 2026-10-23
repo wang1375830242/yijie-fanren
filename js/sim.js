@@ -95,6 +95,7 @@
         bottle,
         flags: {},
         seen: {},
+        textUse: {},
         focus: "cultivate",
         log: [],
         lastAmbient: null,
@@ -208,6 +209,30 @@
       );
       this.state.log.push(entry);
       return entry;
+    }
+
+    recordText(text) {
+      const s = this.state;
+      if (!s.textUse) s.textUse = {};
+      s.textUse[text] = (s.textUse[text] || 0) + 1;
+    }
+
+    uniqueText(text) {
+      const s = this.state;
+      if (!s.textUse) s.textUse = {};
+      const key = String(text || "");
+      const count = s.textUse[key] || 0;
+      if (count < 2) {
+        s.textUse[key] = count + 1;
+        return key;
+      }
+      const pool = (D.TEXT_CODAS && D.TEXT_CODAS[this.stage()]) || [
+        "你后来常常想起这件事。",
+      ];
+      const variant = `${key}${pool[(count - 2) % pool.length]}`;
+      s.textUse[key] = count + 1;
+      s.textUse[variant] = (s.textUse[variant] || 0) + 1;
+      return variant;
     }
 
     /* ---------------- 主循环 ---------------- */
@@ -423,7 +448,15 @@
       if (!pool.length) return false;
       const recentScenes = new Set(s.recentScenes || []);
       const fresh = pool.filter((e) => !(e.sceneKey && recentScenes.has(e.sceneKey)));
-      this.trigger(this.rng.pick(fresh.length ? fresh : pool).id);
+      const unused = fresh.filter((e) => {
+        try {
+          const text = typeof e.text === "function" ? e.text(s) : e.text;
+          return (s.textUse && s.textUse[text] ? s.textUse[text] : 0) < 2;
+        } catch (err) {
+          return true;
+        }
+      });
+      this.trigger(this.rng.pick(unused.length ? unused : fresh.length ? fresh : pool).id);
       return true;
     }
 
@@ -461,7 +494,7 @@
         s.flags.arrived_immortal_seen = true;
         return want("i_arrive", true);
       }
-      if (s.tier === 5 && s.cult >= 90 && !(s.flags.wait_spirit_until && s.age < s.flags.wait_spirit_until))
+      if (s.tier === 5 && s.world === "human" && s.cult >= 90 && !s.flags.spirit_ascended && !(s.flags.wait_spirit_until && s.age < s.flags.wait_spirit_until))
         return want("d_node", true);
       if (s.tier === 8 && s.cult >= 85 && !(s.flags.wait_immortal_until && s.age < s.flags.wait_immortal_until))
         return want("m_ascend", true);
@@ -487,6 +520,16 @@
           return false;
         }
       });
+      const beforeTextFilter = pool;
+      pool = pool.filter((e) => {
+        try {
+          const text = typeof e.text === "function" ? e.text(s) : e.text;
+          return (s.textUse && s.textUse[text] ? s.textUse[text] : 0) < 2;
+        } catch (err) {
+          return true;
+        }
+      });
+      if (!pool.length) pool = beforeTextFilter;
       if (!pool.length) return null;
       const recentScenes = new Set(s.recentScenes || []);
       const fresh = pool.filter((e) => !(e.sceneKey && recentScenes.has(e.sceneKey)));
@@ -506,6 +549,7 @@
         s.recentScenes = (s.recentScenes || []).concat(ev.sceneKey).slice(-6);
       }
       const text = typeof ev.text === "function" ? ev.text(s) : ev.text;
+      this.recordText(text);
       this.pushLog("event", text, { title: ev.title });
       s.pending = {
         kind: "event",
@@ -564,18 +608,20 @@
         : 1;
       if (choice.risk && this.rng.chance(riskChance)) {
         // 成功
-        this.pushLog("choice", `你选择了「${choice.label}」。${outcomeText || choice.risk.text || ""}`);
-        result.text = outcomeText || choice.risk.text || "";
+        const shown = this.uniqueText(outcomeText || choice.risk.text || "");
+        this.pushLog("choice", `你选择了「${choice.label}」。${shown}`);
+        result.text = shown;
       } else if (choice.risk) {
         if (choice.risk.fail) {
           effects = Object.assign({}, effects, choice.risk.fail);
           delete effects.death;
         }
+        const failShown = this.uniqueText(choice.failText || "事与愿违。");
         this.pushLog(
           "choice",
-          `你选择了「${choice.label}」。${choice.failText || "事与愿违。"}`
+          `你选择了「${choice.label}」。${failShown}`
         );
-        result.text = choice.failText || "事与愿违。";
+        result.text = failShown;
         if (choice.risk.fail && choice.risk.fail.death) {
           const cause = choice.risk.fail.cause || "意外身亡";
           const hardDeath = choice.noRescue || this.isHardDeath(cause);
@@ -594,8 +640,9 @@
           return result;
         }
       } else {
-        this.pushLog("choice", `你选择了「${choice.label}」。${outcomeText}`);
-        result.text = outcomeText;
+        const shown = this.uniqueText(outcomeText);
+        this.pushLog("choice", `你选择了「${choice.label}」。${shown}`);
+        result.text = shown;
       }
 
       s.pending = null;
@@ -825,6 +872,7 @@
         s.cult = 0;
         s.maxAge = Math.max(s.maxAge, D.REALMS[5].life);
         s.flags.arrived_spirit = false;
+        s.flags.spirit_ascended = true;
         s.place = "灵界 · 天渊城";
         s.sect = "天渊城 · 散修";
         this.pushLog("system", "你穿过空间节点，落入了灵界。境界仍是化神，天地却换了。");

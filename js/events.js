@@ -790,8 +790,10 @@
   add({
     id: "d_node",
     when: (s) =>
+      s.world === "human" &&
       s.tier === 5 &&
       s.cult >= 85 &&
+      !s.flags.spirit_ascended &&
       !(s.flags.wait_spirit_until && s.age < s.flags.wait_spirit_until),
     w: 30,
     once: false,

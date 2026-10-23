@@ -227,9 +227,38 @@ ok(
   "L3 图鉴初始计数应与数据一致"
 );
 
-/* 220 局回归：不变量 + 伪灵根可到灵界。 */
+/* 220 局回归：不变量 + 伪灵根可到灵界 + 单世对话/事件最多重复 2 次。 */
 let issues = 0;
 let pseudoReachedSpirit = 0;
+let worstRepeat = 0;
+function affordableChoice(state) {
+  const choices = (state.pending && state.pending.choices) || [];
+  for (let i = 0; i < choices.length; i++) {
+    const choice = choices[i];
+    const cost =
+      choice.requires && choice.requires.stones != null
+        ? choice.requires.stones
+        : choice.effects && choice.effects.stones < 0
+        ? -choice.effects.stones
+        : 0;
+    if (!choice.donate && cost <= state.stones) return i;
+  }
+  return 0;
+}
+function affordableDanger(state) {
+  const options = (state.pending && state.pending.options) || [];
+  for (let i = 0; i < options.length; i++) {
+    const option = options[i];
+    const cost =
+      option.costStones > 0
+        ? option.costStones < 1
+          ? Math.max(1, Math.floor(state.stones * option.costStones))
+          : Math.floor(option.costStones)
+        : 0;
+    if ((!option.ward || state.ward > 0) && cost <= state.stones) return i;
+  }
+  return 0;
+}
 for (let seed = 1; seed <= 220; seed++) {
   const sim = new Sim({
     seed: (seed * 2654435761) >>> 0,
@@ -251,8 +280,8 @@ for (let seed = 1; seed <= 220; seed++) {
     }
     if (state.pending) {
       if (state.pending.kind === "break") sim.chooseBreak("push");
-      else if (state.pending.kind === "danger") sim.resolveDanger(0);
-      else sim.choose(0);
+      else if (state.pending.kind === "danger") sim.resolveDanger(affordableDanger(state));
+      else sim.choose(affordableChoice(state));
     } else {
       sim.step();
     }
@@ -260,8 +289,16 @@ for (let seed = 1; seed <= 220; seed++) {
   if (sim.state.root.key === "wei" && sim.state.tier >= 6) {
     pseudoReachedSpirit++;
   }
+  const texts = sim.state.log
+    .filter((entry) => entry.kind === "event" || entry.kind === "choice")
+    .map((entry) => entry.text);
+  const counts = {};
+  for (const text of texts) counts[text] = (counts[text] || 0) + 1;
+  worstRepeat = Math.max(worstRepeat, ...Object.values(counts), 0);
 }
 ok(issues === 0, `220 局不变量问题：${issues}`);
 ok(pseudoReachedSpirit > 0, "至少应有一名伪灵根到达灵界");
+ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
+ok(XD.EVENTS.length === 3064, `事件总数应为 3064，实际 ${XD.EVENTS.length}`);
 
-console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}`);
+console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; worst-repeat=${worstRepeat}`);
