@@ -9,12 +9,23 @@
   if (!XD || !Array.isArray(XD.EVENTS)) return;
 
   const E = XD.EVENTS;
+  const D = XD.DATA;
   const N = 64;
 
   function fill(text, s) {
     const name = s.partner ? s.partner.name : "那个人";
     const title = s.partner ? s.partner.title : "故人";
-    return String(text).replace(/\{p\}/g, name).replace(/\{t\}/g, title);
+    return String(text)
+      .replace(/\{p\}/g, name)
+      .replace(/\{t\}/g, title)
+      .replace(/\{family\}/g, (s.origin && s.origin.family) || "家里")
+      .replace(/\{place\}/g, (s.origin && s.origin.place) || "村子")
+      .replace(/\{root\}/g, (s.root && s.root.name) || "灵根")
+      .replace(
+        /\{familyWord\}/g,
+        (s.origin && CHILD_IDENTITY_WORDS[s.origin.family]) || "家里"
+      )
+      .replace(/\{world\}/g, (D.WORLD_META[s.world] && D.WORLD_META[s.world].name) || "此界");
   }
 
   const POOLS = {
@@ -508,6 +519,152 @@
     },
   };
 
+  /* 童年选择组：16 组通用 + 14 种出身 × 6 组 = 100 组 */
+  const CHILD_IDENTITIES = [
+    "山村农家",
+    "药铺学徒之家",
+    "外门杂役",
+    "武林世家旁支",
+    "没落修仙家族",
+    "县城书香门第",
+    "皇城商贾",
+    "渔村孤儿",
+    "镖师之子",
+    "猎户之家",
+    "采药人之家",
+    "渡船人家",
+    "牧场人家",
+    "矿工之家",
+  ];
+
+  const CHILD_IDENTITY_WORDS = {
+    山村农家: "种田",
+    药铺学徒之家: "抓药",
+    外门杂役: "做事",
+    武林世家旁支: "拳脚",
+    没落修仙家族: "祖传功法",
+    县城书香门第: "读书",
+    皇城商贾: "算账",
+    渔村孤儿: "打鱼",
+    镖师之子: "走镖",
+    猎户之家: "打猎",
+    采药人之家: "认药",
+    渡船人家: "撑船",
+    牧场人家: "放牧",
+    矿工之家: "下矿",
+  };
+
+  const CHILD_IDENTITY_TEMPLATES = [
+    {
+      a: {
+        label: "跟着家里学点{familyWord}的门道",
+        effects: { insight: 2, mood: 2 },
+        outcome: "你跟在大人身后，看他们怎么把日子过下去。",
+      },
+      b: {
+        label: "跑去{place}看热闹",
+        effects: { luck: 2, insight: 1 },
+        outcome: "你跑出去看了半天，回来时饭已经凉了。",
+      },
+    },
+    {
+      a: {
+        label: "把这事告诉家里",
+        effects: { karma: 2, mood: 1 },
+        outcome: "大人听完，沉默了一会儿，说以后别一个人乱跑。",
+      },
+      b: {
+        label: "自己藏着不说",
+        effects: { mood: 2, insight: 1 },
+        outcome: "你把它藏在心里，连睡觉时都记得。",
+      },
+    },
+    {
+      a: {
+        label: "按{familyWord}的规矩来",
+        effects: { insight: 2, mood: 1 },
+        outcome: "你照着家里的规矩做了，没人夸你，也没人骂你。",
+      },
+      b: {
+        label: "偏要试一次",
+        effects: { luck: 3, mood: -1 },
+        outcome: "你试了。结果不算好，但你没有后悔。",
+      },
+    },
+    {
+      a: {
+        label: "带上家里的家伙",
+        effects: { luck: 2, insight: 1 },
+        outcome: "你带上了家里常用的东西，心里踏实了一点。",
+      },
+      b: {
+        label: "空着手去",
+        effects: { mood: 2, luck: -1 },
+        outcome: "你空着手去了，回来时才知道大人为什么总让你带东西。",
+      },
+    },
+    {
+      a: {
+        label: "先问{place}的老人",
+        effects: { insight: 2, luck: 1 },
+        outcome: "老人说了很多，你只听懂了一半。",
+      },
+      b: {
+        label: "自己找答案",
+        effects: { insight: 2, mood: 1 },
+        outcome: "你找了很久，最后在一个不起眼的角落找到了答案。",
+      },
+    },
+    {
+      a: {
+        label: "帮家里做点{familyWord}的活",
+        effects: { karma: 2, mood: 2 },
+        outcome: "你帮了半天忙，手上沾了灰，心里却很高兴。",
+      },
+      b: {
+        label: "去外面看看",
+        effects: { luck: 3, insight: 1 },
+        outcome: "你走出去很远，直到看见一条没走过的路。",
+      },
+    },
+  ];
+
+  const CHILD_SPECIFIC_GROUPS = [];
+  CHILD_IDENTITIES.forEach((family) => {
+    CHILD_SPECIFIC_GROUPS.push({
+      family,
+      choices: CHILD_IDENTITY_TEMPLATES.map((tpl) => [
+        {
+          label: tpl.a.label,
+          effects: Object.assign({}, tpl.a.effects),
+          outcome: tpl.a.outcome,
+        },
+        {
+          label: tpl.b.label,
+          effects: Object.assign({}, tpl.b.effects),
+          outcome: tpl.b.outcome,
+        },
+      ]),
+    });
+  });
+
+  XD.CHILD_CHOICE_GROUP_COUNT =
+    POOLS.child.choices.length +
+    CHILD_SPECIFIC_GROUPS.reduce((sum, group) => sum + group.choices.length, 0);
+
+  function childChoiceGroups(s) {
+    const family = (s.origin && s.origin.family) || "";
+    const specific = CHILD_SPECIFIC_GROUPS.filter((g) => g.family === family).flatMap(
+      (g) => g.choices
+    );
+    if (!specific.length) return POOLS.child.choices;
+    const generic = POOLS.child.choices;
+    const start = (s.seed >>> 0) % generic.length;
+    const picked = [];
+    for (let k = 0; k < 6; k++) picked.push(generic[(start + k) % generic.length]);
+    return specific.concat(picked);
+  }
+
   const THEMES = [
     { key: "h_child", pool: "child", when: (s) => s.world === "human" && s.age >= 2 && s.age <= 16, w: 8, titles: ["小时候", "村口", "旧事", "那年", "一枚铜钱", "雨夜"], hook: "那一年，你还小。" },
     { key: "h_school", pool: "sect", when: (s) => s.world === "human" && s.age >= 10 && s.age <= 45 && s.tier <= 2, w: 5, titles: ["山门", "外门", "任务牌", "比试", "罚跪", "传功"], hook: "山门里的日子，和你想的不一样。" },
@@ -548,17 +705,24 @@
           (Math.floor(i / pool.scenes.length) + i) % pool.details.length
         ];
       const outcome = pool.outcomes[(i * 3 + 1) % pool.outcomes.length];
-      const sets = theme.choices || pool.choices;
-      const set = sets[i % sets.length];
+      const baseSets = theme.choices || pool.choices;
+      const setFor = (s) => {
+        const sets = theme.key === "h_child" ? childChoiceGroups(s) : baseSets;
+        return sets[i % sets.length];
+      };
       add({
         id: `g_${theme.key}_${i}`,
         when: theme.when,
         w: theme.w + (i % 3),
         title,
         sceneKey: `${theme.key}:${scene}`,
-        text: (s) => fill(`${scene}${detail}${theme.hook}${theme.extra ? theme.extra(s) : ""}`, s),
+        text: (s) =>
+          fill(
+            `${scene}${detail}${theme.hook}${theme.extra ? theme.extra(s) : ""}`,
+            s
+          ),
         choices: (s) =>
-          set.map((c, ci) => {
+          setFor(s).map((c, ci) => {
             const text =
               typeof c.outcome === "function"
                 ? c.outcome
