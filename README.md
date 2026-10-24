@@ -67,6 +67,7 @@ python server.py
 | `docs/auto-breakthrough.md` | 自动突破、破境动画与事件暂停规则 |
 | `docs/canon-character-detail.md` | 原著人物详细词条的展示范围与来源边界 |
 | `docs/code-audit-2026-10-23.md` | 自动突破、事件选项、谱系、导入与重开逻辑审计 |
+| `docs/event-continuity-audit.md` | 父母状态、世界门禁与事件选项连续性评审 |
 
 ## 这一世怎么算
 

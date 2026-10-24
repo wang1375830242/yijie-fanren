@@ -157,6 +157,13 @@
       this.state.flags.arrived_immortal = world === "immortal";
       if (world === "spirit") this.state.flags.arrived_spirit_seen = true;
       if (world === "immortal") this.state.flags.arrived_immortal_seen = true;
+      if (
+        /孤儿|父母.*(死|亡)|散修之后/.test(
+          `${this.state.origin.family || ""}${this.state.origin.text || ""}`
+        )
+      ) {
+        this.state.flags.no_parents = true;
+      }
       this.state.legacy = this.applyLegacy(legacy);
 
       this.buildPeers();
@@ -627,6 +634,20 @@
       this.trigger("legacy_echo");
       return true;
     }
+    familyText(text) {
+      const s = this.state;
+      const noParents =
+        s.flags && s.flags.no_parents ||
+        /孤儿|父母.*(死|亡)|散修之后/.test(
+          `${s.origin && s.origin.family || ""}${s.origin && s.origin.text || ""}`
+        );
+      if (!noParents) return text;
+      return String(text)
+        .replace(/父母/g, "收养你的老人")
+        .replace(/母亲|娘/g, "收养你的老人")
+        .replace(/父亲|爹/g, "抚养你的人");
+    }
+
     pushLog(kind, text, extra) {
       const entry = Object.assign(
         { age: this.state.age, kind, text },
@@ -1015,6 +1036,7 @@
         while (pool.length > 1 && recent.indexOf(line) >= 0 && guard++ < 6) {
           line = this.rng.pick(pool);
         }
+        line = this.familyText(line);
         s.recentAmbient = recent.concat(line).slice(-4);
         this.pushLog("ambient", line);
       }
@@ -1145,6 +1167,13 @@
       const stage = this.stage();
       let pool = XD.EVENTS.filter((e) => {
         if (e.id === "root_test") return false;
+        // 人界专属事件不能靠各事件自己记得写 world 条件。
+        if (
+          s.world !== "human" &&
+          /^(c_|q_|f_|h_|g_h_|age_|root_|p_mortal$)/.test(e.id)
+        ) {
+          return false;
+        }
         if (e.once && s.seen[e.id]) return false;
         if (e.stage) {
           const stages = Array.isArray(e.stage) ? e.stage : [e.stage];
@@ -1188,21 +1217,31 @@
       if (ev.sceneKey) {
         s.recentScenes = (s.recentScenes || []).concat(ev.sceneKey).slice(-6);
       }
-      const text = typeof ev.text === "function" ? ev.text(s) : ev.text;
+      const rawText = typeof ev.text === "function" ? ev.text(s) : ev.text;
+      const text = this.familyText(rawText);
       this.recordText(text);
       s.stepsSinceEvent = 0;
       this.pushLog("event", text, { title: ev.title });
+      const rawChoices = typeof ev.choices === "function" ? ev.choices(s) : ev.choices;
+      const choices = Array.isArray(rawChoices)
+        ? rawChoices.map((choice) =>
+            Object.assign({}, choice, {
+              label: this.familyText(choice.label || ""),
+              outcome:
+                typeof choice.outcome === "string"
+                  ? this.familyText(choice.outcome)
+                  : choice.outcome,
+            })
+          )
+        : [];
       s.pending = {
         kind: "event",
         id,
         title: ev.title,
         text,
         sceneKey: ev.sceneKey || "",
-        choices: (() => {
-          const choices = typeof ev.choices === "function" ? ev.choices(s) : ev.choices;
-          // 弹窗会追加“灵石不足”等临时选项，不能污染全局事件定义。
-          return Array.isArray(choices) ? choices.slice() : [];
-        })(),
+        // 弹窗会追加“灵石不足”等临时选项，不能污染全局事件定义。
+        choices,
         major: !!ev.major,
       };
     }

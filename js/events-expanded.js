@@ -15,7 +15,7 @@
   function fill(text, s) {
     const name = s.partner ? s.partner.name : "那个人";
     const title = s.partner ? s.partner.title : "故人";
-    return String(text)
+    let out = String(text)
       .replace(/\{p\}/g, name)
       .replace(/\{t\}/g, title)
       .replace(/\{family\}/g, (s.origin && s.origin.family) || "家里")
@@ -26,6 +26,18 @@
         (s.origin && CHILD_IDENTITY_WORDS[s.origin.family]) || "家里"
       )
       .replace(/\{world\}/g, (D.WORLD_META[s.world] && D.WORLD_META[s.world].name) || "此界");
+    if (
+      s.flags && s.flags.no_parents ||
+      /孤儿|父母.*(死|亡)|散修之后/.test(
+        `${s.origin && s.origin.family || ""}${s.origin && s.origin.text || ""}`
+      )
+    ) {
+      out = out
+        .replace(/父母/g, "收养你的老人")
+        .replace(/母亲|娘/g, "收养你的老人")
+        .replace(/父亲|爹/g, "抚养你的人");
+    }
+    return out;
   }
 
   function partnerLine(s) {

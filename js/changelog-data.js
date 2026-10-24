@@ -8,8 +8,27 @@
 
   XD.CHANGELOG = {
     schema: 1,
-    updatedAt: "2026-10-23",
+    updatedAt: "2026-10-24",
     releases: [
+      {
+        version: "1.9.2",
+        date: "2026-10-24",
+        title: "话要对得上",
+        summary: "孤儿不再被父母问话，人界事件不再串入灵界与仙界。",
+        compatibility: "旧存档兼容",
+        changes: [
+          {
+            type: "fix",
+            text: "根据出身记录父母是否在场；父母双亡的角色不会再收到父母问话、家书或相关童年场景。",
+            tags: ["身世", "连续性"],
+          },
+          {
+            type: "fix",
+            text: "给早期人界事件补世界门禁，凡人坊市、同门、家书等不再出现在灵界或仙界。",
+            tags: ["世界", "事件"],
+          },
+        ],
+      },
       {
         version: "1.9.1",
         date: "2026-10-23",

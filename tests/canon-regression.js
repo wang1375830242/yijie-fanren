@@ -450,8 +450,16 @@ ok(
   "散修不应触发同门相欺事件"
 );
 ok(
-  !XD.EVENT_BY_ID.q_first_sword.when(rogue.state),
+  !!XD.EVENT_BY_ID.q_first_sword.when(rogue.state) === false,
   "散修不应触发宗门发剑事件"
+);
+const orphan = new Sim({ seed: 974, world: "human" });
+orphan.state.flags.no_parents = true;
+orphan.trigger("age_5");
+const orphanText = orphan.state.pending.text + " " + orphan.state.pending.choices.map((c) => c.label + " " + (c.outcome || "")).join(" ");
+ok(
+  !/父亲|母亲|父母/.test(orphanText),
+  "孤儿身世不应出现父母问话或父母选项"
 );
 ok(
   !XD.EVENT_BY_ID.q_valley.when(rogue.state),
