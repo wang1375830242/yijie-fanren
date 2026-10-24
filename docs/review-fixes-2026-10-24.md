@@ -39,7 +39,7 @@ cloud-check: ok
 canon-regression: 368 checks passed
 220 runs, 0 issues
 natural-ascensions=8
-changelog-check: 23 releases, 61 changes
+changelog-check: 24 releases, 62 changes
 ```
 
 ## 仍然需要服务端的部分
