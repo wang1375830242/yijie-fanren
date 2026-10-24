@@ -11,6 +11,20 @@
     updatedAt: "2026-10-24",
     releases: [
       {
+        version: "2.4.3",
+        date: "2026-10-24",
+        title: "点灯不打架",
+        summary: "公共碑林首次并发点灯使用固定对象 ID，避免同一座碑生成重复记录。",
+        compatibility: "旧存档兼容",
+        changes: [
+          {
+            type: "fix",
+            text: "点灯记录增加固定 objectId 与并发冲突后的原子自增，重复记录会继续按碑汇总。",
+            tags: ["碑林", "并发"],
+          },
+        ],
+      },
+      {
         version: "2.4.2",
         date: "2026-10-24",
         title: "旧亭只来一次",

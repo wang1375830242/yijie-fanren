@@ -49,7 +49,9 @@
     } catch (err) {}
     if (!res.ok) {
       const message = (data && (data.error || data.message)) || `LeanCloud ${res.status}`;
-      throw new Error(message);
+      const err = new Error(message);
+      err.status = res.status;
+      throw err;
     }
     return data || {};
   }
@@ -102,6 +104,10 @@
       /^[A-Za-z0-9_-]{1,64}$/.test(id) &&
       !["__proto__", "constructor", "prototype", "hasOwnProperty"].includes(id)
     );
+  }
+
+  function candleObjectId(id) {
+    return `c_${id}`;
   }
 
   async function recordVisit() {
@@ -222,18 +228,37 @@
       { method: "GET" }
     );
     const row = found.results && found.results[0];
+    const candleId = candleObjectId(id);
     if (row) {
       await request(`/1.1/classes/${classes.candle}/${row.objectId}`, {
         method: "PUT",
         body: JSON.stringify({ count: { __op: "Increment", amount: 1 } }),
       });
-      return { count: (Number(row.count) || 0) + 1 };
+      const updated = await request(`/1.1/classes/${classes.candle}/${row.objectId}`, {
+        method: "GET",
+      });
+      return { count: Number(updated.count) || (Number(row.count) || 0) + 1 };
     }
-    await request(`/1.1/classes/${classes.candle}`, {
-      method: "POST",
-      body: JSON.stringify({ stele: id, count: 1 }),
-    });
-    return { count: 1 };
+    try {
+      await request(`/1.1/classes/${classes.candle}`, {
+        method: "POST",
+        body: JSON.stringify({ objectId: candleId, stele: id, count: 1 }),
+      });
+      return { count: 1 };
+    } catch (err) {
+      // 并发首次点灯时另一个请求可能已创建同一个固定 objectId；转为原子自增。
+      if (err.status === 409 || err.status === 400) {
+        await request(`/1.1/classes/${classes.candle}/${candleId}`, {
+          method: "PUT",
+          body: JSON.stringify({ count: { __op: "Increment", amount: 1 } }),
+        });
+        const updated = await request(`/1.1/classes/${classes.candle}/${candleId}`, {
+          method: "GET",
+        });
+        return { count: Number(updated.count) || 1 };
+      }
+      throw err;
+    }
   }
 
   async function hallMessage(id, text) {
