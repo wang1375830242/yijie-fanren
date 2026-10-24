@@ -2174,7 +2174,7 @@
 
   add({
     id: "q_letters",
-    when: (s) => s.world === "human" && s.tier >= 1 && s.age >= 15 && !s.flags.no_parents && s.origin.family !== "渔村孤儿",
+    when: (s) => s.world === "human" && s.tier >= 1 && s.age >= 15 && !s.flags.no_parents && !s.flags.parent_dead && s.origin.family !== "渔村孤儿",
     w: 6,
     title: "家书",
     text: "山下的信送上来了。母亲的字歪歪扭扭，说家里都好，让你不必挂念。信纸上有几处被水浸过的痕迹。",

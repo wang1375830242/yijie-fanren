@@ -73,6 +73,7 @@ python server.py
 | `docs/focus-mechanics.md` | 六种命运重心的收益、代价与解锁时机 |
 | `docs/event-chains.md` | 父母、道侣、弟子、仇敌的关系链与 npcStates |
 | `docs/leancloud-backend.md` | LeanCloud 数据服务、类权限与本地联调 |
+| `docs/review-fixes-2026-10-24.md` | 本轮评审问题、修复范围与残余风险 |
 
 ## 这一世怎么算
 

@@ -89,7 +89,7 @@
       },
       {
         label: "留下灵石，连夜赶回山门",
-        effects: { mood: -15, karma: -2, flag: "parent_dead" },
+        effects: { mood: -15, stones: -40, karma: -2, flag: "parent_dead" },
         outcome: "你走的时候，白烛还在烧。山路很长，你没有回头，也没有听见身后有人叫你。",
       },
     ],
@@ -138,8 +138,10 @@
       },
       {
         label: "让对方先走，自己断后",
-        effects: { mood: -8, affinity: 5, risk: 1 },
+        risk: { p: 0.35, text: "阵光亮起时，你被余波掀翻在地。", fail: { mood: -12, affinity: 2 } },
+        effects: { mood: -8, affinity: 5 },
         outcome: "你把对方推入传送阵。阵光亮起时，对方隔着光看了你一眼，像是要把这一眼记很久。",
+        failText: "阵光亮起时你被余波掀翻在地，缓了很久才站起来。",
       },
     ],
   });
@@ -152,17 +154,17 @@
     choices: [
       {
         label: "一起走",
-        effects: { mood: 12, affinity: 12, flag: "partner_chain_done" },
+        effects: { mood: 12, affinity: 12, partnerStatus: "present", flag: "partner_chain_together" },
         outcome: "你们并肩走出洞府。山路很长，谁也没有说终点在哪里。",
       },
       {
         label: "留在山门，让对方替你看更远的地方",
-        effects: { mood: -5, affinity: 5, flag: "partner_chain_done" },
+        effects: { mood: -5, affinity: 5, partnerStatus: "separated", flag: "partner_chain_separated" },
         outcome: "对方走了。每年冬天，你都会收到一封没有落款的信，信里只写今年的雪大不大。",
       },
       {
         label: "把路让开，各自修行",
-        effects: { mood: -10, affinity: -8, insight: 4, flag: "partner_chain_done" },
+        effects: { mood: -10, affinity: -8, insight: 4, partnerStatus: "separated", flag: "partner_chain_apart" },
         outcome: "你没有留人。门关上之后，屋里安静得能听见灰落下来的声音。",
       },
     ],
@@ -173,22 +175,22 @@
     id: "chain_disciple_1",
     chain: { role: "disciple", stage: 1, nextGap: 15 },
     title: "第一课",
-    text: (s) => `${npc(s, "disciple").name || "那个孩子"}把一本抄错三处的功法捧到你面前，手指上还沾着墨。`,
+    text: (s) => `${npc(s, "disciple").name || "那名弟子"}把一本抄错三处的功法捧到你面前，手指上还沾着墨。`,
     choices: [
       {
-        label: "从头教一遍，不急着让他练",
+        label: "从头教一遍，不急着让弟子练",
         effects: { mood: 5, discipleAffinity: 10 },
-        outcome: "你讲了一个下午。孩子听到最后，把抄错的地方一笔一笔改了过来。",
+        outcome: "你讲了一个下午。弟子听到最后，把抄错的地方一笔一笔改了过来。",
       },
       {
-        label: "把功法扔回去，让他自己悟",
+        label: "把功法扔回去，让弟子自己悟",
         effects: { mood: -2, discipleAffinity: -4, insight: 2 },
-        outcome: "孩子捡起功法，站在门外很久。第二天，他交上来的那本还是错的，但错得少了两处。",
+        outcome: "弟子捡起功法，站在门外很久。第二天，交上来的那本还是错的，但错得少了两处。",
       },
       {
-        label: "带他去山下走一趟",
+        label: "带弟子去山下走一趟",
         effects: { mood: 6, discipleAffinity: 5, stones: -10 },
-        outcome: "你们在山下吃了一碗面。孩子问了很多问题，你只答了一半。",
+        outcome: "你们在山下吃了一碗面。弟子问了很多问题，你只答了一半。",
       },
     ],
   });
@@ -197,22 +199,22 @@
     id: "chain_disciple_2",
     chain: { role: "disciple", stage: 2, nextGap: 20 },
     title: "试炼",
-    text: (s) => `${npc(s, "disciple").name || "那个孩子"}第一次独自进山。第七天，山门外的雪地上出现了两行脚印，一行是人的，一行像是拖着什么东西。`,
+    text: (s) => `${npc(s, "disciple").name || "那名弟子"}第一次独自进山。第七天，山门外的雪地上出现了两行脚印，一行是人的，一行像是拖着什么东西。`,
     choices: [
       {
         label: "亲自下山去找",
         effects: { mood: -2, discipleAffinity: 12, karma: 3 },
-        outcome: "你在山腰找到他。他背着一头小兽，腿上全是血，还坚持说这是给师门的。",
+        outcome: "你在山腰找到对方。对方背着一头小兽，腿上全是血，还坚持说这是给师门的。",
       },
       {
         label: "让同门去接，自己在山门等",
         effects: { mood: 3, discipleAffinity: 4 },
-        outcome: "他回来时已经包扎好了，见你站在门口，先把背上的猎物举起来给你看。",
+        outcome: "对方回来时已经包扎好了，见你站在门口，先把背上的猎物举起来给你看。",
       },
       {
-        label: "不派人，让他自己回来",
+        label: "不派人，让弟子自己回来",
         effects: { mood: -4, discipleAffinity: -6, insight: 3 },
-        outcome: "他回来得比所有人预计的晚两天。进门后没有抱怨，只把一枚带血的兽牙放在你桌上。",
+        outcome: "对方回来得比所有人预计的晚两天。进门后没有抱怨，只把一枚带血的兽牙放在你桌上。",
       },
     ],
   });
@@ -221,22 +223,22 @@
     id: "chain_disciple_3",
     chain: { role: "disciple", stage: 3, nextGap: 0 },
     title: "出师",
-    text: (s) => `${npc(s, "disciple").name || "那个孩子"}已经比你初见时高了一头。他站在洞府外，说想下山，去看看你年轻时走过的那些地方。`,
+    text: (s) => `${npc(s, "disciple").name || "那名弟子"}已经长成了独当一面的修士。对方站在洞府外，说想下山，去看看你年轻时走过的那些地方。`,
     choices: [
       {
-        label: "把本命功法抄一份给他",
-        effects: { mood: 8, discipleAffinity: 10, flag: "disciple_chain_done" },
-        outcome: "你把功法交给他，没有多说什么。他磕了三个头，背起包袱走了。",
+        label: "把本命功法抄一份给弟子",
+        effects: { mood: 8, discipleAffinity: 10, discipleStatus: "graduated", flag: "disciple_chain_graduated" },
+        outcome: "你把功法交给对方，没有多说什么。对方磕了三个头，背起包袱走了。",
       },
       {
-        label: "让他再留三年",
-        effects: { mood: -2, discipleAffinity: -3, insight: 2, flag: "disciple_chain_done" },
-        outcome: "他留了三年。第四年春天，你还是把山门打开了。",
+        label: "让弟子再留三年",
+        effects: { mood: -2, discipleAffinity: -3, insight: 2, discipleStatus: "graduated", flag: "disciple_chain_delayed" },
+        outcome: "对方留了三年。第四年春天，你还是把山门打开了。",
       },
       {
-        label: "把衣钵交给他，自己闭关",
-        effects: { mood: 10, discipleAffinity: 6, flag: "disciple_chain_done" },
-        outcome: "你把洞府的钥匙放在他手心。关上门之前，你听见他在外面很轻地叫了一声师父。",
+        label: "把衣钵交给弟子，自己闭关",
+        effects: { mood: 10, discipleAffinity: 6, discipleStatus: "graduated", flag: "disciple_chain_inherited" },
+        outcome: "你把洞府的钥匙放在对方手心。关上门之前，你听见对方在外面很轻地叫了一声师父。",
       },
     ],
   });
@@ -300,17 +302,17 @@
       {
         label: "拔剑，做个了断",
         risk: { p: 0.55, text: "最后一剑停在对方喉前半寸。", fail: { death: true, cause: "死于旧怨了断" } },
-        effects: { mood: 8, karma: -3, rivalHostility: -20, flag: "rival_chain_done" },
+        effects: { mood: 8, karma: -3, rivalHostility: -100, rivalStatus: "reconciled", flag: "rival_chain_spared" },
         outcome: "你收剑入鞘。对方看了你很久，最后把剑扔下断崖，说：「算了。」",
       },
       {
         label: "把当年的事说开",
-        effects: { mood: 10, karma: 8, insight: 5, rivalHostility: -30, flag: "rival_chain_done" },
+        effects: { mood: 10, karma: 8, insight: 5, rivalHostility: -100, rivalStatus: "reconciled", flag: "rival_chain_resolved" },
         outcome: "你们从断崖上走下来时，天已经黑了。没有握手，但谁也没有再提旧账。",
       },
       {
         label: "转身离开，让风替我回答",
-        effects: { mood: 2, insight: 3, rivalHostility: -8, flag: "rival_chain_done" },
+        effects: { mood: 2, insight: 3, rivalHostility: -8, rivalStatus: "left", flag: "rival_chain_left" },
         outcome: "你转身下山。身后没有脚步声追来。很多年后你才知道，对方在那天离开了这片地方。",
       },
     ],
@@ -319,26 +321,28 @@
   XD.CHAIN_EVENTS = chainEvents;
   if (Array.isArray(XD.EVENTS)) XD.EVENTS.push(...chainEvents);
 
+  const isCultivator = (s) => s.path === "cultivator" && s.tier > 0;
+  const present = (s, role) => !!(s.npcStates && s.npcStates[role] && s.npcStates[role].present);
   XD.CHAIN_DEFS = {
     parent: [
-      { id: "chain_parent_1", stage: 1, minAge: 18, when: (s) => s.world === "human" && !s.flags.no_parents && !s.flags.parent_dead },
-      { id: "chain_parent_2", stage: 2, minAge: 35, when: (s) => s.world === "human" && !s.flags.no_parents && !s.flags.parent_dead },
-      { id: "chain_parent_3", stage: 3, minAge: 55, when: (s) => s.world === "human" && !s.flags.no_parents && !s.flags.parent_dead },
+      { id: "chain_parent_1", stage: 1, minAge: 18, when: (s) => isCultivator(s) && s.world === "human" && !s.flags.no_parents && !s.flags.parent_dead },
+      { id: "chain_parent_2", stage: 2, minAge: 35, when: (s) => isCultivator(s) && s.world === "human" && !s.flags.no_parents && !s.flags.parent_dead },
+      { id: "chain_parent_3", stage: 3, minAge: 55, when: (s) => isCultivator(s) && s.world === "human" && !s.flags.no_parents && !s.flags.parent_dead },
     ],
     partner: [
-      { id: "chain_partner_1", stage: 1, when: (s) => s.partner && s.partner.alive !== false && s.partner.status === "present" },
-      { id: "chain_partner_2", stage: 2, when: (s) => s.partner && s.partner.alive !== false && s.partner.status === "present" },
-      { id: "chain_partner_3", stage: 3, when: (s) => s.partner && s.partner.alive !== false && s.partner.status === "present" },
+      { id: "chain_partner_1", stage: 1, when: (s) => isCultivator(s) && s.partner && s.partner.alive !== false && s.partner.status === "present" },
+      { id: "chain_partner_2", stage: 2, when: (s) => isCultivator(s) && s.partner && s.partner.alive !== false && s.partner.status === "present" },
+      { id: "chain_partner_3", stage: 3, when: (s) => isCultivator(s) && s.partner && s.partner.alive !== false && s.partner.status === "present" },
     ],
     disciple: [
-      { id: "chain_disciple_1", stage: 1, when: (s) => (s.disciples || []).some((d) => d && d.alive !== false) },
-      { id: "chain_disciple_2", stage: 2, when: (s) => (s.disciples || []).some((d) => d && d.alive !== false) },
-      { id: "chain_disciple_3", stage: 3, when: (s) => (s.disciples || []).some((d) => d && d.alive !== false) },
+      { id: "chain_disciple_1", stage: 1, when: (s) => isCultivator(s) && present(s, "disciple") },
+      { id: "chain_disciple_2", stage: 2, when: (s) => isCultivator(s) && present(s, "disciple") },
+      { id: "chain_disciple_3", stage: 3, when: (s) => isCultivator(s) && present(s, "disciple") },
     ],
     rival: [
-      { id: "chain_rival_1", stage: 1, when: (s) => (s.rivals || []).some((r) => r && r.alive !== false) },
-      { id: "chain_rival_2", stage: 2, when: (s) => (s.rivals || []).some((r) => r && r.alive !== false) },
-      { id: "chain_rival_3", stage: 3, when: (s) => (s.rivals || []).some((r) => r && r.alive !== false) },
+      { id: "chain_rival_1", stage: 1, when: (s) => isCultivator(s) && present(s, "rival") },
+      { id: "chain_rival_2", stage: 2, when: (s) => isCultivator(s) && present(s, "rival") },
+      { id: "chain_rival_3", stage: 3, when: (s) => isCultivator(s) && present(s, "rival") },
     ],
   };
 })();

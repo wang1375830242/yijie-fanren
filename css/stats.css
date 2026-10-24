@@ -33,7 +33,7 @@
 .stat-card {
   padding: 20px;
   border: 1px solid var(--line);
-  background: rgba(255, 253, 248, 0.55);
+  background: rgba(20, 25, 18, 0.55);
 }
 .stat-card span {
   display: block;
@@ -54,7 +54,7 @@
   margin-top: 20px;
   padding: 20px;
   border: 1px solid var(--line);
-  background: rgba(255, 253, 248, 0.45);
+  background: rgba(20, 25, 18, 0.45);
 }
 .stats-panel h2 {
   margin: 0 0 14px;

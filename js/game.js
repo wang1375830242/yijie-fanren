@@ -830,25 +830,6 @@
     trapChoicePrompt();
     const first = $("choiceOpts").querySelector(".opt:not([disabled])");
     if (first) first.focus();
-    if (auto) {
-      autoTimer = setTimeout(() => {
-        const usable = p.options
-          .map((c, i) => ({ c, i }))
-          .filter((x) => {
-            if (x.c.ward && state.ward < 1) return false;
-            if (x.c.costStones > 0) {
-              const cost =
-                x.c.costStones < 1
-                  ? Math.max(1, Math.floor(state.stones * x.c.costStones))
-                  : Math.floor(x.c.costStones);
-              return state.stones >= cost;
-            }
-            return true;
-          })
-          .sort((a, b) => b.c.p - a.c.p);
-        choose(usable.length ? usable[0].i : 0);
-      }, 1100);
-    }
   }
 
   function autoChooseEvent(p) {
@@ -865,21 +846,31 @@
     const usable = p.choices
       .map((c, i) => ({ c, i }))
       .filter((x) => {
+        const donateCost =
+          x.c.donate && x.c.donate.min != null ? Number(x.c.donate.min) : 0;
         const cost =
           x.c.requires && x.c.requires.stones != null
             ? x.c.requires.stones
             : x.c.effects && x.c.effects.stones < 0
             ? -x.c.effects.stones
-            : 0;
+            : donateCost;
         return cost <= state.stones;
       });
     const score = (c) => {
-      if (c.risk && c.risk.fail && c.risk.fail.death) return 1000 + (1 - c.risk.p);
-      if (c.risk) return 10 + (1 - c.risk.p);
+      if (c.risk && c.risk.fail && c.risk.fail.death) return 1000 + Number(c.risk.p || 0);
+      if (c.risk) return 10 + (1 - Number(c.risk.p || 0));
       return 0;
     };
     usable.sort((a, b) => score(a.c) - score(b.c));
-    const chosen = usable.length ? usable[0] : { c: p.choices[0], i: 0 };
+    if (!usable.length) {
+      p.choices.push({
+        label: "拿不出灵石，只能作罢",
+        effects: { mood: -2 },
+        outcome: "你摸了摸空空的储物袋，把话咽了回去。",
+      });
+      return pick(p.choices.length - 1);
+    }
+    const chosen = usable[0];
     pick(chosen.i, chosen.c.donate ? { donateAmount: chosen.c.donate.min || 10 } : undefined);
   }
 
@@ -1056,6 +1047,24 @@
     const isDanger = state.pending && state.pending.kind === "danger";
     const result = isDanger ? sim.resolveDanger(i) : sim.choose(i, opts);
     if (result === null) {
+      openPrompt();
+      return;
+    }
+    if (result && result.status === "blocked") {
+      if (auto && state.pending && state.pending.kind === "event") {
+        const fallbackLabel = "拿不出灵石，只能作罢";
+        let index = state.pending.choices.findIndex((c) => c.label === fallbackLabel);
+        if (index < 0) {
+          state.pending.choices.push({
+            label: fallbackLabel,
+            effects: { mood: -2 },
+            outcome: "你摸了摸空空的储物袋，把话咽了回去。",
+          });
+          index = state.pending.choices.length - 1;
+        }
+        setTimeout(() => choose(index), 0);
+        return;
+      }
       openPrompt();
       return;
     }
@@ -1279,14 +1288,33 @@
           .join("")
       : "";
 
-    const endDisciples = (s.disciples || []).filter((d) => d.alive !== false).length;
-    const endRivals = (s.rivals || []).filter((r) => r.alive !== false).length;
+    const endDisciples = (s.disciples || []).filter(
+      (d) => d.alive !== false && d.status !== "graduated"
+    ).length;
+    const endGraduated = (s.disciples || []).filter(
+      (d) => d.alive !== false && d.status === "graduated"
+    ).length;
+    const endRivals = (s.rivals || []).filter(
+      (r) => r.alive !== false && r.status !== "reconciled" && r.status !== "left"
+    ).length;
+    const partnerField = s.partner
+      ? s.partner.status === "separated" || s.partner.status === "left"
+        ? `${s.partner.name} · 已别`
+        : s.partner.status === "estranged"
+        ? `${s.partner.name} · 疏远`
+        : s.partner.name
+      : "无";
+    const disciplineField = endDisciples
+      ? `${endDisciples} 人在世${endGraduated ? ` · ${endGraduated} 人出师` : ""}`
+      : endGraduated
+      ? `${endGraduated} 人已出师`
+      : "无";
     const fields = [
       ["最高境界", sim.displayRealm()],
       ["灵根", s.root.name],
       ["宗门", s.sect ? `${s.sect}${sim.sectRankName() ? " · " + sim.sectRankName() : ""}` : "散修"],
-      ["道侣", s.partner ? s.partner.name : "无"],
-      ["弟子", endDisciples ? `${endDisciples} 人在世` : "无"],
+      ["道侣", partnerField],
+      ["弟子", disciplineField],
       ["对手", endRivals ? `${endRivals} 人` : "无"],
       ["因果", (s.karma > 0 ? "+" : "") + Math.round(s.karma)],
       ["灵石", U.fmt(s.stones)],
@@ -1299,8 +1327,10 @@
       )
       .join("");
 
+    const actTexts = new Set((finale && finale.acts ? finale.acts : []).map((act) => act.text));
     $("endDeeds").innerHTML =
       (endSummary.deeds || [])
+        .filter((d) => !actTexts.has(d.text))
         .slice(-5)
         .map(
           (d) =>
@@ -1377,8 +1407,16 @@
       ["出 身", s.origin.family],
       ["灵 根", s.root.name],
       ["宗 门", s.sect ? `${s.sect}${sim.sectRankName() ? " · " + sim.sectRankName() : ""}` : "散修"],
-      ["道 侣", s.partner ? s.partner.name : "无"],
-      ["弟 子", ((s.disciples || []).filter((d) => d.alive !== false).length || 0) + " 人"],
+      ["道 侣", s.partner
+        ? s.partner.status === "separated" || s.partner.status === "left"
+          ? `${s.partner.name} · 已别`
+          : s.partner.status === "estranged"
+          ? `${s.partner.name} · 疏远`
+          : s.partner.name
+        : "无"],
+      ["弟 子", ((s.disciples || []).filter(
+        (d) => d.alive !== false && d.status !== "graduated"
+      ).length || 0) + " 人"],
     ];
     ctx.font = '21px "KaiTi","STKaiti",serif';
     rows.forEach((r, i) => {

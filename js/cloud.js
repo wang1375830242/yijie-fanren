@@ -32,7 +32,15 @@
     if (!enabled) throw new Error("LeanCloud 未配置");
     const opts = Object.assign({}, options || {});
     opts.headers = Object.assign({}, headers(), opts.headers || {});
-    const res = await fetch(base + path, opts);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), Number(cfg.timeoutMs) || 4500);
+    opts.signal = controller.signal;
+    let res;
+    try {
+      res = await fetch(base + path, opts);
+    } finally {
+      clearTimeout(timer);
+    }
     const text = await res.text();
     let data = null;
     try {
@@ -57,14 +65,15 @@
 
   function visitorId() {
     const key = "yijie.visitor.v1";
+    const day = localDay();
     try {
-      let id = localStorage.getItem(key);
-      if (!id) {
-        id =
-          (window.crypto && window.crypto.randomUUID && window.crypto.randomUUID()) ||
-          `v-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-        localStorage.setItem(key, id);
-      }
+      const saved = localStorage.getItem(key) || "";
+      const parts = saved.split(":");
+      if (parts.length === 2 && parts[0] === day && parts[1]) return parts[1];
+      const id =
+        (window.crypto && window.crypto.randomUUID && window.crypto.randomUUID()) ||
+        `v-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+      localStorage.setItem(key, `${day}:${id}`);
       return id;
     } catch (err) {
       return "";
@@ -81,18 +90,31 @@
   }
 
   async function count(className, filter) {
-    const q = filter ? `?where=${where(filter)}&count=1` : "?count=1";
+    const q = filter ? `?where=${where(filter)}&count=1&limit=0` : "?count=1&limit=0";
     const data = await request(`/1.1/classes/${className}${q}`, { method: "GET" });
     return Number(data.count) || 0;
+  }
+
+  function validStele(id) {
+    return (
+      typeof id === "string" &&
+      /^[A-Za-z0-9_-]{1,64}$/.test(id) &&
+      !["__proto__", "constructor", "prototype", "hasOwnProperty"].includes(id)
+    );
   }
 
   async function recordVisit() {
     if (!enabled || !cfg.trackLocal && isLocalHost()) return;
     if (pageKey() === "stats.html") return;
+    const day = localDay();
+    const page = pageKey();
+    const visitKey = `yijie.visit.v1:${day}:${page}`;
+    try {
+      if (localStorage.getItem(visitKey)) return;
+      localStorage.setItem(visitKey, "1");
+    } catch (err) {}
     const visitor = visitorId();
     if (!visitor) return;
-    const page = pageKey();
-    const day = localDay();
     const visit = request(`/1.1/classes/${classes.visit}`, {
       method: "POST",
       body: JSON.stringify({ visitor, page, day }),
@@ -122,6 +144,11 @@
   }
 
   async function stats() {
+    const cacheKey = "yijie.stats.cache.v1";
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey) || "null");
+      if (cached && Date.now() - cached.at < 60000 && cached.data) return cached.data;
+    } catch (err) {}
     const today = localDay();
     const days = [];
     for (let i = 6; i >= 0; i--) {
@@ -137,13 +164,17 @@
     ]);
     const dayCounts = await Promise.all(days.map((day) => count(classes.visit, { day })));
     const pageCounts = await Promise.all(pageNames.map((page) => count(classes.visit, { page })));
-    return {
+    const result = {
       total,
       unique,
       today: todayCount,
       days: days.map((day, i) => ({ day, count: dayCounts[i] })),
       pages: pageNames.map((page, i) => ({ page, count: pageCounts[i] })),
     };
+    try {
+      sessionStorage.setItem(cacheKey, JSON.stringify({ at: Date.now(), data: result }));
+    } catch (err) {}
+    return result;
   }
 
   async function hallLoad() {
@@ -151,18 +182,20 @@
       request(`/1.1/classes/${classes.candle}?limit=1000`, { method: "GET" }),
       request(`/1.1/classes/${classes.message}?limit=1000&order=-createdAt`, { method: "GET" }),
     ]);
-    const candleMap = {};
+    const candleMap = Object.create(null);
     (candles.results || []).forEach((row) => {
-      if (row.stele) candleMap[row.stele] = Number(row.count) || 0;
+      if (!validStele(row.stele)) return;
+      candleMap[row.stele] = (Number(candleMap[row.stele]) || 0) + (Number(row.count) || 0);
     });
-    const messageMap = {};
+    const messageMap = Object.create(null);
     (messages.results || []).forEach((row) => {
-      if (!row.stele) return;
+      if (!validStele(row.stele)) return;
       if (!messageMap[row.stele]) messageMap[row.stele] = [];
       messageMap[row.stele].push({ text: row.text || "", createdAt: row.createdAt || "" });
     });
     Object.keys(messageMap).forEach((id) => {
-      messageMap[id] = messageMap[id].slice(-20).map((x) => x.text);
+      // API 返回“新 → 旧”；界面需要“旧 → 新”，只保留最新 20 条。
+      messageMap[id] = messageMap[id].slice(0, 20).reverse().map((x) => x.text);
     });
     return { candles: candleMap, messages: messageMap };
   }
@@ -180,6 +213,7 @@
   }
 
   async function hallLight(id) {
+    if (!validStele(id)) throw new Error("无效的碑");
     if (!rateLimit(`candle:${id}`, 1800)) throw new Error("点灯太快了");
     const found = await request(
       `/1.1/classes/${classes.candle}?where=${where({ stele: id })}&limit=1`,
@@ -201,6 +235,7 @@
   }
 
   async function hallMessage(id, text) {
+    if (!validStele(id)) throw new Error("无效的碑");
     const clean = String(text || "").replace(/\s+/g, " ").trim().slice(0, 40);
     if (!clean) throw new Error("留言为空");
     if (!rateLimit(`message:${id}`, 10000)) throw new Error("留言太快了");

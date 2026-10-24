@@ -536,6 +536,10 @@ ok(
     gameSource.includes('choiceOverlay").hidden = true'),
   "自动模式应跳过事件弹窗并继续结算；突破动画路径保持独立"
 );
+ok(
+  gameSource.includes("x.c.donate.min") && gameSource.includes("拿不出灵石"),
+  "自动模式应计算捐赠下限并提供无消耗兜底"
+);
 const focusOutcomes = D.FOCUS.map((f) => {
   const sim = new Sim({ seed: 976, world: "human" });
   sim.state.path = "cultivator";
@@ -578,6 +582,8 @@ ok(
 );
 const parentChain = new Sim({ seed: 1, world: "human" });
 parentChain.state.stones = 1000;
+parentChain.state.path = "cultivator";
+parentChain.state.tier = 1;
 parentChain.state.age = 18;
 parentChain.maybeChain();
 ok(
@@ -585,6 +591,14 @@ ok(
   "人界正常出身应在成年后触发父母链第一节点"
 );
 parentChain.choose(0);
+parentChain.state.age = 33;
+parentChain.maybeChain();
+ok(
+  !parentChain.state.pending &&
+    parentChain.state.eventChains.parent.status !== "ended" &&
+    parentChain.state.eventChains.parent.nextAt >= 35,
+  "父母链在第二节点年龄未到时应等待而不是提前结束"
+);
 parentChain.state.age = 35;
 parentChain.maybeChain();
 ok(
@@ -606,6 +620,8 @@ ok(
   "父母链终局应记录死亡并更新在场状态"
 );
 const partnerChain = new Sim({ seed: 6, world: "human" });
+partnerChain.state.path = "cultivator";
+partnerChain.state.tier = 1;
 partnerChain.state.age = 20;
 partnerChain.state.partner = {
   id: "partner-test",
@@ -628,6 +644,51 @@ const restoredChain = Sim.restore(partnerChain.snapshot());
 ok(
   restoredChain && restoredChain.getNpcStates().partner && restoredChain.state.eventChains.partner,
   "旧存档恢复后应补齐关系链状态"
+);
+const partnerEnd = new Sim({ seed: 16, world: "human" });
+partnerEnd.state.path = "cultivator";
+partnerEnd.state.tier = 8;
+partnerEnd.state.age = 120;
+partnerEnd.state.partner = {
+  id: "partner-end",
+  name: "沈照",
+  alive: true,
+  status: "present",
+  world: "human",
+  since: 30,
+  age: 120,
+  tier: 8,
+};
+partnerEnd.ensureChainState();
+partnerEnd.trigger("chain_partner_3");
+partnerEnd.choose(1);
+ok(partnerEnd.state.partner.status === "separated", "道侣选择分开后应写入 separated 状态");
+partnerEnd.ensureChainState();
+ok(partnerEnd.state.npcStates.partner.present === false, "离开的道侣不应继续显示为在场");
+const discipleEnd = new Sim({ seed: 17, world: "human" });
+discipleEnd.state.path = "cultivator";
+discipleEnd.state.tier = 4;
+discipleEnd.state.age = 150;
+discipleEnd.createDisciple("弟子");
+discipleEnd.ensureChainState();
+discipleEnd.trigger("chain_disciple_3");
+discipleEnd.choose(0);
+ok(discipleEnd.state.disciples[0].status === "graduated", "弟子出师后应写入 graduated 状态");
+ok(
+  discipleEnd.annualUpkeep() === 0,
+  "已出师弟子不应继续计入年度供养"
+);
+const orphanFamily = new Sim({ seed: 18, world: "human" });
+orphanFamily.state.flags.no_parents = true;
+const orphanLine = orphanFamily.familyText("想让爹娘不再受苦");
+ok(
+  !orphanLine.includes("收养你的老人收养") && orphanLine.includes("收养你的老人"),
+  "孤儿家庭称谓替换不应生成病句"
+);
+const partnerRiskChoice = XD.EVENT_BY_ID.chain_partner_2.choices[2];
+ok(
+  partnerRiskChoice && partnerRiskChoice.risk && typeof partnerRiskChoice.risk.p === "number",
+  "道侣链断后选项应使用真正的 choice.risk"
 );
 
 /* 凡人不应被问“修行图什么”。 */
@@ -1168,7 +1229,7 @@ ok(
 );
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
 const eventIds = new Set(XD.EVENTS.map((event) => event.id));
-ok(XD.EVENTS.length >= 3000, `事件池不应异常缩小，实际 ${XD.EVENTS.length}`);
+ok(XD.EVENTS.length === 3115, `事件池应保持 3115 条，实际 ${XD.EVENTS.length}`);
 ok(eventIds.size === XD.EVENTS.length, "事件 ID 必须唯一");
 [
   "root_test",

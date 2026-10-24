@@ -15,7 +15,8 @@ import re
 import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
+import posixpath
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT, "data")
@@ -24,6 +25,20 @@ MAX_BODY = 8192
 MAX_MESSAGE = 40
 MAX_MESSAGES_PER_STELE = 20
 ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+SENSITIVE_PATHS = {
+    "",
+    "server.py",
+    "README.md",
+    "package.json",
+    "node_modules",
+    "docs",
+    "tests",
+    "data",
+    ".git",
+    ".github",
+    ".env",
+    ".tmp",
+}
 
 _LOCK = threading.Lock()
 _RATE: dict[tuple[str, str], list[float]] = {}
@@ -129,6 +144,20 @@ class Handler(SimpleHTTPRequestHandler):
             return None
         return data if isinstance(data, dict) else None
 
+    def _blocked_static(self, raw_path: str) -> bool:
+        """只允许页面、样式、脚本和资源；拒绝仓库元数据与运行时数据。"""
+        path = posixpath.normpath(unquote(raw_path or "/"))
+        if not path.startswith("/"):
+            return True
+        parts = [part for part in path.split("/") if part]
+        if any(part.startswith(".") for part in parts):
+            return True
+        if parts and parts[0] in SENSITIVE_PATHS:
+            return True
+        if len(parts) == 1 and parts[0] in SENSITIVE_PATHS:
+            return True
+        return False
+
     def do_GET(self):
         path = urlparse(self.path).path
         if path == "/api/hall":
@@ -136,10 +165,18 @@ class Handler(SimpleHTTPRequestHandler):
                 state = load_state()
             self._json(200, counts(state))
             return
-        if path.startswith("/data/"):
+        if self._blocked_static(path):
             self._json(404, {"error": "not found"})
             return
         super().do_GET()
+
+    def do_HEAD(self):
+        path = urlparse(self.path).path
+        if self._blocked_static(path):
+            self.send_response(404)
+            self.end_headers()
+            return
+        super().do_HEAD()
 
     def do_POST(self):
         path = urlparse(self.path).path

@@ -151,6 +151,7 @@
         legacy: null,
         focus: "cultivate",
         log: [],
+        milestones: [],
         lastAmbient: null,
         recentAmbient: [],
         stepsSinceEvent: 0,
@@ -302,7 +303,10 @@
     wishSummary() {
       const s = this.state;
       const partnerLost =
-        (s.partner && (s.partner.alive === false || s.partner.status === "estranged")) ||
+        (s.partner &&
+          (s.partner.alive === false ||
+            s.partner.status === "estranged" ||
+            s.partner.status === "left")) ||
         (!s.partner && Array.isArray(s.partnerHistory) && s.partnerHistory.length > 0);
       if (partnerLost) {
         const last =
@@ -322,7 +326,12 @@
       if (s.world === "human" && s.tier > 0 && s.tier < 6) {
         return { type: "ascend", text: "终究没能飞升灵界。" };
       }
-      const livingRival = (s.rivals || []).some((rival) => rival.alive !== false);
+      const livingRival = (s.rivals || []).some(
+        (rival) =>
+          rival.alive !== false &&
+          rival.status !== "reconciled" &&
+          rival.status !== "left"
+      );
       if (Math.abs(s.karma || 0) >= 12 || livingRival) {
         return { type: "karma", text: "还有一段因果没有了结。" };
       }
@@ -543,8 +552,7 @@
           present:
             npc.alive !== false &&
             npc.world === s.world &&
-            npc.status !== "apart" &&
-            npc.status !== "estranged",
+            !["apart", "estranged", "left", "separated", "graduated", "reconciled"].includes(npc.status),
           status: npc.status || "present",
         };
         if (chain.npcKey !== npc.id) {
@@ -591,20 +599,29 @@
         if (!chain || chain.status === "unavailable" || chain.status === "ended") continue;
         if (chain.nextAt && s.age < chain.nextAt) continue;
         const defs = (XD.CHAIN_DEFS && XD.CHAIN_DEFS[role]) || [];
-        const def = defs.find((item) => {
-          if (item.stage !== chain.stage + 1) return false;
-          if (item.minAge && s.age < item.minAge) return false;
-          try {
-            return !item.when || item.when(s, chain);
-          } catch (err) {
-            return false;
-          }
-        });
-        if (!def) {
+        const next = defs.find((item) => item.stage === chain.stage + 1);
+        if (!next) {
           if (chain.stage > 0) chain.status = "ended";
           continue;
         }
-        this.trigger(def.id);
+        if (next.minAge && s.age < next.minAge) {
+          chain.nextAt = Math.max(Number(chain.nextAt) || 0, next.minAge);
+          continue;
+        }
+        let allowed = true;
+        try {
+          allowed = !next.when || next.when(s, chain);
+        } catch (err) {
+          allowed = false;
+        }
+        if (!allowed) {
+          // 下一节点存在，只是当前不在场/不满足条件；保留进度，等条件恢复。
+          chain.status = "paused";
+          chain.nextAt = Math.max(Number(chain.nextAt) || 0, s.age + 1);
+          continue;
+        }
+        if (chain.status === "paused") chain.status = "active";
+        this.trigger(next.id);
         s.lastChainAge = s.age;
         return true;
       }
@@ -842,9 +859,15 @@
         /孤儿|父母.*(死|亡)|散修之后/.test(
           `${s.origin && s.origin.family || ""}${s.origin && s.origin.text || ""}`
         );
+      if (!noParents && s.flags && s.flags.parent_dead) {
+        return String(text)
+          .replace(/父母|爹娘|双亲/g, "家里人")
+          .replace(/母亲|娘/g, "家里人")
+          .replace(/父亲|爹/g, "家里人");
+      }
       if (!noParents) return text;
       return String(text)
-        .replace(/父母/g, "收养你的老人")
+        .replace(/父母|爹娘|双亲/g, "收养你的老人")
         .replace(/母亲|娘/g, "收养你的老人")
         .replace(/父亲|爹/g, "抚养你的人");
     }
@@ -856,6 +879,15 @@
       );
       this.state.log.push(entry);
       return entry;
+    }
+
+    recordMilestone(text, title) {
+      const s = this.state;
+      if (!Array.isArray(s.milestones)) s.milestones = [];
+      const entry = { age: s.age, text, title: title || "" };
+      if (s.milestones.some((x) => x.text === entry.text)) return;
+      s.milestones.push(entry);
+      if (s.milestones.length > 60) s.milestones.shift();
     }
 
     recordText(text) {
@@ -946,7 +978,9 @@
       let upkeep = 0;
       if (s.flags && s.flags.buy_cave) upkeep += 2;
       if (s.flags && s.flags.buy_spirit_field) upkeep += 1;
-      const disciples = (s.disciples || []).filter((d) => d.alive !== false).length;
+      const disciples = (s.disciples || []).filter(
+        (d) => d.alive !== false && d.status !== "graduated" && d.status !== "left"
+      ).length;
       upkeep += disciples * (1 + Math.floor(s.tier / 4));
       if (s.tier >= 6) upkeep += 2;
       return upkeep;
@@ -1000,6 +1034,7 @@
       const s = this.state;
       const p = s.partner;
       if (!p || p.alive === false) return;
+      if (p.status === "separated" || p.status === "left") return;
       if (!Array.isArray(s.partnerHistory)) s.partnerHistory = [];
       if (typeof p.tier !== "number") p.tier = s.tier;
       if (p.tier > 12) p.tier = 12;
@@ -1058,7 +1093,7 @@
       const s = this.state;
       const rng = this.socialRng;
       const tier = Math.max(1, Math.min(12, s.tier - 1));
-      const age = Math.max(8, s.age - rng.int(15, 40));
+      const age = Math.max(8, Math.min(20, Math.max(1, s.age - 1), rng.int(8, 20)));
       const talent = 0.6 + rng.next() * 0.5;
       const gender = rng.chance(0.5) ? "男" : "女";
       const disciple = {
@@ -1119,8 +1154,12 @@
     maybeCreateSocial() {
       const s = this.state;
       if (s.path !== "cultivator" || s.tier <= 0) return;
-      const aliveRivals = s.rivals.filter((x) => x.alive !== false).length;
-      const aliveDisciples = s.disciples.filter((x) => x.alive !== false).length;
+      const aliveDisciples = s.disciples.filter(
+        (x) => x.alive !== false && x.status !== "graduated" && x.status !== "left"
+      ).length;
+      const aliveRivals = s.rivals.filter(
+        (x) => x.alive !== false && x.status !== "reconciled" && x.status !== "left"
+      ).length;
       if (s.tier >= 2 && s.age >= 40 && aliveRivals < 2 && !s.flags.rival_intro) {
         s.flags.rival_intro = true;
         this.createRival();
@@ -1470,6 +1509,7 @@
       this.recordText(text);
       s.stepsSinceEvent = 0;
       this.pushLog("event", text, { title: ev.title });
+      if (ev.chain || ev.major) this.recordMilestone(text, ev.title);
       const rawChoices = typeof ev.choices === "function" ? ev.choices(s) : ev.choices;
       const choices = Array.isArray(rawChoices)
         ? rawChoices.map((choice) =>
@@ -1491,6 +1531,7 @@
         // 弹窗会追加“灵石不足”等临时选项，不能污染全局事件定义。
         choices,
         major: !!ev.major,
+        chain: !!ev.chain,
       };
     }
 
@@ -1633,6 +1674,9 @@
         result.text = shown;
       }
 
+      if (s.pending.major || s.pending.chain) {
+        this.recordMilestone(`你选择了「${choice.label}」。${result.text || ""}`, "抉择");
+      }
       s.pending = null;
       this.apply(effects);
       return result;
@@ -1807,10 +1851,27 @@
           s.partner.status = s.partner.world === s.world ? "present" : "apart";
         }
       }
+      if (s.partner && effects.partnerStatus) {
+        s.partner.status = String(effects.partnerStatus);
+      }
       if (s.partner && effects.partnerMoveToPlayer) {
         s.partner.world = s.world;
         s.partner.place = s.place;
         s.partner.status = "present";
+      }
+      if (effects.discipleStatus) {
+        const key = s.npcStates && s.npcStates.disciple && s.npcStates.disciple.key;
+        const disciple =
+          (s.disciples || []).find((d) => d && d.id === key) ||
+          (s.disciples || []).find((d) => d && d.alive !== false);
+        if (disciple) disciple.status = String(effects.discipleStatus);
+      }
+      if (effects.rivalStatus) {
+        const key = s.npcStates && s.npcStates.rival && s.npcStates.rival.key;
+        const rival =
+          (s.rivals || []).find((r) => r && r.id === key) ||
+          (s.rivals || []).find((r) => r && r.alive !== false);
+        if (rival) rival.status = String(effects.rivalStatus);
       }
       if (typeof effects.discipleAffinity === "number") {
         const key = s.npcStates && s.npcStates.disciple && s.npcStates.disciple.key;
@@ -2068,7 +2129,11 @@
       }
       const karmaLabel = s.karma >= 30 ? "余庆" : s.karma <= -30 ? "业债" : "两清";
       const partnerLine = s.partner
-        ? `身边还有${s.partner.name}。`
+        ? s.partner.status === "separated" || s.partner.status === "left"
+          ? `与${s.partner.name}各走了一段路。`
+          : s.partner.status === "estranged"
+          ? `与${s.partner.name}渐渐生疏。`
+          : `身边还有${s.partner.name}。`
         : s.partnerHistory && s.partnerHistory.length
         ? `${s.partnerHistory[s.partnerHistory.length - 1].name}先走了一步。`
         : "";
@@ -2198,10 +2263,22 @@
 
     summary() {
       const s = this.state;
-      const deeds = s.log
-        .filter((l) => l.kind === "event" || l.kind === "break")
-        .slice(-6)
-        .map((l) => ({ age: l.age, text: l.text, title: l.title || "" }));
+      const milestones = Array.isArray(s.milestones) ? s.milestones : [];
+      const keyMilestones =
+        milestones.length <= 3
+          ? milestones
+          : milestones.slice(0, 2).concat(milestones.slice(-2));
+      const recent = s.log
+        .filter((l) => l.kind === "event" || l.kind === "break" || l.kind === "choice")
+        .slice(-4);
+      const merged = [];
+      [...keyMilestones, ...recent].forEach((l) => {
+        const item = { age: l.age, text: l.text, title: l.title || "" };
+        if (item.text && !merged.some((x) => x.text === item.text && x.age === item.age)) {
+          merged.push(item);
+        }
+      });
+      const deeds = merged.slice(-6);
       return {
         id: "life-" + s.seed,
         seed: s.seed,

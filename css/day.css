@@ -184,6 +184,11 @@ html[data-theme="day"] .end-deeds {
 html[data-theme="day"] .end-deeds h3 {
   color: var(--muted);
 }
+html[data-theme="day"] .stat-card,
+html[data-theme="day"] .stats-panel {
+  background: rgba(255, 253, 248, 0.58);
+  border-color: var(--line);
+}
 html[data-theme="day"] .deed {
   color: var(--text-soft);
   border-color: var(--line);

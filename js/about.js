@@ -14,13 +14,30 @@
     $("dataCount").textContent = `目前本机存有 ${n} 段人生${lineage.total ? `，谱系累计 ${lineage.total} 世` : ""}。${run ? "有一段未完成的人生可继续。" : ""}`;
   }
 
+  function cleanLife(life) {
+    if (!life || typeof life !== "object") return null;
+    const id = String(life.id || `life-${life.seed}`)
+      .replace(/[^A-Za-z0-9_-]/g, "")
+      .slice(0, 64);
+    if (!id) return null;
+    return Object.assign({}, life, {
+      id,
+      age: Number.isFinite(Number(life.age)) ? Math.max(0, Math.floor(Number(life.age))) : 0,
+      name: String(life.name || "无名").slice(0, 40),
+      realm: String(life.realm || "凡人").slice(0, 40),
+      epitaph: String(life.epitaph || "").slice(0, 160),
+    });
+  }
+
   function mergeLives(incoming) {
     const current = U.store.lives();
     const seen = new Set(current.map((life) => life.id || `life-${life.seed}`));
     let added = 0;
-    for (const life of incoming) {
-      const key = life.id || `life-${life.seed}`;
-      if (!key || seen.has(key)) continue;
+    for (const raw of incoming) {
+      const life = cleanLife(raw);
+      if (!life) continue;
+      const key = life.id;
+      if (seen.has(key)) continue;
       seen.add(key);
       current.push(life);
       added += 1;

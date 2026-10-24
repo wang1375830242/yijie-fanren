@@ -283,12 +283,12 @@
     const list = visible();
     wall.innerHTML = list
       .map(
-        (x) => `<button class="wall-stele${x.isLegend ? " is-legend" : ""}" type="button" data-id="${x.id}">
+        (x) => `<button class="wall-stele${x.isLegend ? " is-legend" : ""}" type="button" data-id="${U.esc(x.id)}">
           <div class="st-top"><span>碑</span><span>${U.esc(x.tag)}</span></div>
           <div class="st-name">${U.esc(x.name)}</div>
           <div class="st-sub">${U.esc((D.WORLD_META[x.world] || {}).name || "")} · ${U.esc(x.realm)}</div>
           <p class="st-line">「${U.esc(x.epitaph)}」</p>
-          <div class="st-foot"><span>${x.isMine ? "享年 " + x.age + " 岁" : x.isLegend ? "传说" : "享年 " + x.age + " 岁"}</span><b>${candleCount(x.id)} 灯</b></div>
+          <div class="st-foot"><span>${x.isMine ? "享年 " + U.esc(x.age) + " 岁" : x.isLegend ? "传说" : "享年 " + U.esc(x.age) + " 岁"}</span><b>${candleCount(x.id)} 灯</b></div>
         </button>`
       )
       .join("");
@@ -447,6 +447,25 @@
         U.toast("灯亮了，所有来访的人都能看见");
         return;
       } catch (err) {
+        if (isPublic) {
+          try {
+            const res = await fetch("/api/candle", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: current.id }),
+            });
+            if (!res.ok) throw new Error("candle failed");
+            const data = await res.json();
+            shared.candles[current.id] = Number(data.count) || 0;
+            $("smCandles").textContent = shared.candles[current.id] + " 盏";
+            const flame = $("smCandles").nextElementSibling;
+            if (flame) flame.classList.add("on");
+            updateStats();
+            render();
+            U.toast("灯亮了，所有来访的人都能看见");
+            return;
+          } catch (localErr) {}
+        }
         U.toast("LeanCloud 没有响应，这盏灯只记在本机");
       }
     } else if (isPublic) {
@@ -495,6 +514,25 @@
         U.toast("留在公共碑林了");
         return;
       } catch (err) {
+        if (isPublic) {
+          try {
+            const res = await fetch("/api/message", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: current.id, text: v }),
+            });
+            if (!res.ok) throw new Error("message failed");
+            const data = await res.json();
+            shared.messages[current.id] = Array.isArray(data.messages) ? data.messages : [];
+            $("smMsgInput").value = "";
+            $("smMsgs").innerHTML = messagesFor(current.id)
+              .slice(-6)
+              .map((m) => `<div>${U.esc(m)}</div>`)
+              .join("");
+            U.toast("留在公共碑林了");
+            return;
+          } catch (localErr) {}
+        }
         U.toast("LeanCloud 没有响应，留言只存在本机");
       }
     } else if (isPublic) {

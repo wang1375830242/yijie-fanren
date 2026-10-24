@@ -55,10 +55,12 @@ node tests/changelog-check.js
 当前基线：
 
 ```text
-canon-regression: 360 checks passed
+syntax-check: 21 js files ok
+cloud-check: ok
+canon-regression: 368 checks passed
 220 runs, 0 issues
 pseudo-spirit=0
-natural-ascensions=4
+natural-ascensions=8
 worst-repeat=2
-changelog-check: 22 releases, 57 changes, schema ok
+changelog-check: 23 releases, 61 changes, schema ok
 ```
