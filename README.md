@@ -31,7 +31,7 @@ python server.py
 
 然后打开 <http://127.0.0.1:8765/>。
 
-没有构建步骤，没有 npm 依赖，没有外部字体、CDN 或第三方统计。游戏本身断网也能玩；公共碑林需要 `server.py` 保持运行。
+没有构建步骤，没有 npm 依赖，没有外部字体或 CDN。公共碑林与访问数据由 LeanCloud 后台服务提供；游戏本身断网也能玩。
 
 ## 页面
 
@@ -72,6 +72,7 @@ python server.py
 | `docs/day-theme.md` | 日间主题、主题开关与覆盖范围 |
 | `docs/focus-mechanics.md` | 六种命运重心的收益、代价与解锁时机 |
 | `docs/event-chains.md` | 父母、道侣、弟子、仇敌的关系链与 npcStates |
+| `docs/leancloud-backend.md` | LeanCloud 数据服务、类权限与本地联调 |
 
 ## 这一世怎么算
 
@@ -132,7 +133,7 @@ python server.py
 
 ## 数据与隐私
 
-没有账号，没有埋点。人生记录、速度、柔化模式偏好存在浏览器 `localStorage`：
+没有账号。人生记录、速度、柔化模式偏好存在浏览器 `localStorage`：
 
 - `yijie.lives.v1` — 人生记录
 - `yijie.legacy.v1` — 下一世道果（一次性使用）
@@ -140,7 +141,7 @@ python server.py
 - `yijie.prefs.v1` — 速度、柔化模式等偏好
 - `yijie.messages.v1` / `yijie.candles.v1` — 只在本机模式下使用的留言与灯数
 
-公共碑林：通过 `server.py` 启动时，点灯和留言写入 `data/hall.json`，对所有访客可见；只打开静态文件时，则只存在本机。公共留言是公开的，请不要写真实个人信息。留言没有账号删除功能，部署前请考虑审核/清理策略。
+公共碑林：通过 LeanCloud 后台服务保存点灯与留言；LeanCloud 不可用时退回 `server.py` 或本机模式。访问数据只记录匿名浏览器标识、页面路径与日期，不保存姓名。公共留言是公开的，请不要写真实个人信息。留言没有账号删除功能，部署前请考虑审核/清理策略。
 
 ## 目录
 

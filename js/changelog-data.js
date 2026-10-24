@@ -11,6 +11,20 @@
     updatedAt: "2026-10-24",
     releases: [
       {
+        version: "2.3.0",
+        date: "2026-10-24",
+        title: "接上后台",
+        summary: "公共碑林接入 LeanCloud 数据服务，静态页面不再只能靠本机保存公共互动。",
+        compatibility: "旧存档兼容",
+        changes: [
+          {
+            type: "feature",
+            text: "公共碑林点灯与留言接入 LeanCloud 后台服务，GitHub Pages 在线版可跨访客保存；服务不可用时退回本机模式。",
+            tags: ["后台", "碑林"],
+          },
+        ],
+      },
+      {
         version: "2.2.3",
         date: "2026-10-24",
         title: "终局也见白",

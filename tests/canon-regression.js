@@ -868,6 +868,19 @@ ok(
   dayCss.includes(".end-deeds") && dayCss.includes(".rolling .dial-spin"),
   "日间终局与推演转盘应有独立配色覆盖"
 );
+const leanConfig = fs.readFileSync(path.join(ROOT, "js/lean-config.js"), "utf8");
+const leanCloud = fs.readFileSync(path.join(ROOT, "js/cloud.js"), "utf8");
+const statsPage = fs.readFileSync(path.join(ROOT, "stats.html"), "utf8");
+ok(
+  leanConfig.includes("serverURL") && statsPage.includes("noindex"),
+  "LeanCloud 配置与统计页应存在且不被索引"
+);
+ok(
+  leanCloud.includes("SiteVisit") &&
+    leanCloud.includes("HallCandle") &&
+    leanCloud.includes("HallMessage"),
+  "LeanCloud 适配层应覆盖访问统计和公共碑林"
+);
 ["index.html", "play.html", "hall.html", "codex.html", "about.html", "changelog.html", "404.html"].forEach(
   (file) => {
     const page = fs.readFileSync(path.join(ROOT, file), "utf8");

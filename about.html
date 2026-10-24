@@ -14,13 +14,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0f0b">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="js/theme-init.js?v=20261024jj"></script>
+<script src="js/theme-init.js?v=20261024kk"></script>
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/landing.css">
 <link rel="stylesheet" href="css/hall.css">
 <link rel="stylesheet" href="css/about.css">
-<link rel="stylesheet" href="css/day.css?v=20261024jj">
+<link rel="stylesheet" href="css/day.css?v=20261024kk">
 </head>
 <body class="about-page">
 <noscript><div class="noscript">这个站点需要 JavaScript 才能正常显示。请开启后刷新。</div></noscript>
@@ -123,13 +123,13 @@
     <section id="data">
       <h2>你的数据</h2>
       <p>
-        没有账号，也没有埋点。你的人生记录只存在浏览器的 localStorage 里。换一台设备、
+        没有账号。你的人生记录只存在浏览器的 localStorage 里。换一台设备、
         换一个浏览器，就看不见了。
       </p>
       <p>
-        点灯和留言默认也只在本机。如果通过 <code>server.py</code> 启动，它们会写入本站的
-        <code>data/hall.json</code>，对所有访客可见；只打开静态文件时，则仍然只存在本机。
-        公共碑林是公开的，请不要写真实姓名、住址或其他个人信息。
+        点灯和留言默认也只在本机。公共碑林通过 LeanCloud 后台服务保存，所有访客可见；
+        服务不可用时退回本机或本机服务器。访问数据只记录匿名浏览器标识、页面路径和日期，
+        不保存姓名。公共碑林是公开的，请不要写真实姓名、住址或其他个人信息。
       </p>
       <p>
         如果你清空浏览器数据，本机的人生记录会一起消失；已经写进公共碑林的留言不会被一并删除。
@@ -177,7 +177,7 @@
         会尽快处理。
       </p>
       <p class="tiny dim">
-        设计与实现：一介凡人 · 2026。纯静态页面，无外部依赖，无第三方字体与图片。
+        设计与实现：一介凡人 · 2026。前端为静态页面，公共数据使用 LeanCloud 后台服务；无第三方字体与图片。
       </p>
     </section>
   </article>
@@ -192,7 +192,9 @@
   </div>
 </footer>
 
-<script src="js/common.js?v=20261024jj"></script>
-<script src="js/about.js?v=20261024jj"></script>
+<script src="js/common.js?v=20261024kk"></script>
+<script src="js/lean-config.js?v=20261024kk"></script>
+<script src="js/cloud.js?v=20261024kk"></script>
+<script src="js/about.js?v=20261024kk"></script>
 </body>
 </html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-Hans" data-realm="human">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>访问统计 · 一介凡人</title>
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#0b0f0b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<script src="js/theme-init.js?v=20261024kk"></script>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/stats.css">
+<link rel="stylesheet" href="css/day.css?v=20261024kk">
+</head>
+<body class="stats-page">
+<main class="wrap">
+  <p class="stats-kicker">内部页 · 不参与导航</p>
+  <h1>访问统计</h1>
+  <p class="stats-lead">这一页不会出现在站点导航里，也不会被搜索引擎收录。这里只显示聚合数据，不显示 IP 或具体访客身份。</p>
+
+  <section class="stats-grid" aria-label="访问概览">
+    <div class="stat-card"><span>总访问</span><b id="statTotal">—</b></div>
+    <div class="stat-card"><span>独立访客</span><b id="statUnique">—</b></div>
+    <div class="stat-card"><span>今日访问</span><b id="statToday">—</b></div>
+    <div class="stat-card"><span>数据源</span><b>LC</b></div>
+  </section>
+
+  <section class="stats-panel">
+    <h2>最近 7 天</h2>
+    <div class="stats-table" id="statDays"></div>
+  </section>
+
+  <section class="stats-panel">
+    <h2>页面访问</h2>
+    <div class="stats-table" id="statPages"></div>
+  </section>
+
+  <p class="stats-status" id="statsStatus" aria-live="polite">正在读取 LeanCloud 数据…</p>
+</main>
+<script src="js/lean-config.js?v=20261024kk"></script>
+<script src="js/cloud.js?v=20261024kk"></script>
+<script src="js/stats.js?v=20261024kk"></script>
+</body>
+</html>

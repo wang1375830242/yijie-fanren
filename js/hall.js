@@ -318,6 +318,20 @@
   }
 
   async function loadShared() {
+    if (XD.cloud && XD.cloud.enabled) {
+      try {
+        const data = await XD.cloud.hall.load();
+        shared.candles = data.candles && typeof data.candles === "object" ? data.candles : {};
+        shared.messages = data.messages && typeof data.messages === "object" ? data.messages : {};
+        isPublic = true;
+        setStatus(true);
+        render();
+        if (current) open(current.id);
+        return;
+      } catch (err) {
+        // LeanCloud 不可用时继续尝试本机 server.py，最后退回本机模式。
+      }
+    }
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 2200);
@@ -421,7 +435,21 @@
 
   $("smLight").addEventListener("click", async () => {
     if (!current) return;
-    if (isPublic) {
+    if (XD.cloud && XD.cloud.enabled) {
+      try {
+        const data = await XD.cloud.hall.light(current.id);
+        shared.candles[current.id] = Number(data.count) || 0;
+        $("smCandles").textContent = shared.candles[current.id] + " 盏";
+        const flame = $("smCandles").nextElementSibling;
+        if (flame) flame.classList.add("on");
+        updateStats();
+        render();
+        U.toast("灯亮了，所有来访的人都能看见");
+        return;
+      } catch (err) {
+        U.toast("LeanCloud 没有响应，这盏灯只记在本机");
+      }
+    } else if (isPublic) {
       try {
         const res = await fetch("/api/candle", {
           method: "POST",
@@ -455,7 +483,21 @@
     if (!current) return;
     const v = $("smMsgInput").value.trim();
     if (!v) return U.toast("写一句话再留");
-    if (isPublic) {
+    if (XD.cloud && XD.cloud.enabled) {
+      try {
+        const messages = await XD.cloud.hall.message(current.id, v);
+        shared.messages[current.id] = Array.isArray(messages) ? messages : [];
+        $("smMsgInput").value = "";
+        $("smMsgs").innerHTML = messagesFor(current.id)
+          .slice(-6)
+          .map((m) => `<div>${U.esc(m)}</div>`)
+          .join("");
+        U.toast("留在公共碑林了");
+        return;
+      } catch (err) {
+        U.toast("LeanCloud 没有响应，留言只存在本机");
+      }
+    } else if (isPublic) {
       try {
         const res = await fetch("/api/message", {
           method: "POST",
