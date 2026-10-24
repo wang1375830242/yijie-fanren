@@ -530,6 +530,12 @@ ok(
     gameSource.includes("disabled aria-disabled"),
   "行动栏应显示重心效果并在炼气前禁用"
 );
+ok(
+  gameSource.includes("autoChooseEvent") &&
+    gameSource.includes("if (auto)") &&
+    gameSource.includes('choiceOverlay").hidden = true'),
+  "自动模式应跳过事件弹窗并继续结算；突破动画路径保持独立"
+);
 const focusOutcomes = D.FOCUS.map((f) => {
   const sim = new Sim({ seed: 976, world: "human" });
   sim.state.path = "cultivator";

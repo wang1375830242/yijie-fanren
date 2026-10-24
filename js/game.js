@@ -851,6 +851,38 @@
     }
   }
 
+  function autoChooseEvent(p) {
+    if (!p || !Array.isArray(p.choices) || !p.choices.length) return;
+    const pick = (i, opts) => {
+      autoTimer = setTimeout(() => choose(i, opts), 0);
+    };
+    if (p.id === "i_sanshi_wo") return pick(1);
+    if (p.id.indexOf("i_sanshi_") === 0) return pick(0);
+    if (p.id === "d_node" || p.id === "m_ascend") {
+      const asc = p.choices.findIndex((c) => c.effects && c.effects.ascend);
+      return pick(asc >= 0 ? asc : 0);
+    }
+    const usable = p.choices
+      .map((c, i) => ({ c, i }))
+      .filter((x) => {
+        const cost =
+          x.c.requires && x.c.requires.stones != null
+            ? x.c.requires.stones
+            : x.c.effects && x.c.effects.stones < 0
+            ? -x.c.effects.stones
+            : 0;
+        return cost <= state.stones;
+      });
+    const score = (c) => {
+      if (c.risk && c.risk.fail && c.risk.fail.death) return 1000 + (1 - c.risk.p);
+      if (c.risk) return 10 + (1 - c.risk.p);
+      return 0;
+    };
+    usable.sort((a, b) => score(a.c) - score(b.c));
+    const chosen = usable.length ? usable[0] : { c: p.choices[0], i: 0 };
+    pick(chosen.i, chosen.c.donate ? { donateAmount: chosen.c.donate.min || 10 } : undefined);
+  }
+
   function openPrompt() {
     clearTimeout(autoTimer);
     resetPromptChrome();
@@ -858,6 +890,15 @@
     if (state.pending.kind === "break") return startAutoBreak();
     if (state.pending.kind === "danger") return openDanger();
     const p = state.pending;
+    if (auto) {
+      if (releasePromptTrap) {
+        releasePromptTrap();
+        releasePromptTrap = null;
+      }
+      $("choiceOverlay").hidden = true;
+      autoChooseEvent(p);
+      return;
+    }
     const waitLocked =
       (p.id === "d_node" && (state.flags.wait_spirit_count || 0) >= 3) ||
       (p.id === "m_ascend" && (state.flags.wait_immortal_count || 0) >= 3);
@@ -1482,6 +1523,7 @@
       $("btnAuto").textContent = auto ? "自动中" : "自动";
       $("menuAuto").textContent = `自动抉择：${auto ? "开" : "关"}`;
       toast(auto ? "已开启自动抉择" : "已关闭自动抉择");
+      if (!auto) clearTimeout(autoTimer);
       if (auto && state && state.pending) openPrompt();
     }
     $("btnAuto").addEventListener("click", () => setAuto(!auto));
