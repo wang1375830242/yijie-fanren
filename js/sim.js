@@ -1392,8 +1392,11 @@
 
     canBreak() {
       const t = this.state.tier;
-      // 5→6 需要先在灵界落地；飞升事件会把 world 切到 spirit。
-      if (t === 5) return this.state.world === "spirit";
+      // 5→6 需要先在灵界落地；仙界本地出生没有经过人界飞升，
+      // 允许直接在仙界完成化神→炼虚的门槛，否则会永远卡在化神后期。
+      if (t === 5) {
+        return this.state.world === "spirit" || this.state.startWorld === "immortal";
+      }
       // 8→9、12→13 仍由剧情事件完成，其余境界可正常冲关。
       return (t >= 1 && t <= 4) || (t >= 6 && t <= 7) || (t >= 9 && t <= 11);
     }

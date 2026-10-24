@@ -185,6 +185,13 @@ ascend.state.pending = { kind: "break", chance: 1 };
 ascend.chooseBreak("push");
 ok(ascend.state.tier === 6, "H2 化神之后应能正常突破到炼虚 tier=6");
 ok(ascend.state.world === "spirit", "H2 炼虚仍应留在灵界");
+const immortalBreak = new Sim({ seed: 4, world: "immortal" });
+immortalBreak.state.tier = 5;
+immortalBreak.state.cult = 100;
+ok(
+  immortalBreak.canBreak(),
+  "仙界本地出生的化神后期应能继续突破，而不是卡到寿元耗尽"
+);
 
 /* risk 失败不应再结算成功 effects。 */
 const riskFail = new Sim({ seed: 925, world: "human" });

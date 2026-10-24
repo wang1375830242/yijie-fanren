@@ -11,6 +11,20 @@
     updatedAt: "2026-10-24",
     releases: [
       {
+        version: "2.4.4",
+        date: "2026-10-24",
+        title: "仙界也有前路",
+        summary: "修复仙界本地出生在化神后期无法突破、最终必然寿元耗尽的问题。",
+        compatibility: "旧存档兼容",
+        changes: [
+          {
+            type: "fix",
+            text: "仙界本地出生的化神后期允许突破到炼虚，不再因为身处仙界而永久卡在 tier 5。",
+            tags: ["境界", "仙界"],
+          },
+        ],
+      },
+      {
         version: "2.4.3",
         date: "2026-10-24",
         title: "点灯不打架",
