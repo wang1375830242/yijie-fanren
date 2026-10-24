@@ -193,6 +193,19 @@ html[data-theme="day"] .loading-screen,
 html[data-theme="day"] .screen--birth {
   background: var(--ink-900);
 }
+html[data-theme="day"] .rolling {
+  background: rgba(247, 244, 236, 0.94);
+  color: var(--text);
+  backdrop-filter: blur(4px) saturate(0.95);
+}
+html[data-theme="day"] .rolling .dial-spin {
+  color: var(--jade);
+  opacity: 0.9;
+}
+html[data-theme="day"] .rolling p {
+  color: var(--jade);
+  text-shadow: none;
+}
 
 html[data-theme="day"] .footer {
   border-color: var(--line);
