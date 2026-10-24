@@ -92,3 +92,62 @@ html[data-realm="mortal"] {
   --realm-soft: rgba(164, 155, 131, 0.13);
   --realm-glow: rgba(164, 155, 131, 0.3);
 }
+
+/* 日间主题：暖白纸面，不直接反转夜色 */
+html[data-theme="day"] {
+  --ink-950: #ebe5d8;
+  --ink-900: #f7f4ec;
+  --ink-850: #fffdf8;
+  --ink-800: #f3eee3;
+  --ink-750: #ece5d7;
+  --ink-700: #e4dccd;
+  --ink-600: #d5ccba;
+  --ink-500: #bdb3a0;
+
+  --paper: #fffdf8;
+  --paper-2: #f3eddf;
+  --paper-3: #e5ddcc;
+  --paper-ink: #191d17;
+  --paper-muted: #59665d;
+
+  --text: #1b211c;
+  --text-soft: #344039;
+  --muted: #59665d;
+  --muted-2: #66736a;
+
+  --jade: #2f6b52;
+  --jade-2: #3d8064;
+  --jade-3: #5a9a7a;
+  --cinnabar: #9f3b2d;
+  --cinnabar-2: #b84c3c;
+  --gold: #8a6a2f;
+  --gold-2: #9a7332;
+
+  --line: rgba(27, 33, 28, 0.14);
+  --line-2: rgba(27, 33, 28, 0.22);
+  --line-3: rgba(27, 33, 28, 0.34);
+  --line-ink: rgba(25, 29, 23, 0.16);
+  --shadow-1: 0 2px 0 rgba(36, 42, 35, 0.1);
+  --shadow-2: 0 18px 48px rgba(36, 42, 35, 0.12);
+  --shadow-3: 0 32px 90px rgba(36, 42, 35, 0.18);
+}
+html[data-theme="day"][data-realm="human"] {
+  --realm: #3f7a5e;
+  --realm-soft: rgba(63, 122, 94, 0.13);
+  --realm-glow: rgba(63, 122, 94, 0.25);
+}
+html[data-theme="day"][data-realm="spirit"] {
+  --realm: #4e6fa4;
+  --realm-soft: rgba(78, 111, 164, 0.13);
+  --realm-glow: rgba(78, 111, 164, 0.25);
+}
+html[data-theme="day"][data-realm="immortal"] {
+  --realm: #8a6a2f;
+  --realm-soft: rgba(138, 106, 47, 0.13);
+  --realm-glow: rgba(138, 106, 47, 0.25);
+}
+html[data-theme="day"][data-realm="mortal"] {
+  --realm: #6f6858;
+  --realm-soft: rgba(111, 104, 88, 0.13);
+  --realm-glow: rgba(111, 104, 88, 0.25);
+}

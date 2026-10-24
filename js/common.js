@@ -341,6 +341,53 @@
     document.documentElement.dataset.realm = kind || "human";
   }
 
+  /* ---------- 日间 / 夜间 ---------- */
+  function applyTheme(mode) {
+    const day = mode === "day";
+    const root = document.documentElement;
+    root.dataset.theme = day ? "day" : "night";
+    root.style.colorScheme = day ? "light" : "dark";
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", day ? "#f7f4ec" : "#0b0f0b");
+    document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
+      button.textContent = day ? "夜间" : "日间";
+      button.setAttribute("aria-pressed", day ? "true" : "false");
+      button.setAttribute("aria-label", day ? "切换到夜间主题" : "切换到日间主题");
+    });
+  }
+
+  function toggleTheme() {
+    const next = document.documentElement.dataset.theme === "day" ? "night" : "day";
+    applyTheme(next);
+    store.setPref("theme", next);
+  }
+
+  function theme() {
+    const root = document.documentElement;
+    const current = root.dataset.theme === "day" ? "day" : "night";
+    const targets = [
+      document.querySelector(".nav-links"),
+      document.querySelector(".nav-drawer"),
+    ].filter(Boolean);
+    targets.forEach((parent) => {
+      if (parent.querySelector("[data-theme-toggle]")) return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.themeToggle = "true";
+      button.className = parent.id === "moreMenu" ? "menu-action theme-toggle-more" : "theme-toggle";
+      button.addEventListener("click", toggleTheme);
+      parent.appendChild(button);
+    });
+    applyTheme(current);
+    window.addEventListener("storage", (event) => {
+      if (event.key !== "yijie.prefs.v1") return;
+      try {
+        const prefs = JSON.parse(event.newValue || "{}");
+        applyTheme(prefs.theme === "day" ? "day" : "night");
+      } catch (err) {}
+    });
+  }
+
   /* ---------- 命盘：三界比例（用于落地页 / 出生页） ---------- */
   const WORLD_ODDS = {
     human: 0.962,
@@ -360,11 +407,14 @@
     reveal,
     nav,
     setRealm,
+    applyTheme,
+    toggleTheme,
     WORLD_ODDS,
   };
 
   document.addEventListener("DOMContentLoaded", () => {
     nav();
+    theme();
     reveal();
   });
 })();

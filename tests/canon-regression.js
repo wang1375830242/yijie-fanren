@@ -724,6 +724,18 @@ ok(
   gameSource.includes("lastChartKey") && gameSource.includes("lastMapKey"),
   "人生地图与曲线应按脏键渲染"
 );
+const themeInit = fs.readFileSync(path.join(ROOT, "js/theme-init.js"), "utf8");
+const dayCss = fs.readFileSync(path.join(ROOT, "css/day.css"), "utf8");
+ok(
+  themeInit.includes('dataset.theme = theme') && dayCss.includes('html[data-theme="day"]'),
+  "日间主题应在 CSS 前初始化并提供覆盖样式"
+);
+["index.html", "play.html", "hall.html", "codex.html", "about.html", "changelog.html", "404.html"].forEach(
+  (file) => {
+    const page = fs.readFileSync(path.join(ROOT, file), "utf8");
+    ok(page.includes("theme-init.js") && page.includes("css/day.css"), `${file} 缺少日间主题入口`);
+  }
+);
 const breakBlock = gameSource.slice(
   gameSource.indexOf("function startAutoBreak"),
   gameSource.indexOf("function handleWorldChange")

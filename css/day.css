@@ -1,0 +1,168 @@
+/* ==========================================================================
+   日间主题：只覆盖日间差异，不复制整套暗色样式
+   ========================================================================== */
+
+html[data-theme="day"] body {
+  background: var(--ink-900);
+  color: var(--text);
+}
+html[data-theme="day"] body::before {
+  background:
+    radial-gradient(60vw 50vh at 78% -6%, rgba(63, 122, 94, 0.1), transparent 62%),
+    radial-gradient(50vw 46vh at 8% 12%, rgba(138, 106, 47, 0.08), transparent 60%),
+    linear-gradient(180deg, #faf7ef 0%, #f0eadc 100%);
+}
+html[data-theme="day"] body::after {
+  opacity: 0.025;
+  mix-blend-mode: multiply;
+}
+
+html[data-theme="day"] .nav.is-solid,
+html[data-theme="day"] .nav-drawer {
+  background: rgba(247, 244, 236, 0.94);
+  border-color: var(--line);
+  backdrop-filter: blur(12px) saturate(1.05);
+}
+html[data-theme="day"] .nav-links a:hover,
+html[data-theme="day"] .nav-drawer a:hover {
+  color: var(--jade);
+}
+html[data-theme="day"] .theme-toggle {
+  border-color: var(--line-2);
+  color: var(--text-soft);
+  background: rgba(255, 253, 248, 0.55);
+}
+html[data-theme="day"] .theme-toggle:hover,
+html[data-theme="day"] .theme-toggle:focus-visible {
+  border-color: var(--jade);
+  color: var(--jade);
+}
+
+html[data-theme="day"] .topbar {
+  background: rgba(247, 244, 236, 0.9);
+  border-color: var(--line);
+}
+html[data-theme="day"] .action-bar {
+  background: rgba(255, 253, 248, 0.82);
+  border-color: var(--line);
+}
+html[data-theme="day"] .chip {
+  background: rgba(255, 253, 248, 0.55);
+}
+html[data-theme="day"] .chip.on {
+  background: var(--realm-soft);
+}
+html[data-theme="day"] .changelog-toolbar {
+  background: rgba(247, 244, 236, 0.94);
+}
+html[data-theme="day"] .changelog-toolbar,
+html[data-theme="day"] .cl-search {
+  border-color: var(--line-2);
+}
+
+html[data-theme="day"] .panel {
+  background: linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(243, 238, 227, 0.94));
+  border-color: var(--line);
+  box-shadow: var(--shadow-1);
+}
+html[data-theme="day"] .panel::before,
+html[data-theme="day"] .panel::after {
+  border-color: var(--line-2);
+}
+html[data-theme="day"] .log-entry.k-event .log-text {
+  background: rgba(27, 33, 28, 0.045);
+}
+html[data-theme="day"] .log-entry.k-choice .log-text {
+  color: var(--muted);
+}
+html[data-theme="day"] .log-entry.k-system .log-text,
+html[data-theme="day"] .log-entry.k-break .log-text {
+  color: var(--gold);
+}
+html[data-theme="day"] .choice-resume,
+html[data-theme="day"] .prompt-peek {
+  background: rgba(255, 253, 248, 0.92);
+  color: var(--paper-ink);
+  border-color: var(--line-2);
+}
+
+html[data-theme="day"] .ascend {
+  background: #f3eee3;
+}
+html[data-theme="day"] .ascend-sky {
+  background:
+    radial-gradient(50vw 50vh at 50% 30%, rgba(138, 106, 47, 0.18), transparent 65%),
+    radial-gradient(80vw 60vh at 50% 110%, rgba(63, 122, 94, 0.14), transparent 70%);
+}
+html[data-theme="day"] .ascend-word {
+  color: var(--text);
+  text-shadow: 0 0 44px rgba(138, 106, 47, 0.35);
+}
+html[data-theme="day"] .ascend-sub {
+  color: var(--gold);
+}
+html[data-theme="day"] .ascend-line {
+  background: linear-gradient(180deg, transparent, rgba(138, 106, 47, 0.55), transparent);
+}
+
+html[data-theme="day"] .hall-page,
+html[data-theme="day"] .codex-page {
+  background: var(--ink-900);
+}
+html[data-theme="day"] .codex-item,
+html[data-theme="day"] .cl-change {
+  border-color: var(--line);
+  background: rgba(255, 253, 248, 0.62);
+}
+html[data-theme="day"] .wall-stele {
+  background:
+    linear-gradient(165deg, rgba(138, 106, 47, 0.06), transparent 55%),
+    linear-gradient(180deg, #fffdf8, #f1ebde);
+  border-color: var(--line-2);
+  color: var(--text-soft);
+}
+html[data-theme="day"] .slip-cta:hover {
+  background: #dfd7c8;
+  border-color: #dfd7c8;
+  color: var(--text);
+}
+html[data-theme="day"] .codex-tabs button,
+html[data-theme="day"] .cl-filter,
+html[data-theme="day"] .cl-search {
+  background: rgba(255, 253, 248, 0.55);
+  color: var(--muted);
+}
+html[data-theme="day"] .codex-tabs button.on,
+html[data-theme="day"] .cl-filter.is-active {
+  color: var(--text);
+  background: var(--realm-soft);
+}
+
+html[data-theme="day"] .btn {
+  --btn-fg: var(--text-soft);
+  --btn-bd: var(--line-2);
+}
+html[data-theme="day"] .btn:hover {
+  background: rgba(27, 33, 28, 0.05);
+  color: var(--text);
+}
+html[data-theme="day"] .btn--primary {
+  --btn-fg: #fffaf0;
+}
+
+html[data-theme="day"] .loading-screen,
+html[data-theme="day"] .screen--birth {
+  background: var(--ink-900);
+}
+
+html[data-theme="day"] .footer {
+  border-color: var(--line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="day"] *,
+  html[data-theme="day"] *::before,
+  html[data-theme="day"] *::after {
+    scroll-behavior: auto !important;
+  }
+}

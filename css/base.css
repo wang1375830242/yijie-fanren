@@ -467,6 +467,39 @@ textarea {
 .nav-cta {
   margin-left: 4px;
 }
+.theme-toggle {
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--text-soft);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  border-color: var(--jade);
+  color: var(--text);
+}
+.nav-drawer .theme-toggle,
+.nav-drawer .theme-toggle-more {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  border-color: var(--line);
+  color: var(--text-soft);
+  text-align: left;
+  font-family: var(--kai);
+  font-size: 16px;
+  letter-spacing: 0.12em;
+}
+.nav-drawer .theme-toggle {
+  padding: 14px 0;
+  border-width: 0 0 1px;
+  background: transparent;
+}
 .nav-toggle {
   display: none;
   width: 40px;
