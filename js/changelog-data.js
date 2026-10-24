@@ -11,6 +11,30 @@
     updatedAt: "2026-10-24",
     releases: [
       {
+        version: "2.2.0",
+        date: "2026-10-24",
+        title: "关系有下文",
+        summary: "父母、道侣、弟子、仇敌各有一条真正延续的关系链，不再是随机事件里的一次性过客。",
+        compatibility: "旧存档兼容",
+        changes: [
+          {
+            type: "feature",
+            text: "新增 12 个关键关系链节点：父母 3、道侣 3、弟子 3、仇敌 3；每类绑定一名关键 NPC，节点按前序推进。",
+            tags: ["关系链", "事件"],
+          },
+          {
+            type: "feature",
+            text: "新增 npcStates 与 eventChains 状态：记录关键 NPC 是否在场、链进度、下一次触发时间；旧存档自动补字段。",
+            tags: ["存档", "NPC"],
+          },
+          {
+            type: "improve",
+            text: "关系链事件在主线和随机事件之间按优先级强制推进；全局冷却 3 年，不进入普通随机池。",
+            tags: ["事件", "节奏"],
+          },
+        ],
+      },
+      {
         version: "2.1.0",
         date: "2026-10-24",
         title: "重心看得见",

@@ -52,6 +52,7 @@ for (const file of [
   "js/data.js",
   "js/events.js",
   "js/events-expanded.js",
+  "js/chain-events.js",
   "js/canon-events.js",
   "js/sim.js",
   "js/canon.js",
@@ -285,6 +286,7 @@ ok(
 /* H7：玩家旧瓶不再暗示为掌天瓶。 */
 ok(!eventsSource.includes('title: "小瓶"'), "H7 玩家事件不应再叫“小瓶”");
 const gameSource = fs.readFileSync(path.join(ROOT, "js/game.js"), "utf8");
+const simSource = fs.readFileSync(path.join(ROOT, "js/sim.js"), "utf8");
 const canonSource = fs.readFileSync(path.join(ROOT, "js/canon.js"), "utf8");
 const canonPeopleBlock = canonSource.slice(
   canonSource.indexOf("const C = ["),
@@ -561,6 +563,66 @@ const secludeDangerWeight = focusWeightSim.focusEventWeight({
   choices: [{ label: "迎战" }],
 });
 ok(wanderDangerWeight > secludeDangerWeight, "游历应比蛰伏更容易遇到危险/机缘事件");
+
+/* 关键关系链：12 个节点、父母/道侣/弟子/仇敌各 3 个。 */
+ok(XD.CHAIN_EVENTS.length === 12, "关键关系链应有 12 个节点");
+ok(
+  gameSource.includes("maybeChain") || simSource.includes("maybeChain"),
+  "事件循环应接入关键关系链"
+);
+const parentChain = new Sim({ seed: 1, world: "human" });
+parentChain.state.stones = 1000;
+parentChain.state.age = 18;
+parentChain.maybeChain();
+ok(
+  parentChain.state.pending && parentChain.state.pending.id === "chain_parent_1",
+  "人界正常出身应在成年后触发父母链第一节点"
+);
+parentChain.choose(0);
+parentChain.state.age = 35;
+parentChain.maybeChain();
+ok(
+  parentChain.state.pending && parentChain.state.pending.id === "chain_parent_2",
+  "父母链应按前置节点推进第二节点"
+);
+parentChain.choose(0);
+parentChain.state.age = 55;
+parentChain.maybeChain();
+ok(
+  parentChain.state.pending && parentChain.state.pending.id === "chain_parent_3",
+  "父母链应按前置节点推进第三节点"
+);
+parentChain.choose(0);
+parentChain.ensureChainState();
+ok(
+  parentChain.state.flags.parent_dead === true &&
+    parentChain.state.npcStates.parent.present === false,
+  "父母链终局应记录死亡并更新在场状态"
+);
+const partnerChain = new Sim({ seed: 6, world: "human" });
+partnerChain.state.age = 20;
+partnerChain.state.partner = {
+  id: "partner-test",
+  name: "沈照",
+  alive: true,
+  status: "present",
+  world: "human",
+  since: 20,
+  age: 21,
+  tier: 1,
+};
+partnerChain.ensureChainState();
+partnerChain.state.age = 28;
+partnerChain.maybeChain();
+ok(
+  partnerChain.state.pending && partnerChain.state.pending.id === "chain_partner_1",
+  "道侣存在时应触发道侣链第一节点"
+);
+const restoredChain = Sim.restore(partnerChain.snapshot());
+ok(
+  restoredChain && restoredChain.getNpcStates().partner && restoredChain.state.eventChains.partner,
+  "旧存档恢复后应补齐关系链状态"
+);
 
 /* 凡人不应被问“修行图什么”。 */
 const mortalQuestion = new Sim({ seed: 11, world: "human" });

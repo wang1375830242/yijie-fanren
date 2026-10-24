@@ -127,6 +127,20 @@
         rivals: [],
         discipleHistory: [],
         rivalHistory: [],
+        npcSeq: 0,
+        npcStates: {
+          parent: { key: "parent", present: false, alive: false, lastAt: 0 },
+          partner: null,
+          disciple: null,
+          rival: null,
+        },
+        eventChains: {
+          parent: { npcKey: "parent", stage: 0, nextAt: 0, status: "idle", lastAt: 0 },
+          partner: { npcKey: null, stage: 0, nextAt: 0, status: "idle", lastAt: 0 },
+          disciple: { npcKey: null, stage: 0, nextAt: 0, status: "idle", lastAt: 0 },
+          rival: { npcKey: null, stage: 0, nextAt: 0, status: "idle", lastAt: 0 },
+        },
+        lastChainAge: -999,
         bottle,
         flags: {},
         seen: {},
@@ -164,6 +178,7 @@
       ) {
         this.state.flags.no_parents = true;
       }
+      this.ensureChainState();
       this.state.legacy = this.applyLegacy(legacy);
 
       this.buildPeers();
@@ -454,6 +469,146 @@
         s.sect &&
         !/散修|散仙|凡俗|杂役|天渊城|北寒仙域|青芦苏氏/.test(s.sect)
       );
+    }
+
+    nextNpcId(role) {
+      const s = this.state;
+      s.npcSeq = (Number(s.npcSeq) || 0) + 1;
+      return `${role}-${s.seed}-${s.npcSeq}`;
+    }
+
+    ensureChainState() {
+      const s = this.state;
+      if (!Number.isFinite(Number(s.npcSeq))) s.npcSeq = 0;
+      if (!s.npcStates || typeof s.npcStates !== "object") s.npcStates = {};
+      if (!s.eventChains || typeof s.eventChains !== "object") s.eventChains = {};
+      ["partner", "disciple", "rival"].forEach((role) => {
+        if (s.partner && role === "partner" && !s.partner.id) {
+          s.partner.id = this.nextNpcId("partner");
+        }
+        if (role === "disciple") {
+          s.disciples = Array.isArray(s.disciples) ? s.disciples : [];
+          s.disciples.forEach((npc) => {
+            if (npc && !npc.id) npc.id = this.nextNpcId("disciple");
+          });
+        }
+        if (role === "rival") {
+          s.rivals = Array.isArray(s.rivals) ? s.rivals : [];
+          s.rivals.forEach((npc) => {
+            if (npc && !npc.id) npc.id = this.nextNpcId("rival");
+          });
+        }
+      });
+      if (!s.eventChains.parent) {
+        s.eventChains.parent = {
+          npcKey: "parent",
+          stage: 0,
+          nextAt: s.age >= 18 ? s.age + 8 : 0,
+          status: "idle",
+          lastAt: 0,
+        };
+      }
+      const parentAlive = !(s.flags && s.flags.no_parents) && !(s.flags && s.flags.parent_dead);
+      s.npcStates.parent = {
+        key: "parent",
+        name: "父母",
+        alive: parentAlive,
+        present: parentAlive && s.world === "human",
+        lastAt: (s.npcStates.parent && s.npcStates.parent.lastAt) || 0,
+      };
+      const parentChain = s.eventChains.parent;
+      parentChain.npcKey = "parent";
+      if (!parentAlive) parentChain.status = "unavailable";
+      else if (parentChain.status === "unavailable") parentChain.status = "idle";
+
+      const bind = (role, npc) => {
+        const chain = s.eventChains[role] || {
+          npcKey: null,
+          stage: 0,
+          nextAt: 0,
+          status: "idle",
+          lastAt: 0,
+        };
+        s.eventChains[role] = chain;
+        if (!npc) {
+          s.npcStates[role] = null;
+          if (chain.status === "active") chain.status = "paused";
+          return;
+        }
+        if (!npc.id) npc.id = this.nextNpcId(role);
+        s.npcStates[role] = {
+          key: npc.id,
+          name: npc.name,
+          alive: npc.alive !== false,
+          present:
+            npc.alive !== false &&
+            npc.world === s.world &&
+            npc.status !== "apart" &&
+            npc.status !== "estranged",
+          status: npc.status || "present",
+        };
+        if (chain.npcKey !== npc.id) {
+          chain.npcKey = npc.id;
+          chain.stage = 0;
+          chain.nextAt = s.age + 8;
+          chain.status = "active";
+          chain.lastAt = 0;
+        } else if (chain.status === "paused" && npc.alive !== false) {
+          chain.status = "active";
+        }
+      };
+
+      bind("partner", s.partner);
+      const currentDisciple = (s.disciples || []).find(
+        (d) => d && d.id === (s.eventChains.disciple || {}).npcKey && d.alive !== false
+      );
+      bind(
+        "disciple",
+        currentDisciple || (s.disciples || []).find((d) => d && d.alive !== false) || null
+      );
+      const currentRival = (s.rivals || []).find(
+        (r) => r && r.id === (s.eventChains.rival || {}).npcKey && r.alive !== false
+      );
+      bind(
+        "rival",
+        currentRival || (s.rivals || []).find((r) => r && r.alive !== false) || null
+      );
+      return s.npcStates;
+    }
+
+    getNpcStates() {
+      return this.ensureChainState();
+    }
+
+    maybeChain() {
+      const s = this.state;
+      if (!s || !s.alive || s.pending) return false;
+      this.ensureChainState();
+      if (s.lastChainAge != null && s.age - s.lastChainAge < 3) return false;
+      const roles = ["parent", "partner", "disciple", "rival"];
+      for (const role of roles) {
+        const chain = s.eventChains[role];
+        if (!chain || chain.status === "unavailable" || chain.status === "ended") continue;
+        if (chain.nextAt && s.age < chain.nextAt) continue;
+        const defs = (XD.CHAIN_DEFS && XD.CHAIN_DEFS[role]) || [];
+        const def = defs.find((item) => {
+          if (item.stage !== chain.stage + 1) return false;
+          if (item.minAge && s.age < item.minAge) return false;
+          try {
+            return !item.when || item.when(s, chain);
+          } catch (err) {
+            return false;
+          }
+        });
+        if (!def) {
+          if (chain.stage > 0) chain.status = "ended";
+          continue;
+        }
+        this.trigger(def.id);
+        s.lastChainAge = s.age;
+        return true;
+      }
+      return false;
     }
 
     sectRankName() {
@@ -907,6 +1062,7 @@
       const talent = 0.6 + rng.next() * 0.5;
       const gender = rng.chance(0.5) ? "男" : "女";
       const disciple = {
+        id: this.nextNpcId("disciple"),
         name: rng.pick(D.SURNAMES) + this.pickGivenName(rng, gender),
         gender,
         title: title || "弟子",
@@ -937,6 +1093,7 @@
       const talent = 0.8 + rng.next() * 0.5;
       const gender = rng.chance(0.5) ? "男" : "女";
       const rival = {
+        id: this.nextNpcId("rival"),
         name: rng.pick(D.SURNAMES) + this.pickGivenName(rng, gender),
         gender,
         title: "对手",
@@ -1059,6 +1216,8 @@
       if (!s.pending && this.maybeSectPromotion()) return;
       // 中期「残图」主线：按 flag 强制推进，避免被随机池淹没
       if (!s.pending && this.maybeMainline()) return;
+      // 关键关系链：在主线之后、身份锚点之前推进，不被随机池抽走
+      if (!s.pending && this.maybeChain()) return;
       // 地域/宗门身份锚点：一局各一次，保证玩家能遇见
       if (!s.pending && this.maybeIdentityAnchors()) return;
       // 再一世：前世回响，一局最多一次
@@ -1242,6 +1401,7 @@
       const s = this.state;
       const stage = this.stage();
       let pool = XD.EVENTS.filter((e) => {
+        if (e.chain) return false;
         if (e.id === "root_test") return false;
         // 人界专属事件不能靠各事件自己记得写 world 条件。
         if (
@@ -1290,6 +1450,18 @@
       if (!ev) return;
       const s = this.state;
       if (ev.once) s.seen[id] = true;
+      if (ev.chain) {
+        this.ensureChainState();
+        const chain = s.eventChains[ev.chain.role];
+        if (chain) {
+          chain.stage = ev.chain.stage;
+          chain.lastAt = s.age;
+          chain.nextAt = s.age + Math.max(0, Number(ev.chain.nextGap) || 0);
+          chain.status = "active";
+        }
+        const npc = s.npcStates && s.npcStates[ev.chain.role];
+        if (npc) npc.lastAt = s.age;
+      }
       if (ev.sceneKey) {
         s.recentScenes = (s.recentScenes || []).concat(ev.sceneKey).slice(-6);
       }
@@ -1609,6 +1781,7 @@
         const partnerTalent = 0.85 + this.rng.next() * 0.8;
         const partnerGender = s.gender === "女" ? "男" : "女";
         s.partner = {
+          id: this.nextNpcId("partner"),
           name: this.rng.pick(D.SURNAMES) + this.pickGivenName(this.rng, partnerGender),
           gender: partnerGender,
           title: effects.partner,
@@ -1638,6 +1811,20 @@
         s.partner.world = s.world;
         s.partner.place = s.place;
         s.partner.status = "present";
+      }
+      if (typeof effects.discipleAffinity === "number") {
+        const key = s.npcStates && s.npcStates.disciple && s.npcStates.disciple.key;
+        const disciple =
+          (s.disciples || []).find((d) => d && d.id === key) ||
+          (s.disciples || []).find((d) => d && d.alive !== false);
+        if (disciple) disciple.affinity = clamp((disciple.affinity || 0) + effects.discipleAffinity, 0, 100);
+      }
+      if (typeof effects.rivalHostility === "number") {
+        const key = s.npcStates && s.npcStates.rival && s.npcStates.rival.key;
+        const rival =
+          (s.rivals || []).find((r) => r && r.id === key) ||
+          (s.rivals || []).find((r) => r && r.alive !== false);
+        if (rival) rival.hostility = clamp((rival.hostility || 0) + effects.rivalHostility, 0, 100);
       }
       if (effects.disciple) {
         this.createDisciple(effects.disciple);
@@ -2003,6 +2190,7 @@
       if (!Array.isArray(sim.state.choiceTrace)) sim.state.choiceTrace = [];
       if (!Array.isArray(sim.state.log)) sim.state.log = [];
       if (!Array.isArray(sim.state.history)) sim.state.history = [];
+      sim.ensureChainState();
       sim.rng.setState(run.rng);
       sim.socialRng.setState(run.socialRng);
       return sim;
