@@ -416,7 +416,7 @@
         U.store.setPref("focus", state.focus);
         $("focusChips").querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b));
         $("focusBrief").textContent = `当前：${sim.focusReport().text}`;
-        toast(`重心转为「${b.textContent}」`);
+        toast(`重心转为「${b.textContent}」：${sim.focusReport().text}`);
         saveRun();
       });
     });

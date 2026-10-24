@@ -513,7 +513,13 @@ ok(
   "游历应显示事件与气运/风险效果"
 );
 focusReportSim.state.focus = "sect";
-ok(focusReportSim.focusReport().text.includes("宗门贡献 +2/年"), "宗门重心应显示贡献");
+const sectReport = focusReportSim.focusReport();
+ok(
+  sectReport.text.includes("宗门贡献 +3/年") &&
+    sectReport.text.includes("当前外门") &&
+    sectReport.text.includes("差60贡献升内门"),
+  "宗门重心应显示贡献与下一阶进度"
+);
 focusReportSim.state.focus = "seclude";
 ok(focusReportSim.focusReport().text.includes("危险 -1（风险成功 +2%）"), "蛰伏应显示降险效果");
 ok(
@@ -522,6 +528,39 @@ ok(
     gameSource.includes("disabled aria-disabled"),
   "行动栏应显示重心效果并在炼气前禁用"
 );
+const focusOutcomes = D.FOCUS.map((f) => {
+  const sim = new Sim({ seed: 976, world: "human" });
+  sim.state.path = "cultivator";
+  sim.state.tier = 2;
+  sim.state.age = 200;
+  sim.state.maxAge = 5000;
+  sim.state.cult = 0;
+  sim.state.stones = 0;
+  sim.state.focus = f.key;
+  for (let i = 0; i < 50; i++) sim.yearTick();
+  return { key: f.key, cult: sim.state.cult, stones: sim.state.stones, mood: sim.state.mood };
+});
+ok(
+  new Set(focusOutcomes.map((x) => Math.round(x.cult))).size >= 3,
+  "同一 seed 下不同重心应产生可辨别的修为差异"
+);
+ok(
+  focusOutcomes.find((x) => x.key === "alchemy").stones >
+    focusOutcomes.find((x) => x.key === "cultivate").stones,
+  "炼丹重心长期应带来更多灵石"
+);
+const focusWeightSim = new Sim({ seed: 977, world: "human" });
+focusWeightSim.state.focus = "wander";
+const wanderDangerWeight = focusWeightSim.focusEventWeight({
+  text: "妖兽从林子里冲出来。",
+  choices: [{ label: "迎战" }],
+});
+focusWeightSim.state.focus = "seclude";
+const secludeDangerWeight = focusWeightSim.focusEventWeight({
+  text: "妖兽从林子里冲出来。",
+  choices: [{ label: "迎战" }],
+});
+ok(wanderDangerWeight > secludeDangerWeight, "游历应比蛰伏更容易遇到危险/机缘事件");
 
 /* 凡人不应被问“修行图什么”。 */
 const mortalQuestion = new Sim({ seed: 11, world: "human" });

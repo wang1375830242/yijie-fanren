@@ -403,6 +403,12 @@
       return D.FOCUS.find((f) => f.key === this.state.focus) || D.FOCUS[0];
     }
 
+    sectContribPerYear() {
+      const s = this.state;
+      const focusBonus = s.focus === "sect" ? 2 : 1;
+      return Math.max(1, Math.round((2 + Math.floor(s.tier / 2)) * 0.5 * focusBonus));
+    }
+
     focusReport() {
       const s = this.state;
       const f = this.focusDef();
@@ -410,10 +416,10 @@
       const parts = [
         `修为 ×${(Number(f.cult) || 1).toFixed(2)}`,
         `灵石 ${income >= 0 ? "+" : ""}${income}/年`,
+        `心境 ${f.mood ? (f.mood > 0 ? "+" : "") + f.mood : "+0"}/年`,
       ];
-      if (f.mood) parts.push(`心境 ${f.mood > 0 ? "+" : ""}${f.mood}/年`);
       if (f.insight) parts.push(`悟性 +1（${Math.round(f.insight * 100)}%/年）`);
-      if (f.event) parts.push(`遇事率 ×${f.event}`);
+      parts.push(f.event ? `遇事率 ×${f.event}` : "遇事率 基准");
       if (f.luck) parts.push(`风险成功 +${f.luck * 3}%`);
       if (f.risk) {
         const sign = f.risk > 0 ? "+" : "";
@@ -421,8 +427,14 @@
         parts.push(`危险 ${sign}${f.risk}（风险成功 ${effect}${Math.abs(f.risk) * 2}%）`);
       }
       if (f.key === "sect" && this.isSectMember()) {
-        const gain = Math.max(1, Math.round((2 + Math.floor(s.tier / 2)) * 0.5));
+        const gain = this.sectContribPerYear();
+        const rankIndex = s.sectRank >= 0 ? s.sectRank : 0;
+        const rank = D.SECT_RANKS[rankIndex] || D.SECT_RANKS[0];
+        const next = D.SECT_RANKS[rankIndex + 1];
         parts.push(`宗门贡献 +${gain}/年`);
+        parts.push(
+          `当前${rank.name}${next ? ` · 差${Math.max(0, next.need - (s.sectContrib || 0))}贡献升${next.name}` : " · 已至最高"}`
+        );
       } else if (f.key === "sect") {
         parts.push("宗门贡献：入宗后生效");
       }
@@ -469,9 +481,12 @@
       const stepYears = Math.max(1, s.lastStepYears || 1);
       const years = Math.min(8, stepYears);
       const rank = D.SECT_RANKS[s.sectRank] || D.SECT_RANKS[0];
-      s.stones += (rank.share || 0) * stepYears;
+      const shareBonus = s.focus === "sect" ? 1.35 : 1;
+      s.stones += (rank.share || 0) * stepYears * shareBonus;
       if (s.focus === "sect") {
-        s.sectContrib += Math.max(1, Math.round((2 + Math.floor(s.tier / 2)) * years * 0.5));
+        const focusBonus = 2;
+        const gain = Math.round((2 + Math.floor(s.tier / 2)) * years * 0.5 * focusBonus);
+        s.sectContrib += Math.min(40, Math.max(1, gain));
       }
       let target = s.sectRank;
       for (let i = target + 1; i < D.SECT_RANKS.length; i++) {
@@ -1083,8 +1098,34 @@
         0.08,
         0.5
       );
-      if ((this.state.stepsSinceEvent || 0) >= 2) return Math.max(baseChance, 0.45);
+      if ((this.state.stepsSinceEvent || 0) >= 2) {
+        return clamp(
+          Math.max(baseChance, 0.45) + (f.event || 0) * 0.02 + (f.risk || 0) * 0.01,
+          0.1,
+          0.6
+        );
+      }
       return baseChance;
+    }
+
+    focusEventWeight(event) {
+      const f = this.focusDef();
+      let text = "";
+      try {
+        text = String(typeof event.text === "function" ? event.text(this.state) : event.text || "");
+      } catch (err) {}
+      if (Array.isArray(event.choices)) {
+        text += " " + event.choices.map((c) => c && c.label || "").join(" ");
+      }
+      const danger = /战|杀|魔|妖|兽|劫|追|血|尸|毒|敌|险|乱|攻|斗|噬|鬼/.test(text);
+      const fortune = /机缘|宝|灵药|奇遇|古洞|秘境|仙缘|福|拍卖|传承|功法|丹/.test(text);
+      let weight = 1;
+      if (f.luck) weight *= 1 + (fortune ? 0.15 * f.luck : 0);
+      if (f.risk > 0 && danger) weight *= 1 + 0.15 * f.risk;
+      if (f.risk < 0 && danger) weight *= Math.max(0.2, 1 + 0.3 * f.risk);
+      if (f.key === "wander" && fortune) weight *= 1.15;
+      if (f.key === "seclude" && danger) weight *= 0.75;
+      return weight;
     }
 
     maybeAgeQuestion() {
@@ -1240,7 +1281,7 @@
       else return null;
       return this.rng.weighted(pool, (e) => {
         const trait = e.tone && s.traits ? s.traits[e.tone] || 0 : 0;
-        return (e.w || 1) * (1 + Math.min(0.75, trait * 0.06));
+        return (e.w || 1) * (1 + Math.min(0.75, trait * 0.06)) * this.focusEventWeight(e);
       });
     }
 
