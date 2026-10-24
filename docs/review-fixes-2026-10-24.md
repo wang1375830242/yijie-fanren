@@ -36,10 +36,10 @@
 ```text
 syntax-check: 21 js files ok
 cloud-check: ok
-canon-regression: 368 checks passed
+canon-regression: 369 checks passed
 220 runs, 0 issues
 natural-ascensions=8
-changelog-check: 24 releases, 62 changes
+changelog-check: 25 releases, 63 changes
 ```
 
 ## 仍然需要服务端的部分

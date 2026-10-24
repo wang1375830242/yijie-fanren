@@ -144,6 +144,7 @@
         bottle,
         flags: {},
         seen: {},
+        recentEvents: [],
         textUse: {},
         sceneTotal: {},
         sceneUses: {},
@@ -1461,6 +1462,9 @@
         }
       });
       const beforeTextFilter = pool;
+      const recentEvents = new Set((s.recentEvents || []).slice(-12));
+      const notRecent = pool.filter((e) => !recentEvents.has(e.id));
+      if (notRecent.length) pool = notRecent;
       pool = pool.filter((e) => {
         try {
           const text = typeof e.text === "function" ? e.text(s) : e.text;
@@ -1489,6 +1493,7 @@
       if (!ev) return;
       const s = this.state;
       if (ev.once) s.seen[id] = true;
+      s.recentEvents = (s.recentEvents || []).concat(id).slice(-12);
       if (ev.chain) {
         this.ensureChainState();
         const chain = s.eventChains[ev.chain.role];

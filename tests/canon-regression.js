@@ -577,6 +577,11 @@ ok(wanderDangerWeight > secludeDangerWeight, "游历应比蛰伏更容易遇到�
 /* 关键关系链：12 个节点、父母/道侣/弟子/仇敌各 3 个。 */
 ok(XD.CHAIN_EVENTS.length === 12, "关键关系链应有 12 个节点");
 ok(
+  XD.EVENT_BY_ID.homage_immortal_snow &&
+    XD.EVENT_BY_ID.homage_immortal_snow.once === true,
+  "致敬事件应是一次性事件，避免同一旧亭反复出现"
+);
+ok(
   gameSource.includes("maybeChain") || simSource.includes("maybeChain"),
   "事件循环应接入关键关系链"
 );

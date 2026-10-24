@@ -21,6 +21,7 @@
     event.source = "homage";
     event.quote = "";
     event.review = "homage-only";
+    event.once = true;
     E.push(event);
     XD.EVENT_BY_ID[event.id] = event;
   }

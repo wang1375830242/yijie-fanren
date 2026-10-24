@@ -57,10 +57,10 @@ node tests/changelog-check.js
 ```text
 syntax-check: 21 js files ok
 cloud-check: ok
-canon-regression: 368 checks passed
+canon-regression: 369 checks passed
 220 runs, 0 issues
 pseudo-spirit=0
 natural-ascensions=8
 worst-repeat=2
-changelog-check: 24 releases, 62 changes, schema ok
+changelog-check: 25 releases, 63 changes, schema ok
 ```
