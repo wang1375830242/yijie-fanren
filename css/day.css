@@ -177,6 +177,21 @@ html[data-theme="day"] .cl-filter.is-active {
   background: var(--realm-soft);
 }
 
+html[data-theme="day"] .end-deeds {
+  background: rgba(255, 253, 248, 0.72);
+  border-color: var(--line);
+}
+html[data-theme="day"] .end-deeds h3 {
+  color: var(--muted);
+}
+html[data-theme="day"] .deed {
+  color: var(--text-soft);
+  border-color: var(--line);
+}
+html[data-theme="day"] .deed-age {
+  color: var(--muted-2);
+}
+
 html[data-theme="day"] .btn {
   --btn-fg: var(--text-soft);
   --btn-bd: var(--line-2);

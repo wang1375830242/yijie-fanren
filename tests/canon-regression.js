@@ -864,6 +864,10 @@ ok(
   themeInit.includes('dataset.theme = theme') && dayCss.includes('html[data-theme="day"]'),
   "日间主题应在 CSS 前初始化并提供覆盖样式"
 );
+ok(
+  dayCss.includes(".end-deeds") && dayCss.includes(".rolling .dial-spin"),
+  "日间终局与推演转盘应有独立配色覆盖"
+);
 ["index.html", "play.html", "hall.html", "codex.html", "about.html", "changelog.html", "404.html"].forEach(
   (file) => {
     const page = fs.readFileSync(path.join(ROOT, file), "utf8");
