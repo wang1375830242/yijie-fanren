@@ -500,6 +500,29 @@ const beforeMood = moodSim.state.mood;
 moodSim.yearTick();
 ok(moodSim.state.mood < beforeMood, "M10 苦修应带来心境损耗");
 
+const focusReportSim = new Sim({ seed: 975, world: "human" });
+focusReportSim.state.path = "cultivator";
+focusReportSim.state.tier = 2;
+focusReportSim.state.sect = "黄枫谷";
+focusReportSim.state.focus = "wander";
+const wanderReport = focusReportSim.focusReport();
+ok(
+  wanderReport.text.includes("遇事率 ×1.5") &&
+    wanderReport.text.includes("风险成功 +3%") &&
+    wanderReport.text.includes("危险 +1"),
+  "游历应显示事件与气运/风险效果"
+);
+focusReportSim.state.focus = "sect";
+ok(focusReportSim.focusReport().text.includes("宗门贡献 +2/年"), "宗门重心应显示贡献");
+focusReportSim.state.focus = "seclude";
+ok(focusReportSim.focusReport().text.includes("危险 -1（风险成功 +2%）"), "蛰伏应显示降险效果");
+ok(
+  gameSource.includes("focusBrief") &&
+    gameSource.includes("focusReport()") &&
+    gameSource.includes("disabled aria-disabled"),
+  "行动栏应显示重心效果并在炼气前禁用"
+);
+
 /* 凡人不应被问“修行图什么”。 */
 const mortalQuestion = new Sim({ seed: 11, world: "human" });
 mortalQuestion.state.path = "mortal";

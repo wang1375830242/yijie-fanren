@@ -403,6 +403,37 @@
       return D.FOCUS.find((f) => f.key === this.state.focus) || D.FOCUS[0];
     }
 
+    focusReport() {
+      const s = this.state;
+      const f = this.focusDef();
+      const income = this.annualIncome();
+      const parts = [
+        `修为 ×${(Number(f.cult) || 1).toFixed(2)}`,
+        `灵石 ${income >= 0 ? "+" : ""}${income}/年`,
+      ];
+      if (f.mood) parts.push(`心境 ${f.mood > 0 ? "+" : ""}${f.mood}/年`);
+      if (f.insight) parts.push(`悟性 +1（${Math.round(f.insight * 100)}%/年）`);
+      if (f.event) parts.push(`遇事率 ×${f.event}`);
+      if (f.luck) parts.push(`风险成功 +${f.luck * 3}%`);
+      if (f.risk) {
+        const sign = f.risk > 0 ? "+" : "";
+        const effect = f.risk > 0 ? "-" : "+";
+        parts.push(`危险 ${sign}${f.risk}（风险成功 ${effect}${Math.abs(f.risk) * 2}%）`);
+      }
+      if (f.key === "sect" && this.isSectMember()) {
+        const gain = Math.max(1, Math.round((2 + Math.floor(s.tier / 2)) * 0.5));
+        parts.push(`宗门贡献 +${gain}/年`);
+      } else if (f.key === "sect") {
+        parts.push("宗门贡献：入宗后生效");
+      }
+      return {
+        key: f.key,
+        name: f.name,
+        income,
+        text: parts.join(" · "),
+      };
+    }
+
     isSectMember() {
       const s = this.state;
       return !!(
@@ -1047,7 +1078,11 @@
       const f = this.focusDef();
       const years = Math.max(1, this.state.lastStepYears || 1);
       const scale = Math.min(2.5, 1 + Math.log10(years));
-      const baseChance = clamp((0.14 + (f.event || 0) * 0.05) * scale, 0.08, 0.5);
+      const baseChance = clamp(
+        (0.14 + (f.event || 0) * 0.05 + (f.risk || 0) * 0.01) * scale,
+        0.08,
+        0.5
+      );
       if ((this.state.stepsSinceEvent || 0) >= 2) return Math.max(baseChance, 0.45);
       return baseChance;
     }
@@ -1333,8 +1368,17 @@
         typeof choice.outcome === "function"
           ? choice.outcome(s, donateAmount)
           : choice.outcome || "";
+      const focus = this.focusDef();
       const riskChance = choice.risk
-        ? clamp(choice.risk.p + 0.34 + (s.luck - 50) * 0.002, 0.12, 0.96)
+        ? clamp(
+            choice.risk.p +
+              0.34 +
+              (s.luck - 50) * 0.002 +
+              (Number(focus.luck) || 0) * 0.03 -
+              (Number(focus.risk) || 0) * 0.02,
+            0.12,
+            0.96
+          )
         : 1;
       if (choice.risk && this.rng.chance(riskChance)) {
         // 成功

@@ -874,6 +874,19 @@ body:not(.in-life) #btnAuto {
   background: rgba(14, 18, 13, 0.72);
   flex: 0 0 auto;
 }
+.focus-brief {
+  flex: 1 0 100%;
+  margin: 0;
+  font-family: var(--kai);
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 .action-label {
   font-family: var(--kai);
   font-size: 12px;

@@ -395,21 +395,27 @@
      ====================================================================== */
   function renderActionBar() {
     const bar = document.querySelector(".action-bar");
-    bar.innerHTML = `<span class="action-label">命运的重心</span><div class="chips" id="focusChips"></div><button class="btn btn--sm" id="btnShop" type="button">货栈</button>`;
+    bar.innerHTML = `<span class="action-label">命运的重心</span><div class="chips" id="focusChips"></div><button class="btn btn--sm" id="btnShop" type="button">货栈</button><p class="focus-brief" id="focusBrief" aria-live="polite"></p>`;
     if (state.path === "mortal") {
       bar.innerHTML =
         '<span class="action-label">凡人的日子</span><span class="tiny dim" style="font-family:var(--kai);letter-spacing:.08em">此身凡骨，日子只能一天一天地过。</span>';
       return;
     }
+    const locked = state.tier === 0;
     $("focusChips").innerHTML = D.FOCUS.map(
       (f) =>
-        `<button class="chip${f.key === state.focus ? " on" : ""}" data-focus="${f.key}" type="button" title="${U.esc(f.desc)}">${f.name}</button>`
+        `<button class="chip${f.key === state.focus ? " on" : ""}" data-focus="${f.key}" type="button" title="${U.esc(f.desc)}"${locked ? ' disabled aria-disabled="true"' : ""}>${f.name}</button>`
     ).join("");
+    $("focusBrief").textContent = locked
+      ? "炼气后开启：重心决定每年修为、灵石与机缘的偏向。"
+      : `当前：${sim.focusReport().text}`;
     $("focusChips").querySelectorAll(".chip").forEach((b) => {
       b.addEventListener("click", () => {
+        if (locked) return;
         state.focus = b.dataset.focus;
         U.store.setPref("focus", state.focus);
         $("focusChips").querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b));
+        $("focusBrief").textContent = `当前：${sim.focusReport().text}`;
         toast(`重心转为「${b.textContent}」`);
         saveRun();
       });
