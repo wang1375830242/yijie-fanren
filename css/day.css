@@ -42,6 +42,22 @@ html[data-theme="day"] .topbar {
   background: rgba(247, 244, 236, 0.9);
   border-color: var(--line);
 }
+html[data-theme="day"] .hero-mountains svg path:first-child {
+  fill: #5b6e5f;
+}
+html[data-theme="day"] .hero-mountains svg path:last-child {
+  fill: #3e5146;
+}
+html[data-theme="day"] .hero-title,
+html[data-theme="day"] .counter strong,
+html[data-theme="day"] .hall-stats b,
+html[data-theme="day"] .stele-name,
+html[data-theme="day"] .wall-stele .st-name {
+  color: var(--text);
+}
+html[data-theme="day"] .wall-stele.is-legend .st-name {
+  color: var(--gold);
+}
 html[data-theme="day"] .action-bar {
   background: rgba(255, 253, 248, 0.82);
   border-color: var(--line);
@@ -54,6 +70,29 @@ html[data-theme="day"] .chip.on {
 }
 html[data-theme="day"] .changelog-toolbar {
   background: rgba(247, 244, 236, 0.94);
+}
+html[data-theme="day"] .cl-toolbar {
+  background: rgba(247, 244, 236, 0.94);
+  border-color: var(--line);
+}
+html[data-theme="day"] .cl-search {
+  background: rgba(255, 253, 248, 0.92);
+  border-color: var(--line-2);
+}
+html[data-theme="day"] .cl-search input {
+  color: var(--text);
+}
+html[data-theme="day"] .cl-search input::placeholder {
+  color: var(--muted);
+}
+html[data-theme="day"] .cl-filter {
+  background: rgba(255, 253, 248, 0.72);
+  border-color: var(--line-2);
+  color: var(--muted);
+}
+html[data-theme="day"] .cl-filter.is-active {
+  background: var(--realm-soft);
+  color: var(--text);
 }
 html[data-theme="day"] .changelog-toolbar,
 html[data-theme="day"] .cl-search {

@@ -349,6 +349,7 @@
     root.style.colorScheme = day ? "light" : "dark";
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", day ? "#f7f4ec" : "#0b0f0b");
+    document.dispatchEvent(new CustomEvent("xd:theme", { detail: { theme: day ? "day" : "night" } }));
     document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
       button.textContent = day ? "夜间" : "日间";
       button.setAttribute("aria-pressed", day ? "true" : "false");

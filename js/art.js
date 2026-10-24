@@ -166,32 +166,32 @@
     const gid = "g" + (id || Math.floor(Math.random() * 1e6));
     if (world === "spirit") {
       return `<svg viewBox="0 0 320 120" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fa8d6" stop-opacity=".18"/><stop offset="1" stop-color="#0e1512" stop-opacity="0"/></linearGradient></defs>
+        <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--scene-spirit-sky)" stop-opacity=".22"/><stop offset="1" stop-color="#0e1512" stop-opacity="0"/></linearGradient></defs>
         <rect width="320" height="120" fill="url(#${gid})"/>
         <circle cx="248" cy="34" r="13" fill="#dfe6f5" opacity=".5"/>
         <circle cx="210" cy="48" r="6" fill="#dfe6f5" opacity=".3"/>
-        <path d="M0 92 L44 70 L70 84 L104 58 L132 82 L160 68 L196 92 L320 76 L320 120 L0 120Z" fill="#0a0f0c" opacity=".85"/>
-        <path d="M0 104 L60 88 L96 100 L150 84 L210 102 L268 88 L320 100 L320 120 L0 120Z" fill="#070a08"/>
+        <path d="M0 92 L44 70 L70 84 L104 58 L132 82 L160 68 L196 92 L320 76 L320 120 L0 120Z" fill="var(--scene-spirit-1)" opacity=".85"/>
+        <path d="M0 104 L60 88 L96 100 L150 84 L210 102 L268 88 L320 100 L320 120 L0 120Z" fill="var(--scene-spirit-2)"/>
         <path d="M120 60 q18 -8 36 0" stroke="#a9c0e6" stroke-width="0.6" fill="none" opacity=".35"/>
       </svg>`;
     }
     if (world === "immortal") {
       return `<svg viewBox="0 0 320 120" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8bd7c" stop-opacity=".2"/><stop offset="1" stop-color="#0e1512" stop-opacity="0"/></linearGradient></defs>
+        <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--scene-immortal-sky)" stop-opacity=".24"/><stop offset="1" stop-color="#0e1512" stop-opacity="0"/></linearGradient></defs>
         <rect width="320" height="120" fill="url(#${gid})"/>
         <circle cx="266" cy="30" r="18" fill="#f6ecc9" opacity=".55"/>
-        <path d="M0 88 Q60 72 120 84 T240 78 T320 86 L320 120 L0 120Z" fill="#0a0f0c" opacity=".8"/>
-        <path d="M96 78 h34 l-6 -8 h-22Z" fill="#070a08"/>
-        <path d="M104 70 h18 l-9 -10Z" fill="#070a08"/>
+        <path d="M0 88 Q60 72 120 84 T240 78 T320 86 L320 120 L0 120Z" fill="var(--scene-immortal-1)" opacity=".8"/>
+        <path d="M96 78 h34 l-6 -8 h-22Z" fill="var(--scene-immortal-2)"/>
+        <path d="M104 70 h18 l-9 -10Z" fill="var(--scene-immortal-2)"/>
         <path d="M60 96 Q110 88 160 96 T260 94 T320 98" stroke="#d8bd7c" stroke-width="0.7" fill="none" opacity=".3"/>
       </svg>`;
     }
     return `<svg viewBox="0 0 320 120" preserveAspectRatio="none" aria-hidden="true">
-      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86a083" stop-opacity=".18"/><stop offset="1" stop-color="#0e1512" stop-opacity="0"/></linearGradient></defs>
+      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--scene-human-sky)" stop-opacity=".2"/><stop offset="1" stop-color="#0e1512" stop-opacity="0"/></linearGradient></defs>
       <rect width="320" height="120" fill="url(#${gid})"/>
       <circle cx="256" cy="30" r="16" fill="#e9e3d3" opacity=".38"/>
-      <path d="M0 86 L38 58 L66 78 L96 46 L128 76 L158 62 L190 86 L226 70 L260 88 L320 74 L320 120 L0 120Z" fill="#0a0f0c" opacity=".85"/>
-      <path d="M0 100 L54 84 L92 96 L140 82 L196 98 L246 86 L320 98 L320 120 L0 120Z" fill="#070a08"/>
+      <path d="M0 86 L38 58 L66 78 L96 46 L128 76 L158 62 L190 86 L226 70 L260 88 L320 74 L320 120 L0 120Z" fill="var(--scene-human-1)" opacity=".85"/>
+      <path d="M0 100 L54 84 L92 96 L140 82 L196 98 L246 86 L320 98 L320 120 L0 120Z" fill="var(--scene-human-2)"/>
     </svg>`;
   }
 

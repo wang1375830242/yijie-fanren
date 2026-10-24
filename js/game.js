@@ -729,7 +729,11 @@
       const age = (i / cells) * max;
       const t = age <= s.age ? tierAt(age) : null;
       const color = t == null ? null : D.REALMS[t].color;
-      html += `<span class="map-cell" title="${t == null ? "未至" : age.toFixed(0) + "岁 · " + D.REALMS[t].name}" style="background:${color || "rgba(255,255,255,.035)"};opacity:${t == null ? 1 : 0.85}"></span>`;
+      const emptyColor =
+        document.documentElement.dataset.theme === "day"
+          ? "rgba(27,33,28,.06)"
+          : "rgba(255,255,255,.035)";
+      html += `<span class="map-cell" title="${t == null ? "未至" : age.toFixed(0) + "岁 · " + D.REALMS[t].name}" style="background:${color || emptyColor};opacity:${t == null ? 1 : 0.85}"></span>`;
     }
     $("mapGrid").innerHTML = html;
     $("mapScale").textContent = `一格 ≈ ${Math.max(1, Math.round(max / cells))} 年`;
@@ -1530,6 +1534,11 @@
     });
     $("btnShare").addEventListener("click", drawShareCard);
     window.addEventListener("pagehide", () => saveRun(true));
+    document.addEventListener("xd:theme", () => {
+      if (!sim || !state) return;
+      lastMapKey = "";
+      refreshAll();
+    });
     $("btnHall").addEventListener("click", () => (location.href = "hall.html"));
     $("btnAgain").addEventListener("click", () => {
       U.store.clearRun();

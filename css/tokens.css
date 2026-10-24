@@ -41,6 +41,17 @@
   --realm-soft: rgba(127, 178, 155, 0.16);
   --realm-glow: rgba(127, 178, 155, 0.35);
 
+  /* 山水插画（由主题切换） */
+  --scene-human-1: #0a0f0c;
+  --scene-human-2: #070a08;
+  --scene-human-sky: #86a083;
+  --scene-spirit-1: #0a0f0c;
+  --scene-spirit-2: #070a08;
+  --scene-spirit-sky: #8fa8d6;
+  --scene-immortal-1: #0a0f0c;
+  --scene-immortal-2: #070a08;
+  --scene-immortal-sky: #d8bd7c;
+
   /* 线 */
   --line: rgba(233, 227, 211, 0.12);
   --line-2: rgba(233, 227, 211, 0.2);
@@ -122,6 +133,16 @@ html[data-theme="day"] {
   --cinnabar-2: #b84c3c;
   --gold: #8a6a2f;
   --gold-2: #9a7332;
+
+  --scene-human-1: #5b6e5f;
+  --scene-human-2: #3e5146;
+  --scene-human-sky: #86a083;
+  --scene-spirit-1: #5a6f8e;
+  --scene-spirit-2: #3f526a;
+  --scene-spirit-sky: #8fa8d6;
+  --scene-immortal-1: #7c6b4c;
+  --scene-immortal-2: #5a4b34;
+  --scene-immortal-sky: #d8bd7c;
 
   --line: rgba(27, 33, 28, 0.14);
   --line-2: rgba(27, 33, 28, 0.22);
