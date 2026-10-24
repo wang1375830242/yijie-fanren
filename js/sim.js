@@ -1170,7 +1170,7 @@
         // 人界专属事件不能靠各事件自己记得写 world 条件。
         if (
           s.world !== "human" &&
-          /^(c_|q_|f_|h_|g_h_|age_|root_|p_mortal$)/.test(e.id)
+          /^(c_|q_|f_|h_|g_h_|age_|root_|n_|p_mortal$)/.test(e.id)
         ) {
           return false;
         }

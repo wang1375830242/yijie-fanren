@@ -584,7 +584,7 @@
 
   add({
     id: "q_valley",
-    when: (s) => s.tier >= 1 && s.tier <= 2 && s.age >= 20 && s.sect && s.sect !== "散修",
+    when: (s) => s.world === "human" && s.tier === 1 && s.age >= 20 && s.sect && s.sect !== "散修",
     w: 8,
     title: "落霞谷",
     text: "宗门开了落霞谷，只放炼气后期以下的弟子进去七日。谷里有灵药，也有别人。进去的人，出来时往往少几个。",
@@ -1329,7 +1329,7 @@
 
   add({
     id: "n_disciple",
-    when: (s) => s.tier >= 4 && s.age >= 150 && s.disciples.length < 3,
+    when: (s) => s.world === "human" && s.tier >= 4 && s.age >= 150 && s.disciples.filter((d) => d.alive !== false).length < 3,
     w: 7,
     title: "收徒",
     text: "一个少年跪在洞府外三天三夜，膝盖下的石头都染了血。他说他灵根不好，但他想修。你看见他，像看见很多年前的自己。",
