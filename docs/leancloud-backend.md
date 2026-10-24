@@ -61,5 +61,15 @@ python -m http.server 8765
 
 ## 停止服务后的迁移
 
-需要把四个类导出为 JSON，再接入 Supabase、Cloudflare D1 或其他 BaaS。  
+先导出四个类：
+
+```text
+set LEAN_SERVER_URL=...
+set LEAN_APP_ID=...
+set LEAN_APP_KEY=...
+set LEAN_MASTER_KEY=...
+python tools/export_leancloud.py leancloud-export.json
+```
+
+导出后再接入 Supabase、Cloudflare D1 或其他 BaaS。  
 前端只依赖 `js/cloud.js` 适配层，迁移时可替换适配实现，不改页面。

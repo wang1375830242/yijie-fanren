@@ -33,6 +33,7 @@ SENSITIVE_PATHS = {
     "node_modules",
     "docs",
     "tests",
+    "tools",
     "data",
     ".git",
     ".github",
