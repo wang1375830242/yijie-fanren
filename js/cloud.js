@@ -19,6 +19,7 @@
   );
   const base = String(cfg.serverURL || "").replace(/\/+$/, "");
   const enabled = !!cfg.enabled && !!cfg.appId && !!cfg.appKey && !!base;
+  const writeEnabled = cfg.writeMode === "direct";
 
   function headers() {
     return {
@@ -104,7 +105,7 @@
   }
 
   async function recordVisit() {
-    if (!enabled || !cfg.trackLocal && isLocalHost()) return;
+    if (!enabled || !writeEnabled || (!cfg.trackLocal && isLocalHost())) return;
     if (pageKey() === "stats.html") return;
     const day = localDay();
     const page = pageKey();
@@ -213,6 +214,7 @@
   }
 
   async function hallLight(id) {
+    if (!writeEnabled) throw new Error("公共碑林为只读模式");
     if (!validStele(id)) throw new Error("无效的碑");
     if (!rateLimit(`candle:${id}`, 1800)) throw new Error("点灯太快了");
     const found = await request(
@@ -235,6 +237,7 @@
   }
 
   async function hallMessage(id, text) {
+    if (!writeEnabled) throw new Error("公共碑林为只读模式");
     if (!validStele(id)) throw new Error("无效的碑");
     const clean = String(text || "").replace(/\s+/g, " ").trim().slice(0, 40);
     if (!clean) throw new Error("留言为空");
@@ -252,6 +255,7 @@
 
   XD.cloud = {
     enabled,
+    writeEnabled,
     config: cfg,
     recordVisit,
     stats,

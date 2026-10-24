@@ -44,4 +44,5 @@ changelog-check: 23 releases, 61 changes
 
 ## 仍然需要服务端的部分
 
-LeanCloud 四个类的客户端写权限和统计原始记录读取，无法只靠 GitHub Pages 关闭；正式长期运营仍应在 LeanCloud 配置 Class 权限/云函数，或迁移到自带服务端。当前前端不包含 MasterKey。
+静态版默认 `writeMode: "server"`，LeanCloud 客户端不再直写公共碑林或访问记录。  
+点灯、留言和访问上报需要同源 `server.py` 或 LeanCloud 云函数；`stats.html` 仍只是未链接 + `noindex`，不是权限后台。LeanCloud 停服前的导出与迁移尚未执行。

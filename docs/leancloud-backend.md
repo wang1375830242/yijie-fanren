@@ -34,13 +34,13 @@ js/lean-config.js
 
 ## 类权限
 
-当前联调配置：
+默认配置：
 
 - 读：所有用户
-- 写：所有用户
+- 写：关闭（`writeMode: "server"`）
 
-这是为了支持未登录访客点灯和留言；**不适合长期公开运营**。  
-正式发布前应关闭客户端 `create/update/delete`，把写入改到 LeanCloud 云函数或自有服务端，并做服务端限流和内容审核。当前前端只使用 AppKey，不包含 MasterKey。
+GitHub Pages 静态版公共碑林因此是只读的。  
+点灯、留言和访问上报必须通过同源 `server.py` 或 LeanCloud 云函数写入；云函数使用服务端密钥做字段校验、频率限制和内容审核。前端只使用 AppKey，不包含 MasterKey。
 
 ## 本地联调
 

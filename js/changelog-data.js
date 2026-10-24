@@ -11,6 +11,20 @@
     updatedAt: "2026-10-24",
     releases: [
       {
+        version: "2.4.1",
+        date: "2026-10-24",
+        title: "碑林只读边界",
+        summary: "GitHub Pages 静态版公共碑林改为只读，点灯与留言需由同源 server.py 或云函数代写。",
+        compatibility: "旧存档兼容",
+        changes: [
+          {
+            type: "fix",
+            text: "关闭 LeanCloud 客户端直写，避免公开 AppKey 成为公共写令牌；访问统计也需后端开启后才记录。",
+            tags: ["安全", "后台"],
+          },
+        ],
+      },
+      {
         version: "2.4.0",
         date: "2026-10-24",
         title: "把线接稳",

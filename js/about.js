@@ -84,11 +84,16 @@
     U.store.clearRun();
     U.store.clearLineage();
     U.store.clearSteles();
-    ["yijie.messages.v1", "yijie.candles.v1"].forEach((k) => {
+    ["yijie.messages.v1", "yijie.candles.v1", "yijie.visitor.v1"].forEach((k) => {
       try {
         localStorage.removeItem(k);
       } catch (e) {}
     });
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("yijie.visit.v1:") || k.startsWith("yijie.rate."))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch (e) {}
     U.toast("都清干净了");
     refresh();
   });

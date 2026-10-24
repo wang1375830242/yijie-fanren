@@ -311,8 +311,11 @@
   function setStatus(ok) {
     const el = $("hallStatus");
     if (!el) return;
+    const writable = !!(XD.cloud && XD.cloud.writeEnabled);
     el.textContent = ok
-      ? "公共碑林已连接 · 灯与留言对所有访客可见。请不要写真实个人信息。"
+      ? writable
+        ? "公共碑林已连接 · 灯与留言对所有访客可见。请不要写真实个人信息。"
+        : "公共碑林已连接（只读）· 点灯与留言需由 server.py 或云函数代写。"
       : "本机模式 · 未连接公共碑林，灯与留言只保存在这个浏览器。";
     el.classList.toggle("is-online", ok);
   }
@@ -435,7 +438,7 @@
 
   $("smLight").addEventListener("click", async () => {
     if (!current) return;
-    if (XD.cloud && XD.cloud.enabled) {
+    if (XD.cloud && XD.cloud.writeEnabled) {
       try {
         const data = await XD.cloud.hall.light(current.id);
         shared.candles[current.id] = Number(data.count) || 0;
@@ -502,7 +505,7 @@
     if (!current) return;
     const v = $("smMsgInput").value.trim();
     if (!v) return U.toast("写一句话再留");
-    if (XD.cloud && XD.cloud.enabled) {
+    if (XD.cloud && XD.cloud.writeEnabled) {
       try {
         const messages = await XD.cloud.hall.message(current.id, v);
         shared.messages[current.id] = Array.isArray(messages) ? messages : [];

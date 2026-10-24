@@ -48,6 +48,7 @@ global.fetch = async (url, opts) => {
 };
 
 vm.runInThisContext(fs.readFileSync(path.join(root, "js", "lean-config.js"), "utf8"));
+XD_LEAN.writeMode = "direct";
 vm.runInThisContext(fs.readFileSync(path.join(root, "js", "cloud.js"), "utf8"));
 
 (async () => {

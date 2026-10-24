@@ -7,6 +7,8 @@ window.XD_LEAN = {
   appKey: "SyxUPSvzhKLjx6Gy7TsB0CEI",
   serverURL: "https://r3sfxal0.lc-cn-n1-shared.com",
   trackLocal: false,
+  // 静态站点默认只读；点灯/留言/访问上报必须走同源 server.py 或 LeanCloud 云函数。
+  writeMode: "server",
   classes: {
     visit: "SiteVisit",
     visitor: "SiteVisitor",
