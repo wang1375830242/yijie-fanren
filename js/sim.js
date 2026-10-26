@@ -1330,6 +1330,8 @@
     maybeAgeQuestion() {
       const s = this.state;
       if (s.startWorld !== "human") {
+        // 灵界/仙界本地出生也从零岁开始，先让角色有童年，不要在襁褓里问“修行图什么”。
+        if (s.age < 30) return false;
         if (s.flags.asked_path) return false;
         s.flags.asked_path = true;
         this.trigger("age_path");

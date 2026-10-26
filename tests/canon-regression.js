@@ -729,6 +729,11 @@ tierZeroQuestion.state.age = 30;
 tierZeroQuestion.state.flags.asked5 = true;
 tierZeroQuestion.state.flags.asked15 = true;
 ok(!tierZeroQuestion.maybeAgeQuestion(), "未踏入炼气的角色不应触发修行问心");
+const spiritBabyQuestion = new Sim({ seed: 14, world: "spirit" });
+spiritBabyQuestion.state.age = 1;
+ok(!spiritBabyQuestion.maybeAgeQuestion(), "灵界一岁幼童不应触发修行问心");
+spiritBabyQuestion.state.age = 30;
+ok(spiritBabyQuestion.maybeAgeQuestion(), "灵界角色到三十岁才应触发修行问心");
 
 /* 道侣自动线：突破、异地、死亡留档。 */
 const partnerLife = new Sim({ seed: 12, world: "human" });

@@ -8,8 +8,22 @@
 
   XD.CHANGELOG = {
     schema: 1,
-    updatedAt: "2026-10-24",
+    updatedAt: "2026-10-26",
     releases: [
+      {
+        version: "2.4.5",
+        date: "2026-10-26",
+        title: "先长大再问心",
+        summary: "灵界、仙界本地出生的角色不再一岁就触发「修行图什么」问心事件。",
+        compatibility: "旧存档兼容",
+        changes: [
+          {
+            type: "fix",
+            text: "非人界本地出生的问心事件改为三十岁后触发，给幼年阶段留出时间。",
+            tags: ["出生", "事件"],
+          },
+        ],
+      },
       {
         version: "2.4.4",
         date: "2026-10-24",
