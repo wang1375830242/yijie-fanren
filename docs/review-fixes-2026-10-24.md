@@ -42,7 +42,7 @@ browser-smoke: 6 pages ok
 canon-regression: 381 checks passed
 220 runs, 0 issues
 natural-ascensions=8
-changelog-check: 36 releases, 80 changes
+changelog-check: 37 releases, 81 changes
 ```
 
 ## 仍然需要服务端的部分

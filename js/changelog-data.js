@@ -11,6 +11,16 @@
     updatedAt: "2026-10-26",
     releases: [
       {
+        version: "2.5.4",
+        date: "2026-10-26",
+        title: "GitHub 碑林写入修正",
+        summary: "碑林优先使用服务器 API，连接成功后显示可写状态，避免 GitHub Pages 被误判为只读。",
+        compatibility: "旧存档兼容",
+        changes: [
+          { type: "fix", text: "碑林优先加载服务器 API，连接成功后恢复可写状态提示。", tags: ["碑林", "GitHub Pages"] },
+        ],
+      },
+      {
         version: "2.5.3",
         date: "2026-10-26",
         title: "GitHub Pages 接入碑林",

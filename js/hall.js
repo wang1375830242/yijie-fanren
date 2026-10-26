@@ -10,6 +10,7 @@
 
   const KEY_MSG = "yijie.messages.v1";
   let isPublic = false;
+  let apiWritable = false;
   const shared = { candles: {}, messages: {} };
   const API_BASE =
     location.hostname === "wang1375830242.github.io" ? "https://192.144.150.24" : "";
@@ -322,7 +323,7 @@
   function setStatus(ok) {
     const el = $("hallStatus");
     if (!el) return;
-    const writable = !!(XD.cloud && XD.cloud.writeEnabled);
+    const writable = !!(XD.cloud && XD.cloud.writeEnabled) || apiWritable;
     el.textContent = ok
       ? writable
         ? "公共碑林已连接 · 灯与留言对所有访客可见。请不要写真实个人信息。"
@@ -332,6 +333,25 @@
   }
 
   async function loadShared() {
+    // 服务器后台优先；静态页面只有 API 不可用时才退回 LeanCloud 或本机模式。
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 2500);
+      const res = await fetch(apiUrl("/api/hall"), { cache: "no-store", signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error("hall api failed");
+      const data = await res.json();
+      shared.candles = data.candles && typeof data.candles === "object" ? data.candles : {};
+      shared.messages = data.messages && typeof data.messages === "object" ? data.messages : {};
+      apiWritable = true;
+      isPublic = true;
+      setStatus(true);
+      render();
+      if (current) open(current.id);
+      return;
+    } catch (err) {
+      // API 不可用时继续尝试 LeanCloud，最后退回本机模式。
+    }
     if (XD.cloud && XD.cloud.enabled) {
       try {
         const data = await XD.cloud.hall.load();
@@ -342,25 +362,11 @@
         render();
         if (current) open(current.id);
         return;
-      } catch (err) {
-        // LeanCloud 不可用时继续尝试本机 server.py，最后退回本机模式。
-      }
+      } catch (err) {}
     }
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 2200);
-      const res = await fetch(apiUrl("/api/hall"), { cache: "no-store", signal: controller.signal });
-      clearTimeout(timer);
-      if (!res.ok) throw new Error("hall api failed");
-      const data = await res.json();
-      shared.candles = data.candles && typeof data.candles === "object" ? data.candles : {};
-      shared.messages = data.messages && typeof data.messages === "object" ? data.messages : {};
-      isPublic = true;
-      setStatus(true);
-    } catch (err) {
-      isPublic = false;
-      setStatus(false);
-    }
+    apiWritable = false;
+    isPublic = false;
+    setStatus(false);
     render();
     if (current) open(current.id);
   }
