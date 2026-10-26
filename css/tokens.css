@@ -66,6 +66,7 @@
     "Times New Roman", serif;
   --sans: "Source Han Sans SC", "Noto Sans SC", "PingFang SC",
     "Microsoft YaHei", "微软雅黑", sans-serif;
+  --reading: var(--serif);
 
   /* 尺度 */
   --w-page: 1240px;
@@ -80,6 +81,25 @@
   --r: 2px;
   --dur: 240ms;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 正文字体选择：全部使用系统字体，不加载外部字体文件。 */
+html[data-font="kai"] {
+  --serif: "Kaiti SC", "STKaiti", "KaiTi", "楷体", "Kaiti TC", serif;
+  --kai: "Kaiti SC", "STKaiti", "KaiTi", "楷体", "Kaiti TC", serif;
+  --reading: var(--serif);
+}
+html[data-font="fangsong"] {
+  --serif: "FangSong", "STFangsong", "仿宋", "FangSong_GB2312", serif;
+  --kai: "FangSong", "STFangsong", "仿宋", "FangSong_GB2312", serif;
+  --reading: var(--serif);
+}
+html[data-font="sans"] {
+  --serif: "Source Han Sans SC", "Noto Sans SC", "PingFang SC",
+    "Microsoft YaHei", "微软雅黑", sans-serif;
+  --kai: "Source Han Sans SC", "Noto Sans SC", "PingFang SC",
+    "Microsoft YaHei", "微软雅黑", sans-serif;
+  --reading: var(--sans);
 }
 
 /* 三界主题：整站的颜色气候 */

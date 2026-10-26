@@ -22,7 +22,7 @@ body {
   min-height: 100vh;
   background: var(--ink-900);
   color: var(--text);
-  font-family: var(--serif);
+  font-family: var(--reading);
   font-size: 16px;
   line-height: 1.85;
   letter-spacing: 0.012em;
@@ -716,5 +716,175 @@ textarea {
   from {
     opacity: 0;
     transform: translateY(8px);
+  }
+}
+
+/* 主题与字体设置 */
+.theme-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgba(5, 8, 5, 0.72);
+  backdrop-filter: blur(6px);
+}
+html[data-theme="day"] .theme-overlay {
+  background: rgba(25, 29, 23, 0.32);
+}
+.theme-sheet {
+  width: min(560px, 100%);
+  max-height: min(90vh, 720px);
+  margin: auto;
+  padding: 24px;
+  overflow-y: auto;
+  border: 1px solid var(--line-2);
+  background: var(--ink-850);
+  box-shadow: var(--shadow-3);
+}
+.theme-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.theme-kicker {
+  margin: 0 0 6px;
+  color: var(--cinnabar-2);
+  font-family: var(--kai);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+}
+.theme-head h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+.theme-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border: 1px solid var(--line-2);
+  color: var(--text-soft);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.theme-close:hover,
+.theme-close:focus-visible {
+  border-color: var(--jade-2);
+  color: var(--text);
+}
+.theme-section {
+  margin-top: 20px;
+}
+.theme-label {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+.theme-grid {
+  display: grid;
+  gap: 10px;
+}
+.theme-grid--two,
+.theme-grid--font {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.theme-choice,
+.font-choice {
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-soft);
+  text-align: left;
+  cursor: pointer;
+}
+.theme-choice:hover,
+.font-choice:hover,
+.theme-choice:focus-visible,
+.font-choice:focus-visible {
+  border-color: var(--line-3);
+  color: var(--text);
+}
+.theme-choice.is-active,
+.font-choice.is-active {
+  border-color: var(--jade-2);
+  background: var(--realm-soft);
+  color: var(--text);
+}
+.theme-choice b,
+.font-choice b {
+  display: block;
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+.theme-choice span,
+.font-choice span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 11px;
+}
+.font-sample {
+  margin-bottom: 8px !important;
+  color: var(--text) !important;
+  font-size: 20px !important;
+  letter-spacing: 0.06em !important;
+}
+.font-choice--serif .font-sample {
+  font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong",
+    "SimSun", "宋体", serif;
+}
+.font-choice--kai .font-sample {
+  font-family: "Kaiti SC", "STKaiti", "KaiTi", "楷体", "Kaiti TC", serif;
+}
+.font-choice--fangsong .font-sample {
+  font-family: "FangSong", "STFangsong", "仿宋", "FangSong_GB2312", serif;
+}
+.font-choice--sans .font-sample {
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC",
+    "Microsoft YaHei", "微软雅黑", sans-serif;
+}
+.theme-note,
+.theme-status {
+  margin: 10px 0 0;
+  color: var(--muted-2);
+  font-family: var(--kai);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.theme-status {
+  min-height: 1.7em;
+  color: var(--jade-2);
+}
+@media (max-width: 520px) {
+  .theme-overlay {
+    align-items: flex-start;
+    padding: 12px;
+  }
+  .theme-sheet {
+    max-height: none;
+    padding: 18px;
+  }
+  .theme-grid--two,
+  .theme-grid--font {
+    grid-template-columns: 1fr;
   }
 }

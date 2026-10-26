@@ -341,7 +341,38 @@
     document.documentElement.dataset.realm = kind || "human";
   }
 
-  /* ---------- 日间 / 夜间 ---------- */
+  /* ---------- 主题与字体 ---------- */
+  const FONT_OPTIONS = [
+    { key: "serif", label: "宋体", note: "默认 · 纸面阅读" },
+    { key: "kai", label: "楷体", note: "手稿 · 题签感" },
+    { key: "fangsong", label: "仿宋", note: "古卷 · 清瘦" },
+    { key: "sans", label: "黑体", note: "清爽 · 易读" },
+  ];
+
+  function normalizeFont(font) {
+    return FONT_OPTIONS.some((item) => item.key === font) ? font : "serif";
+  }
+
+  function applyFont(font) {
+    const key = normalizeFont(font);
+    document.documentElement.dataset.font = key;
+    document.querySelectorAll("[data-font-choice]").forEach((button) => {
+      const active = button.dataset.fontChoice === key;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    document.dispatchEvent(new CustomEvent("xd:font", { detail: { font: key } }));
+  }
+
+  function currentTheme() {
+    return document.documentElement.dataset.theme === "day" ? "day" : "night";
+  }
+
+  function currentFont() {
+    const prefs = store.prefs();
+    return normalizeFont(prefs.font);
+  }
+
   function applyTheme(mode) {
     const day = mode === "day";
     const root = document.documentElement;
@@ -351,21 +382,120 @@
     if (meta) meta.setAttribute("content", day ? "#f7f4ec" : "#0b0f0b");
     document.dispatchEvent(new CustomEvent("xd:theme", { detail: { theme: day ? "day" : "night" } }));
     document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
-      button.textContent = day ? "夜间" : "日间";
-      button.setAttribute("aria-pressed", day ? "true" : "false");
-      button.setAttribute("aria-label", day ? "切换到夜间主题" : "切换到日间主题");
+      button.textContent = "主题";
+      button.setAttribute("aria-label", "主题与字体设置");
+      button.setAttribute("aria-haspopup", "dialog");
+    });
+    document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+      const active = button.dataset.themeChoice === (day ? "day" : "night");
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
     });
   }
 
+  function setTheme(mode) {
+    applyTheme(mode);
+    store.setPref("theme", mode === "day" ? "day" : "night");
+  }
+
+  function setFont(font) {
+    const key = normalizeFont(font);
+    applyFont(key);
+    store.setPref("font", key);
+  }
+
+  let themeOverlay = null;
+  let releaseThemeTrap = null;
+
+  function closeThemePanel() {
+    if (!themeOverlay) return;
+    themeOverlay.hidden = true;
+    if (releaseThemeTrap) {
+      releaseThemeTrap();
+      releaseThemeTrap = null;
+    }
+  }
+
+  function ensureThemePanel() {
+    if (themeOverlay) return themeOverlay;
+    themeOverlay = document.createElement("div");
+    themeOverlay.className = "theme-overlay";
+    themeOverlay.hidden = true;
+    themeOverlay.innerHTML = `
+      <section class="theme-sheet" role="dialog" aria-modal="true" aria-labelledby="themeTitle">
+        <header class="theme-head">
+          <div>
+            <p class="theme-kicker">观感 · 阅读</p>
+            <h2 id="themeTitle">主题与字体</h2>
+          </div>
+          <button class="theme-close" type="button" data-theme-close aria-label="关闭主题设置">×</button>
+        </header>
+        <div class="theme-section">
+          <p class="theme-label">明暗</p>
+          <div class="theme-grid theme-grid--two">
+            <button class="theme-choice" type="button" data-theme-choice="night" aria-pressed="true">
+              <b>夜间</b><span>墨色 · 玉光</span>
+            </button>
+            <button class="theme-choice" type="button" data-theme-choice="day" aria-pressed="false">
+              <b>日间</b><span>暖白 · 纸面</span>
+            </button>
+          </div>
+        </div>
+        <div class="theme-section">
+          <p class="theme-label">正文字体</p>
+          <div class="theme-grid theme-grid--font">
+            ${FONT_OPTIONS.map(
+              (item) =>
+                `<button class="font-choice font-choice--${item.key}" type="button" data-font-choice="${item.key}" aria-pressed="false">
+                  <span class="font-sample">一介凡人</span>
+                  <b>${item.label}</b>
+                  <span>${item.note}</span>
+                </button>`
+            ).join("")}
+          </div>
+          <p class="theme-note">字体来自系统已安装字体，不加载外部字体文件。</p>
+        </div>
+        <p class="theme-status" data-theme-status aria-live="polite"></p>
+      </section>`;
+    document.body.appendChild(themeOverlay);
+    themeOverlay.querySelectorAll("[data-theme-choice]").forEach((button) => {
+      button.addEventListener("click", () => {
+        setTheme(button.dataset.themeChoice);
+        const status = themeOverlay.querySelector("[data-theme-status]");
+        if (status) status.textContent = `已切换到${button.dataset.themeChoice === "day" ? "日间" : "夜间"}主题。`;
+      });
+    });
+    themeOverlay.querySelectorAll("[data-font-choice]").forEach((button) => {
+      button.addEventListener("click", () => {
+        setFont(button.dataset.fontChoice);
+        const status = themeOverlay.querySelector("[data-theme-status]");
+        if (status) status.textContent = `正文字体已切换为${FONT_OPTIONS.find((item) => item.key === button.dataset.fontChoice).label}。`;
+      });
+    });
+    themeOverlay.querySelector("[data-theme-close]").addEventListener("click", closeThemePanel);
+    themeOverlay.addEventListener("click", (event) => {
+      if (event.target === themeOverlay) closeThemePanel();
+    });
+    return themeOverlay;
+  }
+
+  function openThemePanel() {
+    const overlay = ensureThemePanel();
+    applyTheme(currentTheme());
+    applyFont(currentFont());
+    overlay.hidden = false;
+    const status = overlay.querySelector("[data-theme-status]");
+    if (status) status.textContent = "选择明暗与正文字体，设置会保存在本机。";
+    releaseThemeTrap = trapFocus(overlay.querySelector(".theme-sheet"), closeThemePanel);
+    const first = overlay.querySelector("[data-theme-choice].is-active") || overlay.querySelector("[data-theme-close]");
+    if (first) first.focus();
+  }
+
   function toggleTheme() {
-    const next = document.documentElement.dataset.theme === "day" ? "night" : "day";
-    applyTheme(next);
-    store.setPref("theme", next);
+    setTheme(currentTheme() === "day" ? "night" : "day");
   }
 
   function theme() {
-    const root = document.documentElement;
-    const current = root.dataset.theme === "day" ? "day" : "night";
     const targets = [
       document.querySelector(".nav-links"),
       document.querySelector(".nav-drawer"),
@@ -376,15 +506,17 @@
       button.type = "button";
       button.dataset.themeToggle = "true";
       button.className = parent.id === "moreMenu" ? "menu-action theme-toggle-more" : "theme-toggle";
-      button.addEventListener("click", toggleTheme);
+      button.addEventListener("click", openThemePanel);
       parent.appendChild(button);
     });
-    applyTheme(current);
+    applyTheme(currentTheme());
+    applyFont(currentFont());
     window.addEventListener("storage", (event) => {
       if (event.key !== "yijie.prefs.v1") return;
       try {
         const prefs = JSON.parse(event.newValue || "{}");
         applyTheme(prefs.theme === "day" ? "day" : "night");
+        applyFont(prefs.font);
       } catch (err) {}
     });
   }
@@ -409,6 +541,9 @@
     nav,
     setRealm,
     applyTheme,
+    applyFont,
+    setFont,
+    openThemePanel,
     toggleTheme,
     WORLD_ODDS,
   };

@@ -64,11 +64,11 @@ syntax-check: 22 js files ok
 cloud-check: ok
 cloud-function-check: ok
 a11y-check: 38 checks passed
-browser-smoke: 3 pages ok
+browser-smoke: 4 pages ok
 canon-regression: 379 checks passed
 220 runs, 0 issues
 pseudo-spirit=2
 natural-ascensions=8
 worst-repeat=2
-changelog-check: 30 releases, 68 changes, schema ok
+changelog-check: 31 releases, 69 changes, schema ok
 ```
