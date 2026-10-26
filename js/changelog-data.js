@@ -11,6 +11,17 @@
     updatedAt: "2026-10-26",
     releases: [
       {
+        version: "2.5.2",
+        date: "2026-10-26",
+        title: "开放匿名碑林",
+        summary: "按公测需求开放任何人点灯和留言；保留真实 IP 限流、数量上限和每日备份。",
+        compatibility: "旧存档兼容",
+        changes: [
+          { type: "fix", text: "取消公共碑林写入口令，访客可直接点灯和留言。", tags: ["碑林", "公测"] },
+          { type: "improve", text: "继续保留真实 IP 限流、stele 数量上限和每日备份。", tags: ["安全", "限流"] },
+        ],
+      },
+      {
         version: "2.5.1",
         date: "2026-10-26",
         title: "公共碑林安全加固",

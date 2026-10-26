@@ -12,49 +12,12 @@
   let isPublic = false;
   const shared = { candles: {}, messages: {} };
 
-  function getWriteKey() {
-    try {
-      return sessionStorage.getItem("yijie.writeKey") || "";
-    } catch (err) {
-      return "";
-    }
-  }
-
-  function askWriteKey() {
-    const key = window.prompt("请输入公共碑林写入口令", "");
-    if (key) {
-      try {
-        sessionStorage.setItem("yijie.writeKey", key);
-      } catch (err) {}
-    }
-    return key || "";
-  }
-
   async function postWrite(path, payload) {
-    let key = getWriteKey();
-    if (!key) {
-      key = askWriteKey();
-      if (!key) throw new Error("write key required");
-    }
-    const send = (value) =>
-      fetch(path, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Yijie-Write-Key": value,
-        },
-        body: JSON.stringify(payload),
-      });
-    let res = await send(key);
-    if (res.status === 401) {
-      try {
-        sessionStorage.removeItem("yijie.writeKey");
-      } catch (err) {}
-      key = askWriteKey();
-      if (!key) throw new Error("write key required");
-      res = await send(key);
-    }
-    return res;
+    return fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
   }
 
   /* 碑林里的无名碑：给新来的人一点可以看的东西 */
