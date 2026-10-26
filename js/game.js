@@ -1021,44 +1021,6 @@
         : first;
       if (focusEl) focusEl.focus();
     }
-
-    if (auto) {
-      autoTimer = setTimeout(() => {
-        if (p.id === "i_sanshi_wo") {
-          choose(1);
-          return;
-        }
-        if (p.id.indexOf("i_sanshi_") === 0) {
-          choose(0);
-          return;
-        }
-        if (p.id === "d_node" || p.id === "m_ascend") {
-          const i = p.choices.findIndex((c) => c.effects && c.effects.ascend);
-          choose(i >= 0 ? i : 0);
-          return;
-        }
-        const choices = p.choices;
-        const usable = choices
-          .map((c, i) => ({ c, i }))
-          .filter((x) => {
-            const cost =
-              x.c.requires && x.c.requires.stones != null
-                ? x.c.requires.stones
-                : x.c.effects && x.c.effects.stones < 0
-                ? -x.c.effects.stones
-                : 0;
-            return cost <= state.stones;
-          });
-        const score = (c) => {
-          if (c.risk && c.risk.fail && c.risk.fail.death) return 1000 + (1 - c.risk.p);
-          if (c.risk) return 10 + (1 - c.risk.p);
-          return 0;
-        };
-        usable.sort((a, b) => score(a.c) - score(b.c));
-        const chosen = usable.length ? usable[0] : { c: choices[0], i: 0 };
-        choose(chosen.i, chosen.c.donate ? { donateAmount: chosen.c.donate.min || 10 } : undefined);
-      }, 1100);
-    }
   }
 
   function choose(i, opts) {

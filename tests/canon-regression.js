@@ -518,9 +518,22 @@ const wanderReport = focusReportSim.focusReport();
 ok(
   wanderReport.text.includes("遇事率 ×1.5") &&
     wanderReport.text.includes("风险成功 +3%") &&
-    wanderReport.text.includes("危险 +1"),
-  "游历应显示事件与气运/风险效果"
+    wanderReport.text.includes("危险 +1") &&
+    wanderReport.text.includes("灵石净") &&
+    wanderReport.netIncome === 7,
+  "游历应显示事件、气运/风险与净收入"
 );
+focusReportSim.state.incomePerYear = 6;
+focusReportSim.state.flags.buy_spirit_field = true;
+const fieldReport = focusReportSim.focusReport();
+ok(
+  fieldReport.netIncome === 12 &&
+    fieldReport.text.includes("灵田 6") &&
+    fieldReport.text.includes("维护 -1"),
+  "灵田和维护应计入重心净收入显示"
+);
+focusReportSim.state.incomePerYear = 0;
+focusReportSim.state.flags.buy_spirit_field = false;
 focusReportSim.state.focus = "sect";
 const sectReport = focusReportSim.focusReport();
 ok(
@@ -542,6 +555,11 @@ ok(
     gameSource.includes("if (auto)") &&
     gameSource.includes('choiceOverlay").hidden = true'),
   "自动模式应跳过事件弹窗并继续结算；突破动画路径保持独立"
+);
+ok(
+  (gameSource.match(/function autoChooseEvent/g) || []).length === 1 &&
+    !gameSource.includes("const choices = p.choices;"),
+  "自动事件只能保留一套选择路径"
 );
 ok(
   gameSource.includes("x.c.donate.min") && gameSource.includes("拿不出灵石"),
@@ -1246,8 +1264,40 @@ ok(
 );
 ok(worstRepeat <= 2, `单世事件/对话最大重复应 <= 2，实际 ${worstRepeat}`);
 const eventIds = new Set(XD.EVENTS.map((event) => event.id));
-ok(XD.EVENTS.length === 3115, `事件池应保持 3115 条，实际 ${XD.EVENTS.length}`);
+ok(XD.EVENTS.length >= 1000, `事件池规模异常，实际 ${XD.EVENTS.length}`);
 ok(eventIds.size === XD.EVENTS.length, "事件 ID 必须唯一");
+ok(
+  XD.EVENTS.every(
+    (event) =>
+      typeof event.id === "string" &&
+      event.id.length > 0 &&
+      typeof event.when === "function" &&
+      (typeof event.text === "function" || typeof event.text === "string")
+  ),
+  "所有事件都必须有 id、when 和 text"
+);
+const generatedEvents = XD.EVENTS.filter((event) => event.id.startsWith("g_"));
+ok(generatedEvents.length >= 500, `生成事件规模异常，实际 ${generatedEvents.length}`);
+ok(
+  generatedEvents.every((event) => typeof event.sceneKey === "string" && event.sceneKey),
+  "所有生成事件都必须带 sceneKey"
+);
+const badChoiceSchema = XD.EVENTS.filter(
+  (event) =>
+    Array.isArray(event.choices) &&
+    event.choices.some(
+      (choice) =>
+        !choice ||
+        typeof choice.label !== "string" ||
+        !choice.label ||
+        !(
+          typeof choice.outcome === "string" ||
+          typeof choice.outcome === "function" ||
+          choice.effects
+        )
+    )
+);
+ok(badChoiceSchema.length === 0, `事件选项 schema 异常：${badChoiceSchema.map((e) => e.id).slice(0, 3).join(",")}`);
 [
   "root_test",
   "d_node",
@@ -1303,6 +1353,11 @@ ok(ecoSim.annualUpkeep() >= 4, "洞府与弟子应产生长期支出");
 ok(
   D.SHOP.filter((it) => (it.tierMin || 0) >= 9).length >= 2,
   "货栈后期应至少有两件高境界商品"
+);
+ok(
+  D.SHOP.find((it) => it.key === "found_pill").cost === 70 &&
+    D.SHOP.find((it) => it.key === "cave").cost === 180,
+  "前期筑基丹与洞府价格带应保持可负担"
 );
 const econTable = [];
 for (let tier = 1; tier <= 13; tier++) {

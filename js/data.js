@@ -117,11 +117,11 @@
   const SHOP = [
     { key: "qi_pill", name: "聚气丹", desc: "服下后修为大进，省去十年苦功。", cost: 24, tierMin: 1, tierMax: 2, effect: { cult: 8 } },
     { key: "calm_pill", name: "静心丹", desc: "心境 +12。心乱的时候，比什么丹药都管用。", cost: 18, effect: { mood: 12 } },
-    { key: "found_pill", name: "筑基丹", desc: "下次突破成功率 +15%。", cost: 90, tierMin: 1, tierMax: 2, effect: { breakBonus: 15 } },
+    { key: "found_pill", name: "筑基丹", desc: "下次突破成功率 +15%。", cost: 70, tierMin: 1, tierMax: 2, effect: { breakBonus: 15 } },
     { key: "core_pill", name: "凝元丹", desc: "下次突破成功率 +12%。", cost: 260, tierMin: 2, tierMax: 4, effect: { breakBonus: 12 } },
     { key: "life_pill", name: "延寿丹", desc: "寿元 +40 年。此世只能求到一枚，药材一年比一年难寻。", cost: 160, tierMax: 5, once: true, effect: { maxAge: 40 } },
     { key: "talisman", name: "护身玉符", desc: "极大概率挡下一次致命之灾，但玉碎之后仍可能保不住命。此世只能求得一枚。", cost: 120, once: true, effect: { ward: 1 } },
-    { key: "cave", name: "灵脉洞府", desc: "修为速度永久 +20%，寿元 +20 年；每年需维护。", cost: 220, once: true, effect: { cultRate: 0.2, maxAge: 20 } },
+    { key: "cave", name: "灵脉洞府", desc: "修为速度永久 +20%，寿元 +20 年；每年需维护。", cost: 180, once: true, effect: { cultRate: 0.2, maxAge: 20 } },
     { key: "spirit_field", name: "灵田", desc: "每年产出灵石，但也要持续照料；境界越高，产出越稳。", cost: 260, tierMin: 2, once: true, effect: { incomePerYear: 6 } },
     { key: "manual", name: "上乘功法", desc: "修为速度永久 +30%，寿元 +30 年。", cost: 400, once: true, effect: { cultRate: 0.3, maxAge: 30 } },
     { key: "wine", name: "灵酒", desc: "心境 +6。修士也是人。", cost: 12, effect: { mood: 6 } },

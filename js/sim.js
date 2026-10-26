@@ -437,12 +437,26 @@
     focusReport() {
       const s = this.state;
       const f = this.focusDef();
-      const income = this.annualIncome();
+      const baseIncome = this.annualIncome();
+      const passiveIncome = Number(s.incomePerYear) || 0;
+      const upkeep = this.annualUpkeep();
+      const rank = D.SECT_RANKS[s.sectRank >= 0 ? s.sectRank : 0] || D.SECT_RANKS[0];
+      const sectShare = this.isSectMember()
+        ? (Number(rank.share) || 0) * (s.focus === "sect" ? 1.35 : 1)
+        : 0;
+      const netIncome = Math.round(baseIncome + passiveIncome + sectShare - upkeep);
+      const incomeSign = netIncome >= 0 ? "+" : "";
       const parts = [
         `修为 ×${(Number(f.cult) || 1).toFixed(2)}`,
-        `灵石 ${income >= 0 ? "+" : ""}${income}/年`,
+        `灵石净 ${incomeSign}${netIncome}/年`,
         `心境 ${f.mood ? (f.mood > 0 ? "+" : "") + f.mood : "+0"}/年`,
       ];
+      const incomeParts = [];
+      if (baseIncome) incomeParts.push(`重心 ${baseIncome}`);
+      if (sectShare) incomeParts.push(`年例 ${Math.round(sectShare * 100) / 100}`);
+      if (passiveIncome) incomeParts.push(`灵田 ${passiveIncome}`);
+      if (upkeep) incomeParts.push(`维护 -${upkeep}`);
+      if (incomeParts.length > 1) parts.push(`收支 ${incomeParts.join(" / ")}`);
       if (f.insight) parts.push(`悟性 +1（${Math.round(f.insight * 100)}%/年）`);
       parts.push(f.event ? `遇事率 ×${f.event}` : "遇事率 基准");
       if (f.luck) parts.push(`风险成功 +${f.luck * 3}%`);
@@ -453,9 +467,7 @@
       }
       if (f.key === "sect" && this.isSectMember()) {
         const gain = this.sectContribPerYear();
-        const rankIndex = s.sectRank >= 0 ? s.sectRank : 0;
-        const rank = D.SECT_RANKS[rankIndex] || D.SECT_RANKS[0];
-        const next = D.SECT_RANKS[rankIndex + 1];
+        const next = D.SECT_RANKS[(s.sectRank >= 0 ? s.sectRank : 0) + 1];
         parts.push(`宗门贡献 +${gain}/年`);
         parts.push(
           `当前${rank.name}${next ? ` · 差${Math.max(0, next.need - (s.sectContrib || 0))}贡献升${next.name}` : " · 已至最高"}`
@@ -466,7 +478,8 @@
       return {
         key: f.key,
         name: f.name,
-        income,
+        income: baseIncome,
+        netIncome,
         text: parts.join(" · "),
       };
     }

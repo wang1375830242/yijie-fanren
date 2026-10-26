@@ -37,7 +37,9 @@
 syntax-check: 22 js files ok
 cloud-check: ok
 cloud-function-check: ok
-canon-regression: 372 checks passed
+a11y-check: 38 checks passed
+browser-smoke: 3 pages ok
+canon-regression: 379 checks passed
 220 runs, 0 issues
 natural-ascensions=8
 changelog-check: 30 releases, 68 changes

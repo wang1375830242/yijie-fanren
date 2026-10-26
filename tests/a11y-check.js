@@ -1,0 +1,44 @@
+const fs = require("fs");
+const path = require("path");
+
+const root = path.join(__dirname, "..");
+const pages = ["index.html", "play.html", "hall.html", "codex.html", "about.html", "changelog.html", "stats.html"];
+const cssFiles = ["css/base.css", "css/tokens.css", "css/stats.css", "css/day.css"];
+let checks = 0;
+
+function ok(value, message) {
+  checks += 1;
+  if (!value) throw new Error(message);
+}
+
+function read(file) {
+  return fs.readFileSync(path.join(root, file), "utf8");
+}
+
+for (const page of pages) {
+  const source = read(page);
+  ok(/<html[^>]*\blang="zh-Hans"/.test(source), `${page}: missing zh-Hans lang`);
+  ok(/<main\b/.test(source), `${page}: missing main landmark`);
+  ok(/<title>[^<]+<\/title>/.test(source), `${page}: missing title`);
+  ok(!/<img\b(?![^>]*\balt=)/i.test(source), `${page}: image without alt`);
+}
+
+const stats = read("stats.html");
+ok(/<label[^>]*for="statsToken"/.test(stats) && /id="statsToken"/.test(stats), "stats: token input needs a label");
+ok(/id="statsStatus"[^>]*aria-live="polite"/.test(stats), "stats: status needs aria-live");
+
+const play = read("play.html");
+ok(/id="choiceOverlay"/.test(play) && /role="dialog"/.test(play), "play: choice overlay should be a dialog");
+ok(/aria-modal="true"/.test(play), "play: choice dialog should be modal");
+ok(/id="log"[^>]*aria-live="polite"/.test(play), "play: log should announce updates");
+
+const css = cssFiles.map(read).join("\n");
+ok(/@media\s*\(prefers-reduced-motion:\s*reduce\)/.test(css), "css: missing reduced-motion fallback");
+ok(/:focus-visible/.test(css), "css: missing focus-visible styles");
+ok(/@media\s*\(max-width:\s*720px\)/.test(css), "css: missing mobile breakpoint");
+
+const game = read("js/game.js");
+ok(/trapFocus|trapChoicePrompt/.test(game), "game: missing focus trap");
+ok(/Escape/.test(game), "game: missing Escape handling");
+
+console.log(`a11y-check: ${checks} checks passed`);
