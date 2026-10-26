@@ -11,9 +11,12 @@
   const KEY_MSG = "yijie.messages.v1";
   let isPublic = false;
   const shared = { candles: {}, messages: {} };
+  const API_BASE =
+    location.hostname === "wang1375830242.github.io" ? "https://192.144.150.24" : "";
+  const apiUrl = (path) => API_BASE + path;
 
   async function postWrite(path, payload) {
-    return fetch(path, {
+    return fetch(apiUrl(path), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -346,7 +349,7 @@
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 2200);
-      const res = await fetch("/api/hall", { cache: "no-store", signal: controller.signal });
+      const res = await fetch(apiUrl("/api/hall"), { cache: "no-store", signal: controller.signal });
       clearTimeout(timer);
       if (!res.ok) throw new Error("hall api failed");
       const data = await res.json();

@@ -11,6 +11,17 @@
     updatedAt: "2026-10-26",
     releases: [
       {
+        version: "2.5.3",
+        date: "2026-10-26",
+        title: "GitHub Pages 接入碑林",
+        summary: "GitHub Pages 页面可通过 HTTPS 调用服务器的公共碑林 API，同时保留同源站点行为。",
+        compatibility: "旧存档兼容",
+        changes: [
+          { type: "fix", text: "GitHub Pages 的碑林请求改为访问 HTTPS 服务器 API。", tags: ["碑林", "跨域"] },
+          { type: "fix", text: "服务器仅允许 GitHub Pages 正式来源跨域读写，并处理预检请求。", tags: ["安全", "CORS"] },
+        ],
+      },
+      {
         version: "2.5.2",
         date: "2026-10-26",
         title: "开放匿名碑林",

@@ -28,6 +28,7 @@ MAX_MESSAGE = 40
 MAX_MESSAGES_PER_STELE = 20
 MAX_TRACKED_STELES = 5000
 WRITE_KEY = os.environ.get("YIJIE_WRITE_KEY", "").strip()
+ALLOWED_ORIGINS = {"https://wang1375830242.github.io"}
 ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 SENSITIVE_PATHS = {
     "",
@@ -145,6 +146,10 @@ class Handler(SimpleHTTPRequestHandler):
     def end_headers(self):
         if self.path.startswith("/api/"):
             self.send_header("Cache-Control", "no-store")
+            origin = self.headers.get("Origin", "")
+            if origin in ALLOWED_ORIGINS:
+                self.send_header("Access-Control-Allow-Origin", origin)
+                self.send_header("Vary", "Origin")
         else:
             self.send_header("Cache-Control", "no-cache")
         super().end_headers()
@@ -204,6 +209,17 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             return
         super().do_HEAD()
+
+    def do_OPTIONS(self):
+        path = urlparse(self.path).path
+        if path not in ("/api/hall", "/api/candle", "/api/message"):
+            self._json(404, {"error": "not found"})
+            return
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Max-Age", "600")
+        self.end_headers()
 
     def do_POST(self):
         path = urlparse(self.path).path
