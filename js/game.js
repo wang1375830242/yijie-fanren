@@ -23,6 +23,7 @@
   let endSummary = null;
   let saved = false;
   let autoTimer = null;
+  let autoBlocked = 0;
   let whisperTimer = null;
   let shopPaused = false;
   let rollingLife = false;
@@ -830,10 +831,36 @@
     trapChoicePrompt();
     const first = $("choiceOpts").querySelector(".opt:not([disabled])");
     if (first) first.focus();
+    if (auto) {
+      const costOf = (c) =>
+        c.costStones > 0
+          ? c.costStones < 1
+            ? Math.max(1, Math.floor(state.stones * c.costStones))
+            : Math.floor(c.costStones)
+          : 0;
+      const usable = p.options
+        .map((c, i) => ({ c, i }))
+        .filter((x) => !x.c.ward && costOf(x.c) <= state.stones)
+        .sort((a, b) => (b.c.p || 0) - (a.c.p || 0));
+      if (!usable.length) {
+        p.options.push({
+          label: "拿不出灵石，只能硬扛",
+          p: 0.15,
+          effects: { mood: -10 },
+          text: "你身上没有灵石，只能咬着牙承受这一击。",
+          costStones: 0,
+          ward: false,
+        });
+        autoTimer = setTimeout(() => choose(p.options.length - 1), 500);
+      } else {
+        autoTimer = setTimeout(() => choose(usable[0].i), 800);
+      }
+    }
   }
 
   function autoChooseEvent(p) {
     if (!p || !Array.isArray(p.choices) || !p.choices.length) return;
+    autoBlocked = 0;
     const pick = (i, opts) => {
       autoTimer = setTimeout(() => choose(i, opts), 0);
     };
@@ -1052,6 +1079,18 @@
     }
     if (result && result.status === "blocked") {
       if (auto && state.pending && state.pending.kind === "event") {
+        autoBlocked += 1;
+        // 自动模式不能再把界面卡在同一个付费选项上；连续失败时安全跳过。
+        if (autoBlocked > 3) {
+          state.pending = null;
+          sim.pushLog("system", "自动抉择无法处理这笔灵石，暂时作罢。");
+          appendLogs(before);
+          refreshAll();
+          paused = false;
+          saveRun();
+          schedule();
+          return;
+        }
         const fallbackLabel = "拿不出灵石，只能作罢";
         let index = state.pending.choices.findIndex((c) => c.label === fallbackLabel);
         if (index < 0) {
@@ -1562,6 +1601,7 @@
       $("menuAuto").textContent = `自动抉择：${auto ? "开" : "关"}`;
       toast(auto ? "已开启自动抉择" : "已关闭自动抉择");
       if (!auto) clearTimeout(autoTimer);
+      if (!auto) autoBlocked = 0;
       if (auto && state && state.pending) openPrompt();
     }
     $("btnAuto").addEventListener("click", () => setAuto(!auto));
