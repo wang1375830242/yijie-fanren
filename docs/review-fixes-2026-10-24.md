@@ -38,11 +38,11 @@ syntax-check: 22 js files ok
 cloud-check: ok
 cloud-function-check: ok
 a11y-check: 38 checks passed
-browser-smoke: 4 pages ok
+browser-smoke: 6 pages ok
 canon-regression: 381 checks passed
 220 runs, 0 issues
 natural-ascensions=8
-changelog-check: 32 releases, 70 changes
+changelog-check: 33 releases, 71 changes
 ```
 
 ## 仍然需要服务端的部分

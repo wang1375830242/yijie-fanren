@@ -123,6 +123,16 @@ function waitForChrome(port) {
       },
       { url: `${base}/stats.html`, expression: "!!document.getElementById('statsLogin')", expected: true },
       { url: `${base}/play.html`, expression: "document.title.includes('一介凡人')", expected: true },
+      {
+        url: `${base}/play.html?speed=qa`,
+        expression: "(() => { const top = document.querySelector('#speeds button[data-speed=\"12\"]'); const menu = document.querySelector('#menuSpeeds button[data-mspeed=\"12\"]'); if (!top || !menu) return false; top.click(); return top.classList.contains('on') && menu.classList.contains('on') && localStorage.getItem('yijie.prefs.v1').includes('\"speed\":12'); })()",
+        expected: true,
+      },
+      {
+        url: `${base}/play.html?run=qa`,
+        expression: "(async () => { const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)); document.getElementById('btnBirth').click(); await sleep(1700); const begin = document.getElementById('btnBegin'); if (begin && !begin.hidden) begin.click(); await sleep(500); const auto = document.getElementById('btnAuto'); if (auto) auto.click(); await sleep(2600); return Number(document.getElementById('ageNum').textContent) >= 1; })()",
+        expected: true,
+      },
     ];
     for (const page of pages) {
       const target = await requestJson(port, "PUT", "/json/new?" + encodeURIComponent(page.url));

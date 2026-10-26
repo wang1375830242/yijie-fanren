@@ -494,14 +494,15 @@
   }
 
   function setSpeed(v) {
-    speed = v;
+    const allowed = [1, 2, 4, 8, 12];
+    speed = allowed.includes(Number(v)) ? Number(v) : 1;
     document.querySelectorAll("#speeds button").forEach((b) => {
-      b.classList.toggle("on", Number(b.dataset.speed) === v);
+      b.classList.toggle("on", Number(b.dataset.speed) === speed);
     });
     document.querySelectorAll("#menuSpeeds button").forEach((b) => {
-      b.classList.toggle("on", Number(b.dataset.mspeed) === v);
+      b.classList.toggle("on", Number(b.dataset.mspeed) === speed);
     });
-    U.store.setPref("speed", v);
+    U.store.setPref("speed", speed);
     if (sim && !paused) schedule();
   }
 
