@@ -1298,6 +1298,19 @@ const badChoiceSchema = XD.EVENTS.filter(
     )
 );
 ok(badChoiceSchema.length === 0, `事件选项 schema 异常：${badChoiceSchema.map((e) => e.id).slice(0, 3).join(",")}`);
+const letterEvent = XD.EVENTS.find((event) => event.id === "g_h_family_1");
+const treeEvent = XD.EVENTS.find((event) => event.id === "g_h_family_5");
+const testFamily = { origin: { family: "山村农家" } };
+ok(
+  letterEvent &&
+    letterEvent.choices(testFamily).map((choice) => choice.label).join(",") === "拆开信,先放着",
+  "旧屋信件事件不应配上浇水/砍掉选项"
+);
+ok(
+  treeEvent &&
+    treeEvent.choices(testFamily).map((choice) => choice.label).join(",") === "浇水,砍掉",
+  "老树事件应保留浇水/砍掉选项"
+);
 [
   "root_test",
   "d_node",

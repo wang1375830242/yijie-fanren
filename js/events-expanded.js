@@ -292,6 +292,54 @@
           { label: "铺好床", effects: { karma: 2, mood: 3 }, outcome: "你把床铺得很平整，像在等一个不会来的人。" },
           { label: "关上门", effects: { mood: 1, insight: 2 }, outcome: "门关上后，屋里安静得能听见灰落下来。" },
         ],
+        [
+          { label: "听一会儿雨", effects: { mood: 2 }, outcome: "你坐在窗边听雨，直到困意上来。" },
+          { label: "关窗", effects: { insight: 1 }, outcome: "你把窗关好，屋里的声音一下子小了。" },
+        ],
+        [
+          { label: "打开看看", effects: { insight: 2, mood: -1 }, outcome: "纸上的字已经模糊，你只认出一个旧姓。" },
+          { label: "放回原处", effects: { mood: 1 }, outcome: "你把纸压回箱底，当作没有看见。" },
+        ],
+        [
+          { label: "收下", effects: { karma: 2, mood: 2 }, outcome: "你把菜提进屋，心里记下了这份人情。" },
+          { label: "问问是谁", effects: { insight: 2 }, outcome: "你问了一圈，没有人承认。" },
+        ],
+        [
+          { label: "收起筷子", effects: { mood: -1, insight: 1 }, outcome: "你把那双筷子收进柜里，桌上空了一块。" },
+          { label: "再等一会儿", effects: { mood: 1 }, outcome: "你又坐了一会儿，直到饭菜彻底凉了。" },
+        ],
+        [
+          { label: "看看裂缝", effects: { insight: 2 }, outcome: "裂缝后面是空的，只有一层很旧的灰。" },
+          { label: "把画挂回去", effects: { mood: 1 }, outcome: "你把画挂回原处，决定不去想它。" },
+        ],
+        [
+          { label: "过去帮忙", effects: { karma: 2, mood: 2 }, outcome: "你替他们算完最后一笔，灯已经快灭了。" },
+          { label: "回房", effects: { mood: 1, insight: 1 }, outcome: "你回到房里，算盘声还在墙外响。" },
+        ],
+        [
+          { label: "收被褥", effects: { karma: 1, mood: 2 }, outcome: "你赶在雨落下来前把被褥收进屋。" },
+          { label: "让风吹", effects: { mood: 1 }, outcome: "风把被褥吹得鼓起来，你站在旁边看了一会儿。" },
+        ],
+        [
+          { label: "过去看看", effects: { karma: 2, insight: 1 }, outcome: "你隔着门听了一会儿，孩子的哭声慢慢停了。" },
+          { label: "关窗", effects: { mood: 1 }, outcome: "你关上窗，哭声变得很远。" },
+        ],
+        [
+          { label: "再热一遍", effects: { mood: 2 }, outcome: "你把汤重新热上，屋里又有了一点热气。" },
+          { label: "倒掉", effects: { mood: -1, insight: 1 }, outcome: "你把凉汤倒掉，碗底留下一圈白痕。" },
+        ],
+        [
+          { label: "回头", effects: { mood: 2, karma: 1 }, outcome: "你回过头，家里人还站在门口。" },
+          { label: "继续走", effects: { mood: -1, insight: 1 }, outcome: "你没有回头，脚步比平时快了一些。" },
+        ],
+        [
+          { label: "收起来", effects: { mood: 1 }, outcome: "你把干辣椒收进厨房，红色在暗处淡了下去。" },
+          { label: "留在原处", effects: { insight: 1 }, outcome: "你没有动它，风吹过时它轻轻碰墙。" },
+        ],
+        [
+          { label: "出去看看", effects: { insight: 1, mood: -1 }, outcome: "你推门出去，院子里只有一把磨到一半的刀。" },
+          { label: "回屋", effects: { mood: 1 }, outcome: "你回到屋里，磨刀声在身后停了。" },
+        ],
       ],
     },
 
@@ -749,6 +797,46 @@
   /* 给回归测试读取场景池；运行时只读，不参与事件生成。 */
   XD.SCENE_POOLS = POOLS;
 
+  /* 场景数量多于专用选项组时，用中性选项兜底，避免“旧屋信件”配到“浇水/砍掉”。 */
+  const FALLBACK_CHOICES = {
+    child: [
+      { label: "先看看", effects: { insight: 1 }, outcome: "你站着看了一会儿，没有急着做什么。" },
+      { label: "跑开", effects: { mood: 1 }, outcome: "你转身跑开，身后的声音很快远了。" },
+    ],
+    home: [
+      { label: "先看看", effects: { insight: 1 }, outcome: "你把这件事放在心里，没有立刻做决定。" },
+      { label: "转身离开", effects: { mood: 1 }, outcome: "你走出门，屋里的话暂时没有说完。" },
+    ],
+    sect: [
+      { label: "按规矩办", effects: { insight: 1 }, outcome: "你按山门的规矩行事，没有多说什么。" },
+      { label: "先退下", effects: { mood: 1 }, outcome: "你退到一旁，等事情自己冷下来。" },
+    ],
+    wild: [
+      { label: "绕路走", effects: { insight: 1 }, outcome: "你绕开了那片地方，路远了一些。" },
+      { label: "继续走", effects: { mood: 1 }, outcome: "你继续往前，没有回头。" },
+    ],
+    market: [
+      { label: "问个价", effects: { insight: 1 }, outcome: "你问了几句，心里有了数。" },
+      { label: "走开", effects: { mood: 1 }, outcome: "你从摊子前走开，没有买什么。" },
+    ],
+    war: [
+      { label: "守住这里", effects: { karma: 1, mood: -1 }, outcome: "你守住了眼前这一段，直到风声过去。" },
+      { label: "先撤", effects: { mood: 1 }, outcome: "你退到后面，保住了自己。" },
+    ],
+    spirit: [
+      { label: "上前查看", effects: { insight: 1 }, outcome: "你走近看了看，没有惊动什么。" },
+      { label: "避开", effects: { mood: 1 }, outcome: "你绕开了那里，继续往前走。" },
+    ],
+    immortal: [
+      { label: "查看异象", effects: { insight: 1 }, outcome: "你观察了很久，只记下一点痕迹。" },
+      { label: "不理会", effects: { mood: 1 }, outcome: "你没有理会，继续走自己的路。" },
+    ],
+    partner: [
+      { label: "留下", effects: { mood: 2, affinity: 2 }, outcome: "你留下来陪对方，把话听完。" },
+      { label: "先离开", effects: { mood: 1 }, outcome: "你先离开了，回头时门口没有人。" },
+    ],
+  };
+
   /* 童年选择组：16 组通用 + 14 种出身 × 6 组 = 100 组 */
   const CHILD_IDENTITIES = [
     "山村农家",
@@ -981,7 +1069,8 @@
     const count = theme.key === "h_child" ? 400 : N;
     for (let i = 0; i < count; i++) {
       const title = theme.titles[i % theme.titles.length];
-      const scene = pool.scenes[i % pool.scenes.length];
+      const sceneIndex = i % pool.scenes.length;
+      const scene = pool.scenes[sceneIndex];
       const detail =
         pool.details[
           (Math.floor(i / pool.scenes.length) + i) % pool.details.length
@@ -989,8 +1078,15 @@
       const outcome = pool.outcomes[(i * 3 + 1) % pool.outcomes.length];
       const baseSets = theme.choices || pool.choices;
       const setFor = (s) => {
+        if (theme.choices) return theme.choices[0];
         const sets = theme.key === "h_child" ? childChoiceGroups(s) : baseSets;
-        return sets[i % sets.length];
+        if (sceneIndex >= sets.length) {
+          return FALLBACK_CHOICES[theme.pool].map((choice) => ({
+            ...choice,
+            outcome: `${choice.outcome}${detail}`,
+          }));
+        }
+        return sets[sceneIndex];
       };
       add({
         id: `g_${theme.key}_${i}`,

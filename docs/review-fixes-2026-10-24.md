@@ -39,10 +39,10 @@ cloud-check: ok
 cloud-function-check: ok
 a11y-check: 38 checks passed
 browser-smoke: 4 pages ok
-canon-regression: 379 checks passed
+canon-regression: 381 checks passed
 220 runs, 0 issues
 natural-ascensions=8
-changelog-check: 31 releases, 69 changes
+changelog-check: 32 releases, 70 changes
 ```
 
 ## 仍然需要服务端的部分

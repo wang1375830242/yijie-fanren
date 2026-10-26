@@ -1761,6 +1761,14 @@
       if (!p || p.kind !== "danger") return null;
       const opt = p.options[index];
       if (!opt) return null;
+      // 渡劫失败后从濒死中活下来，也要给下一次尝试留出冷却，避免同一条天劫连续弹出。
+      s.flags = s.flags || {};
+      if (p.eventId === "m_ascend") {
+        s.flags.wait_immortal_until = Math.max(s.flags.wait_immortal_until || 0, s.age + 60);
+      }
+      if (p.eventId === "d_node") {
+        s.flags.wait_spirit_until = Math.max(s.flags.wait_spirit_until || 0, s.age + 60);
+      }
       if (opt.ward && s.ward < 1) {
         this.pushLog("system", "你身上没有护身玉符。");
         return { status: "blocked" };
