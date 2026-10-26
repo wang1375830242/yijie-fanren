@@ -447,7 +447,58 @@ sudo tar czf "/var/backups/yijie-fanren/hall-$(date +%F-%H%M).tgz" \
 
 ---
 
+## 8.1 安全加固（必做）
+
+### 写入口令
+
+`server.py` 通过环境变量 `YIJIE_WRITE_KEY` 校验写请求。systemd drop-in：
+
+```ini
+[Service]
+Environment=YIJIE_WRITE_KEY=替换为随机长口令
+```
+
+前端第一次点灯或留言时会提示输入口令，只保存在当前浏览器会话的 `sessionStorage` 中。  
+不要把口令写进仓库、HTML 或 URL。
+
+### 真实 IP 与限流
+
+`server.py` 只有在直连 peer 是回环地址时才信任 Nginx 的 `X-Real-IP`。Nginx 写接口增加：
+
+```nginx
+limit_req_zone $binary_remote_addr zone=yijie_write:10m rate=30r/m;
+```
+
+并对 `/api/candle`、`/api/message` 使用 `limit_req`。这样限流按真实访客 IP 生效，而不是所有请求共用 `127.0.0.1`。
+
+### 数据上限与备份
+
+`server.py` 默认最多跟踪 5000 个 stele id。部署 `tools/backup_hall.py` 和每日 systemd timer，备份目录：
+
+```text
+/opt/yijie-fanren/backups
+```
+
+备份只保留最近 30 天，不放入仓库。
+
+### SSH
+
+先确认 ubuntu 用户的 SSH 公钥能登录，再关闭密码登录：
+
+```text
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+X11Forwarding no
+MaxAuthTries 3
+```
+
+改完后执行 `sshd -t`，再 reload SSH；不要先关闭当前会话。
+
+---
+
 ## 9. 部署完成后必须返回的信息
+
 
 请把下面模板填好发回。**不要返回私钥、密码、Token、完整环境变量或用户留言正文。**
 

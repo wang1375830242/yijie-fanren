@@ -9,6 +9,8 @@
 from __future__ import annotations
 
 import argparse
+import hmac
+import ipaddress
 import json
 import os
 import re
@@ -24,6 +26,8 @@ DATA_FILE = os.path.join(DATA_DIR, "hall.json")
 MAX_BODY = 8192
 MAX_MESSAGE = 40
 MAX_MESSAGES_PER_STELE = 20
+MAX_TRACKED_STELES = 5000
+WRITE_KEY = os.environ.get("YIJIE_WRITE_KEY", "").strip()
 ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 SENSITIVE_PATHS = {
     "",
@@ -105,12 +109,33 @@ def counts(state: dict) -> dict:
     }
 
 
+def tracked_stele_count(state: dict) -> int:
+    return len(set(state.get("candles", {})) | set(state.get("messages", {})))
+
+
+def write_authorized(provided: str) -> bool:
+    if not WRITE_KEY:
+        return False
+    return bool(provided) and hmac.compare_digest(provided, WRITE_KEY)
+
+
 class Handler(SimpleHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     server_version = "YijieHall/1.0"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=ROOT, **kwargs)
+
+    def client_ip(self) -> str:
+        """只信任回环 Nginx 传入的真实 IP，防止客户端直接伪造 X-Real-IP。"""
+        peer = self.client_address[0]
+        if peer in ("127.0.0.1", "::1"):
+            raw = self.headers.get("X-Real-IP", "").strip()
+            try:
+                return str(ipaddress.ip_address(raw))
+            except ValueError:
+                pass
+        return peer
 
     def log_message(self, fmt, *args):
         # 只保留错误，避免终端被静态请求刷屏。
@@ -185,8 +210,11 @@ class Handler(SimpleHTTPRequestHandler):
         if path not in ("/api/candle", "/api/message"):
             self._json(404, {"error": "not found"})
             return
-        if not allow_rate(self.client_address[0], path, 30 if path.endswith("candle") else 8):
+        if not allow_rate(self.client_ip(), path, 30 if path.endswith("candle") else 8):
             self._json(429, {"error": "too many requests"})
+            return
+        if not write_authorized(self.headers.get("X-Yijie-Write-Key", "")):
+            self._json(401, {"error": "write key required"})
             return
         data = self._read_json()
         if not data:
@@ -199,6 +227,10 @@ class Handler(SimpleHTTPRequestHandler):
 
         with _LOCK:
             state = load_state()
+            if stele_id not in state["candles"] and stele_id not in state["messages"]:
+                if tracked_stele_count(state) >= MAX_TRACKED_STELES:
+                    self._json(429, {"error": "stele limit reached"})
+                    return
             if path == "/api/candle":
                 current = state["candles"].get(stele_id, 0)
                 if not isinstance(current, int):

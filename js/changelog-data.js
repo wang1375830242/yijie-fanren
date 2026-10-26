@@ -11,6 +11,20 @@
     updatedAt: "2026-10-26",
     releases: [
       {
+        version: "2.5.1",
+        date: "2026-10-26",
+        title: "公共碑林安全加固",
+        summary: "为公开写入增加口令、真实 IP 限流、总量上限、每日备份，并完成 SSH 密钥登录和 HTTPS 安全响应头。",
+        compatibility: "旧存档兼容",
+        changes: [
+          { type: "fix", text: "公共碑林写入增加口令校验，未授权请求返回 401。", tags: ["安全", "碑林"] },
+          { type: "fix", text: "限流改用 Nginx 转发的真实访客 IP，并增加写接口漏桶限流。", tags: ["安全", "限流"] },
+          { type: "fix", text: "限制公共碑林最多跟踪 5000 个 stele id，避免无限增长。", tags: ["安全", "存储"] },
+          { type: "engineering", text: "增加每日 hall.json 备份和 30 天保留策略。", tags: ["备份", "运维"] },
+          { type: "fix", text: "SSH 改为密钥登录，关闭 root 密码登录与密码认证。", tags: ["安全", "运维"] },
+        ],
+      },
+      {
         version: "2.5.0",
         date: "2026-10-26",
         title: "十二倍流速",
