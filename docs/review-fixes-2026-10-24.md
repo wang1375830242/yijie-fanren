@@ -34,15 +34,16 @@
 ## 测试
 
 ```text
-syntax-check: 21 js files ok
+syntax-check: 22 js files ok
 cloud-check: ok
+cloud-function-check: ok
 canon-regression: 372 checks passed
 220 runs, 0 issues
 natural-ascensions=8
-changelog-check: 28 releases, 66 changes
+changelog-check: 29 releases, 67 changes
 ```
 
 ## 仍然需要服务端的部分
 
 静态版默认 `writeMode: "server"`，LeanCloud 客户端不再直写公共碑林或访问记录。  
-点灯、留言和访问上报需要同源 `server.py` 或 LeanCloud 云函数；`stats.html` 仍只是未链接 + `noindex`，不是权限后台。LeanCloud 停服前的导出与迁移尚未执行。
+统计页已改为管理口令 + `statsAdmin` 云函数；云函数代码在 `cloud-engine/cloud.js`，部署后还需在 LeanCloud 关闭两个统计类的客户端读权限。部署步骤见 `cloud-engine/README.md`。LeanCloud 停服前的目标库迁移尚未执行。

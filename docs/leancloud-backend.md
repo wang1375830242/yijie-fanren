@@ -36,11 +36,14 @@ js/lean-config.js
 
 默认配置：
 
-- 读：所有用户
+- 读：`SiteVisit` / `SiteVisitor` 仅服务端读取，客户端关闭
 - 写：关闭（`writeMode: "server"`）
+- `HallCandle` / `HallMessage`：客户端可读，写入关闭
 
 GitHub Pages 静态版公共碑林因此是只读的。  
 点灯、留言和访问上报必须通过同源 `server.py` 或 LeanCloud 云函数写入；云函数使用服务端密钥做字段校验、频率限制和内容审核。前端只使用 AppKey，不包含 MasterKey。
+
+统计页需要部署 `cloud-engine/cloud.js` 中的 `statsAdmin` 云函数，并在云引擎环境变量中设置 `STATS_ADMIN_TOKEN`。统计页只接收管理口令，不直接读取原始访问记录。部署说明见 `cloud-engine/README.md`。
 
 ## 本地联调
 

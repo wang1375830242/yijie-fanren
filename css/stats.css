@@ -24,6 +24,43 @@
   font-size: 13px;
   line-height: 1.9;
 }
+.stats-login {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  background: rgba(20, 25, 18, 0.45);
+}
+.stats-login label {
+  display: block;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+.stats-login-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.stats-login input {
+  min-width: 0;
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+.stats-login button {
+  flex: none;
+}
+.stats-hint {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 11px;
+  line-height: 1.7;
+}
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -92,12 +92,6 @@
     return /^(localhost|127\.0\.0\.1|::1)$/.test(location.hostname);
   }
 
-  async function count(className, filter) {
-    const q = filter ? `?where=${where(filter)}&count=1&limit=0` : "?count=1&limit=0";
-    const data = await request(`/1.1/classes/${className}${q}`, { method: "GET" });
-    return Number(data.count) || 0;
-  }
-
   function validStele(id) {
     return (
       typeof id === "string" &&
@@ -150,12 +144,9 @@
     await visit;
   }
 
-  async function stats() {
-    const cacheKey = "yijie.stats.cache.v1";
-    try {
-      const cached = JSON.parse(sessionStorage.getItem(cacheKey) || "null");
-      if (cached && Date.now() - cached.at < 60000 && cached.data) return cached.data;
-    } catch (err) {}
+  async function adminStats(token) {
+    if (!enabled) throw new Error("LeanCloud 未配置");
+    if (!token) throw new Error("需要统计口令");
     const today = localDay();
     const days = [];
     for (let i = 6; i >= 0; i--) {
@@ -163,24 +154,15 @@
       d.setDate(d.getDate() - i);
       days.push(localDay(d));
     }
-    const pageNames = ["index.html", "play.html", "hall.html", "codex.html", "about.html", "changelog.html", "404.html"];
-    const [total, unique, todayCount] = await Promise.all([
-      count(classes.visit),
-      count(classes.visitor),
-      count(classes.visit, { day: today }),
-    ]);
-    const dayCounts = await Promise.all(days.map((day) => count(classes.visit, { day })));
-    const pageCounts = await Promise.all(pageNames.map((page) => count(classes.visit, { page })));
-    const result = {
-      total,
-      unique,
-      today: todayCount,
-      days: days.map((day, i) => ({ day, count: dayCounts[i] })),
-      pages: pageNames.map((page, i) => ({ page, count: pageCounts[i] })),
-    };
-    try {
-      sessionStorage.setItem(cacheKey, JSON.stringify({ at: Date.now(), data: result }));
-    } catch (err) {}
+    const pages = ["index.html", "play.html", "hall.html", "codex.html", "about.html", "changelog.html", "404.html"];
+    const payload = await request("/1.1/functions/statsAdmin", {
+      method: "POST",
+      body: JSON.stringify({ token, today, days, pages }),
+    });
+    const result = payload && payload.result ? payload.result : payload;
+    if (!result || !Array.isArray(result.days) || !Array.isArray(result.pages)) {
+      throw new Error("云函数没有返回统计结果");
+    }
     return result;
   }
 
@@ -283,7 +265,7 @@
     writeEnabled,
     config: cfg,
     recordVisit,
-    stats,
+    adminStats,
     hall: {
       load: hallLoad,
       light: hallLight,

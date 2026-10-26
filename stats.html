@@ -7,17 +7,26 @@
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="theme-color" content="#0b0f0b">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="js/theme-init.js?v=20261024rr"></script>
+<script src="js/theme-init.js?v=20261024ss"></script>
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/stats.css?v=20261024rr">
-<link rel="stylesheet" href="css/day.css?v=20261024rr">
+<link rel="stylesheet" href="css/stats.css?v=20261024ss">
+<link rel="stylesheet" href="css/day.css?v=20261024ss">
 </head>
 <body class="stats-page">
 <main class="wrap">
   <p class="stats-kicker">内部页 · 不参与导航</p>
   <h1>访问统计</h1>
   <p class="stats-lead">这一页不会出现在站点导航里，也不会被搜索引擎收录。这里只显示聚合数据，不显示 IP 或具体访客身份。</p>
+
+  <form class="stats-login" id="statsLogin">
+    <label for="statsToken">管理口令</label>
+    <div class="stats-login-row">
+      <input id="statsToken" type="password" autocomplete="current-password" placeholder="由 LeanCloud 云引擎设置的口令" required>
+      <button class="btn btn--primary" type="submit">验证</button>
+    </div>
+    <p class="stats-hint">口令只用于调用 LeanCloud 云函数 statsAdmin，不会写入页面链接。</p>
+  </form>
 
   <section class="stats-grid" aria-label="访问概览">
     <div class="stat-card"><span>总访问</span><b id="statTotal">—</b></div>
@@ -36,10 +45,10 @@
     <div class="stats-table" id="statPages"></div>
   </section>
 
-  <p class="stats-status" id="statsStatus" aria-live="polite">正在读取 LeanCloud 数据…</p>
+  <p class="stats-status" id="statsStatus" aria-live="polite">输入管理口令后读取云函数聚合数据。</p>
 </main>
-<script src="js/lean-config.js?v=20261024rr"></script>
-<script src="js/cloud.js?v=20261024rr"></script>
-<script src="js/stats.js?v=20261024rr"></script>
+<script src="js/lean-config.js?v=20261024ss"></script>
+<script src="js/cloud.js?v=20261024ss"></script>
+<script src="js/stats.js?v=20261024ss"></script>
 </body>
 </html>

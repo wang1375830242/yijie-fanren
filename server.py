@@ -34,6 +34,7 @@ SENSITIVE_PATHS = {
     "docs",
     "tests",
     "tools",
+    "cloud-engine",
     "data",
     ".git",
     ".github",

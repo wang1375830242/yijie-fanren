@@ -16,11 +16,14 @@ npm test
 `npm test` 会依次运行：
 
 ```bash
+node tests/syntax-check.js
+node tests/cloud-check.js
+node tests/cloud-function-check.js
 node tests/canon-regression.js
 node tests/changelog-check.js
 ```
 
-项目仍然没有 npm 依赖、没有构建步骤，`package.json` 只提供测试脚本入口。
+项目仍然没有前端 npm 依赖、没有构建步骤，`package.json` 只提供测试脚本入口。`cloud-engine` 的 LeanCloud 依赖只在云引擎部署时安装。
 
 ## GitHub Actions
 
@@ -55,12 +58,13 @@ node tests/changelog-check.js
 当前基线：
 
 ```text
-syntax-check: 21 js files ok
+syntax-check: 22 js files ok
 cloud-check: ok
+cloud-function-check: ok
 canon-regression: 372 checks passed
 220 runs, 0 issues
 pseudo-spirit=2
 natural-ascensions=8
 worst-repeat=2
-changelog-check: 28 releases, 66 changes, schema ok
+changelog-check: 29 releases, 67 changes, schema ok
 ```

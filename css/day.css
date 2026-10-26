@@ -185,7 +185,8 @@ html[data-theme="day"] .end-deeds h3 {
   color: var(--muted);
 }
 html[data-theme="day"] .stat-card,
-html[data-theme="day"] .stats-panel {
+html[data-theme="day"] .stats-panel,
+html[data-theme="day"] .stats-login {
   background: rgba(255, 253, 248, 0.58);
   border-color: var(--line);
 }

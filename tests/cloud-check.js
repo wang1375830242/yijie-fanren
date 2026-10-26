@@ -44,6 +44,9 @@ global.fetch = async (url, opts) => {
   let data = { results: [] };
   if (url.includes("/HallCandle")) data = { results: candles };
   if (url.includes("/HallMessage")) data = { results: messages };
+  if (url.includes("/functions/statsAdmin")) {
+    data = { result: { total: 7, unique: 3, today: 2, days: [{ day: "2026-10-24", count: 2 }], pages: [{ page: "index.html", count: 7 }] } };
+  }
   return { ok: true, status: 200, text: async () => JSON.stringify(data) };
 };
 
@@ -65,6 +68,8 @@ vm.runInThisContext(fs.readFileSync(path.join(root, "js", "cloud.js"), "utf8"));
       blocked = true;
     }
     if (!blocked) throw new Error("invalid stele should be rejected");
+    const admin = await XD.cloud.adminStats("test-token");
+    if (admin.total !== 7 || admin.days[0].count !== 2) throw new Error("statsAdmin response failed");
     if (!lastRequest || !lastRequest.opts.headers["X-LC-Id"]) throw new Error("headers missing");
     console.log("cloud-check: ok");
   } catch (err) {

@@ -11,6 +11,20 @@
     updatedAt: "2026-10-26",
     releases: [
       {
+        version: "2.4.6",
+        date: "2026-10-26",
+        title: "统计页上锁",
+        summary: "统计页改为 LeanCloud 云函数 statsAdmin 鉴权，只有输入云引擎口令才能读取聚合数据。",
+        compatibility: "旧存档兼容",
+        changes: [
+          {
+            type: "fix",
+            text: "移除统计页客户端直读；增加管理口令输入，云函数校验后返回聚合数字，并配套部署说明。",
+            tags: ["后台", "鉴权", "云函数"],
+          },
+        ],
+      },
+      {
         version: "2.4.5",
         date: "2026-10-26",
         title: "先长大再问心",
