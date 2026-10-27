@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.join(__dirname, "..");
-const pages = ["index.html", "play.html", "hall.html", "codex.html", "about.html", "changelog.html"];
-const cssFiles = ["css/base.css", "css/tokens.css", "css/day.css"];
+const pages = ["index.html", "play.html", "hall.html", "guestbook.html", "codex.html", "about.html", "changelog.html"];
+const cssFiles = ["css/base.css", "css/tokens.css", "css/day.css", "css/guestbook.css"];
 let checks = 0;
 
 function ok(value, message) {
@@ -27,6 +27,11 @@ const play = read("play.html");
 ok(/id="choiceOverlay"/.test(play) && /role="dialog"/.test(play), "play: choice overlay should be a dialog");
 ok(/aria-modal="true"/.test(play), "play: choice dialog should be modal");
 ok(/id="log"[^>]*aria-live="polite"/.test(play), "play: log should announce updates");
+
+const guestbook = read("guestbook.html");
+ok(/<label[^>]*for="gbName"/.test(guestbook) && /id="gbName"/.test(guestbook), "guestbook: name input needs a label");
+ok(/<label[^>]*for="gbText"/.test(guestbook) && /id="gbText"/.test(guestbook), "guestbook: text input needs a label");
+ok(/id="gbStatus"[^>]*aria-live="polite"/.test(guestbook), "guestbook: status needs aria-live");
 
 const css = cssFiles.map(read).join("\n");
 ok(/@media\s*\(prefers-reduced-motion:\s*reduce\)/.test(css), "css: missing reduced-motion fallback");

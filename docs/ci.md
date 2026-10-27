@@ -19,6 +19,7 @@ npm test
 node tests/syntax-check.js
 node tests/a11y-check.js
 node tests/browser-smoke.js
+node tests/guestbook-check.js
 node tests/canon-regression.js
 node tests/changelog-check.js
 ```
@@ -58,13 +59,14 @@ node tests/changelog-check.js
 当前基线：
 
 ```text
-syntax-check: 18 js files ok
-a11y-check: 32 checks passed
-browser-smoke: 5 pages ok
+syntax-check: 19 js files ok
+a11y-check: 39 checks passed
+browser-smoke: 6 pages ok
+guestbook-check: ok
 canon-regression: 386 checks passed
 220 runs, 0 issues
-pseudo-spirit=2
+pseudo-spirit=4
 natural-ascensions=12
 worst-repeat=2
-changelog-check: 5 releases, 63 changes, schema ok
+changelog-check: 6 releases, 65 changes, schema ok
 ```

@@ -10,7 +10,7 @@
 
 GitHub Pages（静态版）：<https://wang1375830242.github.io/yijie-fanren/>
 
-GitHub Pages 只能运行静态文件，因此在线版的碑林是“本机模式”；点灯、留言只存在你的浏览器。要启用公共碑林，需要把仓库放到一台能运行 `server.py` 的机器上。
+GitHub Pages 只托管静态页面，公共碑林和留言板通过 HTTPS 调用自建 `server.py` 后台；直接双击 `index.html` 时自动退回本机模式。
 
 ## 怎么打开
 
@@ -40,6 +40,7 @@ python server.py
 | `index.html` | 卷首。命盘、三界、投胎签、玩法说明、碑林预览 |
 | `play.html` | 推演一世。择界 → 命格卡 → 人生主界面 → 飞升 → 终局 |
 | `hall.html` | 碑林。读别人的一生，点灯、留言 |
+| `guestbook.html` | 留言板。站点级留言、昵称与分页浏览 |
 | `codex.html` | 万宝阁图鉴。境界 / 界域 / 宗门 / 法宝 / 丹药 / 妖兽 |
 | `changelog.html` | 更新纪事。按版本记录玩家可感知的变化 |
 | `about.html` | 这是怎么算的、数据与版权说明 |
@@ -141,15 +142,25 @@ python server.py
 - `yijie.prefs.v1` — 速度、柔化模式等偏好
 - `yijie.messages.v1` / `yijie.candles.v1` — 只在本机模式下使用的留言与灯数
 
-公共碑林：由自建 `server.py` 提供读取、点灯和留言 API；GitHub Pages 通过 HTTPS 调用服务器。公共留言是公开的，请不要写真实个人信息。留言没有账号删除功能，部署前请考虑审核/清理策略。
+公共碑林和留言板由自建 `server.py` 提供 API；GitHub Pages 通过 HTTPS 调用服务器。公共留言是公开的，请不要写真实个人信息。留言板支持后台隐藏和软删除，部署前请配置好管理端。
+
+## 留言板 API
+
+```text
+GET  /api/guestbook?before=<id>&limit=20
+POST /api/guestbook  {"name":"可选称呼","text":"留言"}
+```
+
+留言默认公开，按 id 游标倒序分页。管理端走服务器的 `/stats/guestbook`，不在静态站点中暴露。
 
 ## 目录
 
 ```
 yijie-fanren/
-├─ index.html / play.html / hall.html / codex.html / about.html / 404.html
-├─ server.py           静态服务 + 公共碑林 API
+├─ index.html / play.html / hall.html / guestbook.html / codex.html / about.html / 404.html
+├─ server.py           静态服务 + 公共碑林 + 留言板 API
 ├─ data/hall.json      公共点灯与留言（运行时写入）
+├─ data/guestbook.db   留言板 SQLite（运行时写入）
 ├─ robots.txt
 ├─ css/
 │  ├─ tokens.css      设计变量（颜色、字体、尺度、三界主题）
@@ -157,10 +168,12 @@ yijie-fanren/
 │  ├─ landing.css     落地页
 │  ├─ game.css        推演流程与主界面
 │  ├─ hall.css        碑林与内页页头
+│  ├─ guestbook.css   留言板
 │  ├─ codex.css       图鉴
 │  └─ about.css       关于
 ├─ js/
 │  ├─ common.js       随机数、存储、提示、进场
+│  ├─ guestbook.js    留言板读取、提交与分页
 │  ├─ data.js         境界 / 出身 / 灵根 / 行动 / 货栈 / 天候 / 碑文 / 图鉴
 │  ├─ canon.js        原著人物 / 宗门 / 灵根资料补全（含推测标记）
 │  ├─ events.js       手写事件簿（含条件与抉择）

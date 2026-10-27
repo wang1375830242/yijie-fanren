@@ -8,32 +8,28 @@
 
 这个仓库包含：
 
-- 静态前端：`index.html`、`play.html`、`hall.html`、`codex.html`、`about.html`
-- 公共碑林后端：`server.py`
-- 运行时数据：`data/hall.json`（由 `server.py` 自动创建）
+- 静态前端：`index.html`、`play.html`、`hall.html`、`guestbook.html`、`codex.html`、`about.html`
+- 公共碑林与留言板后端：`server.py`
+- 服务器后台：`/stats/`（访问统计与留言管理，部署在服务器，不进静态仓库）
+- 运行时数据：`data/hall.json`、`data/guestbook.db`（由 `server.py` 自动创建）
 
-`server.py` 同时做两件事：
+`server.py` 提供：
 
-1. 提供静态文件；
-2. 提供 `/api/hall`、`/api/candle`、`/api/message` 三个接口。
-
-**重要：不要只把 `server.py` 单独跑起来，然后把前端继续放在 GitHub Pages 上。**
-
-前端里的接口地址是写死的同源相对路径：
-
-```js
-fetch("/api/hall")
-fetch("/api/candle")
-fetch("/api/message")
+```text
+/api/hall
+/api/candle
+/api/message
+/api/guestbook
 ```
 
-如果前端在 GitHub Pages、后端在另一台服务器，浏览器会请求 GitHub Pages 自己的 `/api/*`，不会请求到你的服务器；而且后端目前没有配置 CORS。
+`/api/guestbook` 支持 `GET` 分页读取和 `POST` 写入；管理端通过服务器的 `/stats/guestbook` 操作。
 
-所以推荐方案是：
+GitHub Pages 静态前端在 `hall.js` / `guestbook.js` 中把 API 地址指向
+`https://192.144.150.24`，服务器允许
+`https://wang1375830242.github.io` 的 CORS。部署到其他域名时，需要同步修改
+`API_BASE` 与 `ALLOWED_ORIGINS`。
 
-> **把完整仓库部署到 Linux 服务器，通过同一个域名同时提供静态页面和 API。**
-
-这样打开 `https://你的域名/hall.html` 时，公共碑林才会自动连上。
+推荐仍然把完整仓库部署到 Linux 服务器，通过同一个域名同时提供静态页面和 API；这样碑林和留言板都可以同源工作。
 
 ---
 
@@ -405,26 +401,32 @@ curl -fsS https://play.example.com/api/hall
 
 ## 7. 数据与备份
 
-运行时数据只有一个文件：
+运行时数据：
 
 ```text
 /opt/yijie-fanren/data/hall.json
+/opt/yijie-fanren/data/guestbook.db
 ```
 
 请确保：
 
 - 目录属主是 `www-data:www-data`；
-- 服务停止后备份这个文件；
-- 不要把它提交回 Git；
-- 不要把 `data/hall.json` 暴露成静态文件。
+- 服务停止后备份这两个文件；
+- SQLite 使用 WAL，优先用 `tools/backup_hall.py` 的 SQLite backup API，不要直接复制正在写入的 `.db-wal`；
+- 不要把它们提交回 Git；
+- 不要把 `data/` 暴露成静态文件；新的静态服务使用 `server.py` 的扩展名/真实路径白名单。
 
 简单备份命令：
 
 ```bash
 sudo mkdir -p /var/backups/yijie-fanren
-sudo tar czf "/var/backups/yijie-fanren/hall-$(date +%F-%H%M).tgz" \
-  -C /opt/yijie-fanren data
+sudo python3 tools/backup_hall.py \
+  --source /opt/yijie-fanren/data/hall.json \
+  --guestbook-source /opt/yijie-fanren/data/guestbook.db \
+  --dest /var/backups/yijie-fanren
 ```
+
+`backup_hall.py` 会通过 SQLite backup API 备份 `guestbook.db`，比直接复制 live WAL 文件安全。也可以继续用 tar 备份整个 `data` 目录，但应在低流量时执行。
 
 可以加到 cron，每天一次。
 
@@ -434,14 +436,15 @@ sudo tar czf "/var/backups/yijie-fanren/hall-$(date +%F-%H%M).tgz" \
 
 请在报告里如实说明，不要隐瞒：
 
-1. **限流是进程内内存限流**，重启后清零。
-2. **反向代理后，所有请求的来源 IP 会显示为 127.0.0.1**。当前 `server.py` 没有读取 `X-Forwarded-For`，所以所有访客共用同一个限流桶：
-   - 点灯：30 次/分钟（全站合计）
-   - 留言：8 次/分钟（全站合计）
-   对小站点够用；如果用户量上来，需要改后端支持可信代理头。
-3. **留言是公开且没有审核后台的**。前端会做 HTML 转义、长度限制 40 字、每个碑最多保留 20 条，但没有敏感词审核。
-4. **没有账号系统**，任何人都可以点灯/留言。
-5. **只支持同源部署**。不要试图让 GitHub Pages 前端直接调用这个后端，除非另外修改 `hall.js` 的 API 地址并给后端加 CORS。
+1. **限流是进程内内存限流**，重启后清零；同时 Nginx 有 `yijie_guestbook` 外层限流。
+2. **反向代理必须正确传递真实 IP**。Nginx 配置需要 `X-Real-IP $remote_addr`；Caddy/Docker/Cloudflare 需要显式配置可信代理或 `real_ip`，否则所有访客可能共用同一个限流桶。
+    - 点灯：30 次/分钟
+    - 碑林留言：8 次/分钟
+    - 留言板：2 次/分钟
+3. **留言板管理端是服务器独立服务** `/stats/`，使用 Basic Auth；不要把 `127.0.0.1:8766` 暴露到公网。
+4. **公共留言默认公开**，管理员可隐藏/软删除；没有敏感词审核。碑林留言仍每个碑最多保留 20 条。
+5. **没有账号系统**，任何人都可以点灯/留言/写留言板。
+6. **GitHub Pages 跨域已支持**：GitHub Pages 来源在 `ALLOWED_ORIGINS` 中，API 地址由 `hall.js` / `guestbook.js` 指向 `https://192.144.150.24`；换域名时两边都要改。
 
 如果这些限制对当前使用场景不可接受，先停下来报告，不要擅自加复杂功能。
 
@@ -457,10 +460,12 @@ sudo tar czf "/var/backups/yijie-fanren/hall-$(date +%F-%H%M).tgz" \
 - Nginx 按真实访客 IP 限流
 - `server.py` 按真实 IP 限制点灯/留言频率
 - 公共碑林最多跟踪 5000 个 stele id
-- 每日备份 `hall.json`，保留 30 天
-- 禁止访问 `data/`、`.git/`、`server.py` 等敏感路径
+- 每日备份 `hall.json` 和 `guestbook.db`，保留 30 天
+- 静态文件使用扩展名 + 真实路径白名单，禁止访问 `data/`、`.git/`、`server.py` 等
+- 留言板 `POST` 只接受 `application/json`，并校验 `Origin`
+- 管理端 `/stats/` 使用 Basic Auth，隐藏/软删除留言
 
-公开留言默认没有审核，部署者需要自行承担内容审核和清理责任。
+公开留言默认公开可见，管理员可在 `/stats/guestbook` 隐藏或软删除；部署者仍需承担内容审核责任。
 
 
 ---

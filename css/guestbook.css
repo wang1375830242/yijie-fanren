@@ -1,0 +1,180 @@
+/* ==========================================================================
+   留言板
+   ========================================================================== */
+.gb-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  gap: 28px;
+  padding-top: 22px;
+  padding-bottom: 70px;
+}
+.gb-form-panel,
+.gb-list-panel {
+  min-width: 0;
+}
+.gb-form-panel {
+  align-self: start;
+  border: 1px solid var(--line);
+  background: var(--ink-850);
+  padding: 22px;
+  position: sticky;
+  top: 92px;
+}
+.gb-form-head,
+.gb-list-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+}
+.gb-kicker {
+  margin: 0 0 5px;
+  color: var(--gold-2);
+  font-family: var(--kai);
+  font-size: 11px;
+  letter-spacing: .18em;
+}
+.gb-form-head h2,
+.gb-list-head h2 {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--kai);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: .1em;
+}
+.gb-form {
+  display: grid;
+  gap: 9px;
+}
+.gb-label {
+  color: var(--text-soft);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.gb-label span {
+  color: var(--muted);
+  margin-left: 4px;
+  font-family: var(--latin);
+  font-size: 10px;
+}
+.gb-form input[type="text"],
+.gb-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--ink-850);
+  color: var(--text);
+  padding: 10px 11px;
+  font: inherit;
+  font-size: 16px;
+  border-radius: 0;
+}
+.gb-form input[type="text"]:focus,
+.gb-form textarea:focus {
+  outline: 1px solid var(--gold-2);
+  border-color: var(--gold-2);
+}
+.gb-form textarea {
+  min-height: 118px;
+  resize: vertical;
+  line-height: 1.75;
+}
+.gb-form-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+.gb-count {
+  color: var(--muted);
+  font-family: var(--latin);
+  font-size: 11px;
+}
+.gb-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.gb-status {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  min-height: 1.6em;
+}
+.gb-status.is-error {
+  color: var(--cinnabar-2);
+}
+.gb-list-panel {
+  border-top: 1px solid var(--line);
+}
+.gb-list-head {
+  margin-bottom: 0;
+}
+.gb-list {
+  display: grid;
+}
+.gb-card {
+  padding: 18px 2px 17px;
+  border-bottom: 1px solid var(--line);
+}
+.gb-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.gb-card-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--gold-2);
+  font-family: var(--kai);
+  font-size: 15px;
+  letter-spacing: .06em;
+}
+.gb-card time {
+  color: var(--muted);
+  font-family: var(--latin);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.gb-card-text {
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.9;
+  font-size: 14px;
+}
+.gb-empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 30px 0;
+}
+.gb-more {
+  padding-top: 18px;
+  text-align: center;
+}
+@media (max-width: 760px) {
+  .gb-main {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding-top: 8px;
+  }
+  .gb-form-panel {
+    position: static;
+  }
+  .gb-form-panel {
+    padding: 18px;
+  }
+  .gb-list-head h2,
+  .gb-form-head h2 {
+    font-size: 20px;
+  }
+}

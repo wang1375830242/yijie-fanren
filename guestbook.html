@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-Hans" data-realm="human">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>留言板 · 一介凡人</title>
+<meta name="description" content="一介凡人的公共留言板。留下想说的话，看看别人走过时留下的字。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="留言板 · 一介凡人">
+<meta property="og:description" content="留下想说的话，看看别人走过时留下的字。">
+<meta property="og:image" content="assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b0f0b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<script src="js/theme-init.js?v=20261027a"></script>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/hall.css">
+<link rel="stylesheet" href="css/guestbook.css?v=20261027a">
+<link rel="stylesheet" href="css/day.css?v=20261027a">
+</head>
+<body class="guestbook-page">
+<noscript><div class="noscript">留言板需要 JavaScript 才能打开。请开启后刷新。</div></noscript>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="seal">凡</span><span class="brand-name">一介凡人<em>留言</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="hall.html">碑林</a>
+      <a href="guestbook.html" aria-current="page">留言板</a>
+      <a href="codex.html">图鉴</a>
+      <a href="changelog.html">更新</a>
+      <a href="about.html">关于</a>
+      <a class="btn btn--sm nav-cta" href="play.html">推演一世</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="菜单" aria-expanded="false">☰</button>
+  </div>
+</nav>
+<div class="nav-drawer">
+  <a href="index.html">首页</a>
+  <a href="hall.html">碑林</a>
+  <a href="guestbook.html" aria-current="page">留言板</a>
+  <a href="codex.html">图鉴</a>
+  <a href="changelog.html">更新</a>
+  <a href="about.html">关于</a>
+  <a href="play.html">推演一世</a>
+</div>
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="chapter-no">卷外 · 人间</p>
+    <h1>留言板</h1>
+    <p class="page-lede">
+      走过一程，总有一句话想留给后来的人。这里的话对所有访客可见，请不要写真实姓名、住址或其他个人信息。
+    </p>
+  </div>
+</header>
+
+<main class="wrap gb-main">
+  <section class="gb-form-panel" aria-labelledby="gbFormTitle">
+    <div class="gb-form-head">
+      <p class="gb-kicker">留一笔</p>
+      <h2 id="gbFormTitle">写点什么</h2>
+    </div>
+    <form id="gbForm" class="gb-form">
+      <label class="gb-label" for="gbName">称呼 <span>可不填</span></label>
+      <input id="gbName" name="name" type="text" maxlength="16" autocomplete="nickname" placeholder="无名">
+      <label class="gb-label" for="gbText">留言 <span>最多 200 字</span></label>
+      <textarea id="gbText" name="text" rows="5" maxlength="200" aria-describedby="gbCount" required placeholder="写下一句想留下的话。"></textarea>
+      <div class="gb-form-foot">
+        <span id="gbCount" class="gb-count">0 / 200</span>
+        <button class="btn btn--primary" id="gbSubmit" type="submit">留 下</button>
+      </div>
+      <label class="gb-hp" hidden>网站 <input id="gbWebsite" name="website" type="text" tabindex="-1" autocomplete="off"></label>
+    </form>
+    <p class="gb-status" id="gbStatus" role="status" aria-live="polite">正在连接留言板…</p>
+  </section>
+
+  <section class="gb-list-panel" aria-labelledby="gbListTitle">
+    <div class="gb-list-head">
+      <div>
+        <p class="gb-kicker">后来的人</p>
+        <h2 id="gbListTitle">留言</h2>
+      </div>
+      <button class="btn btn--sm" id="gbRefresh" type="button">刷新</button>
+    </div>
+    <div class="gb-list" id="gbList"></div>
+    <p class="gb-empty" id="gbEmpty" hidden>还没有人留下字。你可以做第一个。</p>
+    <div class="gb-more">
+      <button class="btn btn--sm" id="gbMore" type="button" hidden>再看一些</button>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-bottom">
+      <span>一介凡人 · 留言板</span>
+      <span>言有尽，路还长。</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/common.js?v=20261027a"></script>
+<script src="js/guestbook.js?v=20261027a"></script>
+</body>
+</html>
