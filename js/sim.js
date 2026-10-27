@@ -1774,6 +1774,10 @@
       if (p.eventId === "d_node") {
         s.flags.wait_spirit_until = Math.max(s.flags.wait_spirit_until || 0, s.age + 500);
       }
+      // 西线/北寒线的风险节点从濒死中活下来，也要推进主线段，避免同一段剧情反复重播。
+      if (p.eventId === "s_main_2") s.flags.s_main_3 = true;
+      if (p.eventId === "s_main_3") s.flags.s_main_3 = true;
+      if (p.eventId === "i_main_2") s.flags.i_main_2 = true;
       if (opt.ward && s.ward < 1) {
         this.pushLog("system", "你身上没有护身玉符。");
         return { status: "blocked" };

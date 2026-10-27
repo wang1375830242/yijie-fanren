@@ -65,10 +65,10 @@ cloud-check: ok
 cloud-function-check: ok
 a11y-check: 38 checks passed
 browser-smoke: 6 pages ok
-canon-regression: 384 checks passed
+canon-regression: 388 checks passed
 220 runs, 0 issues
 pseudo-spirit=2
 natural-ascensions=8
 worst-repeat=2
-changelog-check: 4 releases, 61 changes, schema ok
+changelog-check: 5 releases, 63 changes, schema ok
 ```

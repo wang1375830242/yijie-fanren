@@ -1012,6 +1012,106 @@
     { key: "p_immortal", pool: "partner", when: (s) => s.world === "immortal" && s.partner && s.partner.alive !== false && s.partner.status === "present", w: 16, titles: ["道侣", "仙宫", "雪线", "旧事", "时间", "人间"], hook: "仙界的时间太长，{p}是少数还让你觉得时间在走的人。", extra: (s) => (s.partner ? `你们已经相伴 ${Math.max(1, s.age - s.partner.since)} 年。${partnerLine(s)}` : "") },
   ];
 
+  /*
+   * 主题兜底：这些主题共用池子的场景，但池子选项是按池子写的。
+   * 场景超出专用选项数量时，不能拿别的主题的选项硬配，否则会出现
+   * 「秘境门口」配「救妖兽/不管」、「传功」配「按规矩办/先退下」。
+   */
+  const THEME_FALLBACKS = {
+    h_school: [
+      { label: "先看看", effects: { insight: 1 }, outcome: "你站在一旁，把眼前的事看完了。" },
+      { label: "按自己的来", effects: { mood: 1 }, outcome: "你按自己的判断做了，没有多解释。" },
+    ],
+    h_alchemy: [
+      { label: "守着炉火", effects: { cult: 1 }, outcome: "你守着火候，直到丹炉安静下来。" },
+      { label: "先歇一歇", effects: { mood: 2 }, outcome: "你退开半步，让心里的躁意散一散。" },
+    ],
+    h_travel: [
+      { label: "继续走", effects: { luck: 1 }, outcome: "你没有停，继续往路的前方走。" },
+      { label: "绕路", effects: { mood: 1, insight: 1 }, outcome: "你绕开眼前的地方，多走了半日。" },
+    ],
+    h_rival: [
+      { label: "看着他", effects: { insight: 1 }, outcome: "你没有先开口，只把对方看完。" },
+      { label: "先走", effects: { mood: 1 }, outcome: "你收回目光，先一步离开。" },
+    ],
+    h_market: [
+      { label: "看看", effects: { insight: 1 }, outcome: "你多看了一会儿，没有急着出手。" },
+      { label: "走开", effects: { mood: 1 }, outcome: "你转身走开，摊主也没有再叫。" },
+    ],
+    h_war: [
+      { label: "守住", effects: { karma: 1 }, outcome: "你留在原地，把这一段守完。" },
+      { label: "退下", effects: { mood: 1 }, outcome: "你退到后方，先保住了自己。" },
+    ],
+    h_trib: [
+      { label: "稳住心神", effects: { insight: 1, mood: 1 }, outcome: "你把呼吸放慢，等心里的声音过去。" },
+      { label: "先退一步", effects: { mood: 1 }, outcome: "你退了一步，没有和眼前的东西硬碰。" },
+    ],
+    h_disciple: [
+      { label: "教他", effects: { karma: 1, mood: 1 }, outcome: "你把知道的讲了一遍，没有藏私。" },
+      { label: "让他自己试", effects: { insight: 1 }, outcome: "你没有接手，只站在旁边看。" },
+    ],
+    s_city: [
+      { label: "进城", effects: { mood: 1 }, outcome: "你走进城门，城里的声音一下子近了。" },
+      { label: "绕城", effects: { insight: 1 }, outcome: "你从城外绕过去，没有惊动谁。" },
+    ],
+    s_clan: [
+      { label: "听族老", effects: { karma: 1 }, outcome: "你把话听完，没有当场反驳。" },
+      { label: "自己做主", effects: { mood: 1 }, outcome: "你按自己的意思办了，后果也自己担着。" },
+    ],
+    s_war: [
+      { label: "守城", effects: { karma: 1 }, outcome: "你留在城头，把这一班守到换防。" },
+      { label: "退下", effects: { mood: 1 }, outcome: "你退下城墙，先去处理身上的伤。" },
+    ],
+    s_market: [
+      { label: "看看", effects: { insight: 1 }, outcome: "你把摊上的东西看了一遍，没有开口。" },
+      { label: "走开", effects: { mood: 1 }, outcome: "你从人群里退出来，继续走自己的路。" },
+    ],
+    s_beast: [
+      { label: "绕开", effects: { mood: 1, insight: 1 }, outcome: "你绕开那片地方，没有留下痕迹。" },
+      { label: "迎上去", effects: { luck: 1 }, outcome: "你迎着那东西走过去，它先让开了。" },
+    ],
+    s_law: [
+      { label: "继续参悟", effects: { insight: 1 }, outcome: "你没有离开，继续看那条看不见的线。" },
+      { label: "离开", effects: { mood: 1 }, outcome: "你收回目光，转身离开了那里。" },
+    ],
+    s_disciple: [
+      { label: "教他", effects: { karma: 1 }, outcome: "你把该教的教了，剩下的让他自己走。" },
+      { label: "让他自己走", effects: { insight: 1 }, outcome: "你没有拦，只看着他走远。" },
+    ],
+    i_palace: [
+      { label: "入宫", effects: { insight: 1 }, outcome: "你走进宫门，里面的路比外面更安静。" },
+      { label: "留在外面", effects: { mood: 1 }, outcome: "你留在宫门外，没有进去。" },
+    ],
+    i_time: [
+      { label: "继续走", effects: { insight: 1 }, outcome: "你继续往前走，时间在身后慢慢合上。" },
+      { label: "停下", effects: { mood: 1 }, outcome: "你停下来，听了一会儿自己的呼吸。" },
+    ],
+    i_law: [
+      { label: "循规", effects: { karma: 1 }, outcome: "你按规矩做了，没有多问。" },
+      { label: "破例", effects: { insight: 1 }, outcome: "你破了一次例，后果暂且不论。" },
+    ],
+    i_market: [
+      { label: "看看", effects: { insight: 1 }, outcome: "你在摊前站了一会儿，没有急着买。" },
+      { label: "走开", effects: { mood: 1 }, outcome: "你离开摊子，身后的叫卖声低了下去。" },
+    ],
+    p_mortal: [
+      { label: "陪对方", effects: { mood: 2 }, outcome: "你放下手里的事，陪对方坐了一会儿。" },
+      { label: "独处", effects: { insight: 1 }, outcome: "你一个人待着，把没想完的事想完。" },
+    ],
+    p_human: [
+      { label: "陪对方", effects: { mood: 2 }, outcome: "你和对方并肩走了一段，没有说话。" },
+      { label: "独处", effects: { cult: 1 }, outcome: "你回到洞府，把门关上。" },
+    ],
+    p_spirit: [
+      { label: "陪对方", effects: { mood: 2 }, outcome: "你陪对方看了一会儿灵界的雪。" },
+      { label: "独处", effects: { insight: 1 }, outcome: "你独自坐了很久，直到雪停。" },
+    ],
+    p_immortal: [
+      { label: "陪对方", effects: { mood: 2 }, outcome: "你陪对方走了一段很长的路。" },
+      { label: "独处", effects: { insight: 1 }, outcome: "你一个人留在原处，看云慢慢过去。" },
+    ],
+  };
+
   /* 每个主题只在对应阶段抽取，避免后期出现前期的童年/凡俗心境 */
   const STAGE_BY_THEME = {
     h_child: "childhood",
@@ -1079,14 +1179,21 @@
       const baseSets = theme.choices || pool.choices;
       const setFor = (s) => {
         if (theme.choices) return theme.choices[0];
-        const sets = theme.key === "h_child" ? childChoiceGroups(s) : baseSets;
-        if (sceneIndex >= sets.length) {
-          return FALLBACK_CHOICES[theme.pool].map((choice) => ({
+        const withDetail = (list) =>
+          list.map((choice) => ({
             ...choice,
             outcome: `${choice.outcome}${detail}`,
           }));
+        if (theme.key === "h_child" || theme.key === "h_family") {
+          const sets = theme.key === "h_child" ? childChoiceGroups(s) : baseSets;
+          if (sceneIndex < sets.length) return sets[sceneIndex];
+          return withDetail(FALLBACK_CHOICES[theme.pool]);
         }
-        return sets[sceneIndex];
+        const themeFallback = THEME_FALLBACKS[theme.key];
+        if (themeFallback) return withDetail(themeFallback);
+        const sets = baseSets;
+        if (sceneIndex < sets.length) return sets[sceneIndex];
+        return withDetail(FALLBACK_CHOICES[theme.pool]);
       };
       add({
         id: `g_${theme.key}_${i}`,

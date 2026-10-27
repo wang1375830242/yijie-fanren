@@ -1345,6 +1345,20 @@ ok(
     treeEvent.choices(testFamily).map((choice) => choice.label).join(",") === "浇水,砍掉",
   "老树事件应保留浇水/砍掉选项"
 );
+const themeChoiceCases = [
+  ["g_h_school_14", "先看看,按自己的来", "旧书不应配宗门规矩选项"],
+  ["g_h_travel_2", "继续走,绕路", "秘境门口不应配救妖兽/不管"],
+  ["g_h_trib_2", "稳住心神,先退一步", "心魔事件不应配救妖兽/不管"],
+  ["g_h_disciple_34", "教他,让他自己试", "传功事件不应配宗门规矩选项"],
+];
+themeChoiceCases.forEach(([id, expected, message]) => {
+  const event = XD.EVENTS.find((item) => item.id === id);
+  ok(
+    event &&
+      event.choices(testFamily).map((choice) => choice.label).join(",") === expected,
+    message
+  );
+});
 [
   "root_test",
   "d_node",
