@@ -1381,6 +1381,7 @@
       s.tier === 5 &&
       s.cult >= 85 &&
       !s.flags.spirit_ascended &&
+      !s.flags.spirit_attempted &&
       !(s.flags.wait_spirit_until && s.age < s.flags.wait_spirit_until),
     w: 30,
     once: false,
@@ -1389,7 +1390,7 @@
     choices: [
       {
         label: "入节点，飞升灵界",
-        risk: { p: 0.6, text: "你在空间乱流里撑了过来。", fail: { death: true, cause: "陨于空间乱流" } },
+        risk: { p: 0.5, bonus: 0, text: "你在空间乱流里撑了过来。", fail: { death: true, cause: "陨于空间乱流", flag: "spirit_attempted" } },
         effects: { ascend: "spirit", mood: 8 },
         outcome: "光怪陆离的通道尽头，你看见了两轮月亮。",
       },
@@ -1477,6 +1478,7 @@
     when: (s) =>
       s.tier === 8 &&
       s.cult >= 80 &&
+      !s.flags.immortal_attempted &&
       !(s.flags.wait_immortal_until && s.age < s.flags.wait_immortal_until),
     w: 40,
     once: false,
@@ -1485,7 +1487,7 @@
     choices: [
       {
         label: "迎雷而上",
-        risk: { p: 0.5, text: "九道雷，你过了。", fail: { death: true, cause: "陨于飞升天劫" } },
+        risk: { p: 0.40, bonus: 0, text: "九道雷，你过了。", fail: { death: true, cause: "陨于飞升天劫", flag: "immortal_attempted" } },
         effects: { ascend: "immortal", mood: 10 },
         outcome: "最后一道雷落在你身上时，你听见了很远的地方有人在笑。",
       },

@@ -1438,9 +1438,9 @@
         s.flags.arrived_immortal_seen = true;
         return want("i_arrive", true);
       }
-      if (s.tier === 5 && s.world === "human" && s.cult >= 90 && !s.flags.spirit_ascended && !(s.flags.wait_spirit_until && s.age < s.flags.wait_spirit_until))
+      if (s.tier === 5 && s.world === "human" && s.cult >= 90 && !s.flags.spirit_ascended && !s.flags.spirit_attempted && !(s.flags.wait_spirit_until && s.age < s.flags.wait_spirit_until))
         return want("d_node", true);
-      if (s.tier === 8 && s.cult >= 85 && !(s.flags.wait_immortal_until && s.age < s.flags.wait_immortal_until))
+      if (s.tier === 8 && s.cult >= 85 && !s.flags.immortal_attempted && !(s.flags.wait_immortal_until && s.age < s.flags.wait_immortal_until))
         return want("m_ascend", true);
       if (s.tier === 7 && s.cult >= 85 && !s.flags.dacheng_gate)
         return want("i_dacheng_gate", true);
@@ -1651,10 +1651,13 @@
           ? choice.outcome(s, donateAmount)
           : choice.outcome || "";
       const focus = this.focusDef();
+      const riskBonus = choice.risk && typeof choice.risk.bonus === "number"
+        ? choice.risk.bonus
+        : 0.34;
       const riskChance = choice.risk
         ? clamp(
             choice.risk.p +
-              0.34 +
+              riskBonus +
               (s.luck - 50) * 0.002 +
               (Number(focus.luck) || 0) * 0.03 -
               (Number(focus.risk) || 0) * 0.02,
@@ -2020,7 +2023,8 @@
       const s = this.state;
       let p =
         0.78 -
-        s.tier * 0.04 +
+        s.tier * 0.04 -
+        Math.max(0, s.tier - 8) * (s.startWorld === "immortal" ? 0.04 : 0.12) +
         s.mood * 0.0015 +
         s.insight * 0.0006 +
         (s.root.mul - 1) * 0.04 +
