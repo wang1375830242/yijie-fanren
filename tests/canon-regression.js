@@ -586,6 +586,40 @@ ok(
     focusOutcomes.find((x) => x.key === "cultivate").stones,
   "炼丹重心长期应带来更多灵石"
 );
+const highStepWander = new Sim({ seed: 978, world: "immortal", mode: "existing" });
+highStepWander.state.tier = 12;
+highStepWander.state.age = 1000;
+highStepWander.state.maxAge = D.REALMS[12].life;
+highStepWander.state.path = "cultivator";
+highStepWander.state.focus = "wander";
+highStepWander.state.mood = 50;
+highStepWander.state.stones = 0;
+highStepWander.state.lastStepYears = 250;
+highStepWander.yearTick(true);
+ok(highStepWander.state.mood <= 56, "高境界单步游历不应瞬间把心境推满");
+const highStepAlchemy = new Sim({ seed: 979, world: "immortal", mode: "existing" });
+highStepAlchemy.state.tier = 12;
+highStepAlchemy.state.age = 1000;
+highStepAlchemy.state.maxAge = D.REALMS[12].life;
+highStepAlchemy.state.path = "cultivator";
+highStepAlchemy.state.focus = "alchemy";
+highStepAlchemy.state.stones = 0;
+highStepAlchemy.state.lastStepYears = 250;
+highStepAlchemy.yearTick(true);
+ok(highStepAlchemy.state.stones <= 300, "高境界单步炼丹收益不应压过货栈价格");
+const highStepSect = new Sim({ seed: 980, world: "immortal", mode: "existing" });
+highStepSect.state.tier = 12;
+highStepSect.state.age = 1000;
+highStepSect.state.maxAge = D.REALMS[12].life;
+highStepSect.state.path = "cultivator";
+highStepSect.state.focus = "sect";
+highStepSect.state.sect = "黄枫谷";
+highStepSect.state.sectRank = 3;
+highStepSect.state.sectContrib = 500;
+highStepSect.state.stones = 0;
+highStepSect.state.lastStepYears = 250;
+highStepSect.sectTick();
+ok(highStepSect.state.stones <= 700, "高境界单步宗门分成不应压过货栈价格");
 const focusWeightSim = new Sim({ seed: 977, world: "human" });
 focusWeightSim.state.focus = "wander";
 const wanderDangerWeight = focusWeightSim.focusEventWeight({

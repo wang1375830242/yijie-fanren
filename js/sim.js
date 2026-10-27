@@ -668,7 +668,7 @@
       const years = Math.min(8, stepYears);
       const rank = D.SECT_RANKS[s.sectRank] || D.SECT_RANKS[0];
       const shareBonus = s.focus === "sect" ? 1.35 : 1;
-      s.stones += (rank.share || 0) * stepYears * shareBonus;
+      s.stones += (rank.share || 0) * years * shareBonus;
       if (s.focus === "sect") {
         const focusBonus = 2;
         const gain = Math.round((2 + Math.floor(s.tier / 2)) * years * 0.5 * focusBonus);
@@ -954,7 +954,7 @@
 
       for (let i = 0; i < years; i++) {
         s.age++;
-        this.yearTick();
+        this.yearTick(i === 0);
         if (!s.alive || s.pending) break;
         if (s.age >= s.maxAge) {
           this.die("寿元耗尽");
@@ -1000,7 +1000,7 @@
       return upkeep;
     }
 
-    yearTick() {
+    yearTick(firstYear = true) {
       const s = this.state;
       if (s.tier === 0) {
         if (s.path === "mortal") {
@@ -1008,13 +1008,18 @@
         }
       } else {
         const f = this.focusDef();
+        const stepYears = Math.max(1, s.lastStepYears || 1);
+        const years = Math.min(8, stepYears);
         const decay = s.age > s.maxAge * 0.6 ? 0.12 : 0.02;
-        s.mood = clamp(s.mood + (f.mood || 0) - decay, 0, 100);
-        const income = this.annualIncome() + (s.incomePerYear || 0);
-        const upkeep = this.annualUpkeep();
-        s.stones = Math.max(0, s.stones + income - upkeep);
-        if (f.insight && this.rng.chance(f.insight)) {
-          s.insight = clamp(s.insight + 1, 0, 100);
+        if (firstYear) {
+          const moodYears = Math.min(2, stepYears);
+          s.mood = clamp(s.mood + (f.mood || 0) * moodYears - decay * years, 0, 100);
+          const income = (this.annualIncome() + (s.incomePerYear || 0)) * years;
+          const upkeep = this.annualUpkeep() * years;
+          s.stones = Math.max(0, s.stones + income - upkeep);
+          if (f.insight && this.rng.chance(Math.min(0.5, f.insight * years))) {
+            s.insight = clamp(s.insight + 1, 0, 100);
+          }
         }
         const base = (100 / this.realm().need) * (this.realm().pace || 1);
         const mul =
@@ -1764,10 +1769,10 @@
       // 渡劫失败后从濒死中活下来，也要给下一次尝试留出冷却，避免同一条天劫连续弹出。
       s.flags = s.flags || {};
       if (p.eventId === "m_ascend") {
-        s.flags.wait_immortal_until = Math.max(s.flags.wait_immortal_until || 0, s.age + 60);
+        s.flags.wait_immortal_until = Math.max(s.flags.wait_immortal_until || 0, s.age + 500);
       }
       if (p.eventId === "d_node") {
-        s.flags.wait_spirit_until = Math.max(s.flags.wait_spirit_until || 0, s.age + 60);
+        s.flags.wait_spirit_until = Math.max(s.flags.wait_spirit_until || 0, s.age + 500);
       }
       if (opt.ward && s.ward < 1) {
         this.pushLog("system", "你身上没有护身玉符。");
