@@ -11,7 +11,22 @@ vm.runInThisContext(fs.readFileSync(path.join(ROOT, "js/changelog-data.js"), "ut
 });
 const data = global.XD && global.XD.CHANGELOG;
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
-const allowed = new Set(["feature", "improve", "fix", "engineering"]);
+const allowed = new Set(["feature", "improve", "fix"]);
+
+function changesOf(release) {
+  if (Array.isArray(release.sections)) {
+    assert(release.sections.length, `版本没有分组：${release.version}`);
+    const flat = [];
+    release.sections.forEach((section) => {
+      assert(typeof section.title === "string" && section.title, `更新分组缺少标题：${release.version}`);
+      assert(Array.isArray(section.changes) && section.changes.length, `更新分组没有条目：${release.version}`);
+      flat.push(...section.changes);
+    });
+    return flat;
+  }
+  assert(Array.isArray(release.changes) && release.changes.length, `版本没有条目：${release.version}`);
+  return release.changes;
+}
 
 assert(data && data.schema === 1, "更新数据 schema 应为 1");
 assert(Array.isArray(data.releases) && data.releases.length, "更新数据至少需要一个版本");
@@ -25,8 +40,7 @@ data.releases.forEach((release) => {
   versions.add(release.version);
   assert(/^\d{4}-\d{2}-\d{2}$/.test(release.date), `日期不合法：${release.date}`);
   assert(release.title && release.summary, `版本缺少标题或摘要：${release.version}`);
-  assert(Array.isArray(release.changes) && release.changes.length, `版本没有条目：${release.version}`);
-  release.changes.forEach((change) => {
+  changesOf(release).forEach((change) => {
     assert(allowed.has(change.type), `未知分类：${change.type}`);
     assert(typeof change.text === "string" && change.text.length > 8, "更新条目太短");
     assert(change.text.length <= 80, "更新条目应保持简短");

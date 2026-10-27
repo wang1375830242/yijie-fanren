@@ -15,7 +15,6 @@
     feature: { label: "新增", order: 0 },
     improve: { label: "改进", order: 1 },
     fix: { label: "修复", order: 2 },
-    engineering: { label: "工程", order: 3 },
   };
   const releaseTotal = document.getElementById("clReleaseTotal");
   if (releaseTotal) releaseTotal.textContent = data.releases.length;
@@ -36,8 +35,15 @@
     return "v" + String(version).replace(/\./g, "-");
   }
 
+  function releaseChanges(release) {
+    if (Array.isArray(release.sections)) {
+      return release.sections.reduce((all, section) => all.concat(section.changes || []), []);
+    }
+    return Array.isArray(release.changes) ? release.changes : [];
+  }
+
   function allChanges() {
-    return data.releases.reduce((all, release) => all.concat(release.changes || []), []);
+    return data.releases.reduce((all, release) => all.concat(releaseChanges(release)), []);
   }
 
   function matches(change) {
@@ -52,7 +58,7 @@
     const releaseHay = [release.version, release.title, release.summary, ...(release.tags || [])]
       .join(" ")
       .toLowerCase();
-    return !q || releaseHay.includes(q) || (release.changes || []).some((change) => matches(change));
+    return !q || releaseHay.includes(q) || releaseChanges(release).some((change) => matches(change));
   }
 
   function addText(parent, tag, className, text) {
@@ -96,10 +102,10 @@
     });
   }
 
-  function buildChange(release, change, index) {
+  function buildChange(release, change, index, sectionIndex) {
     const item = document.createElement("li");
     item.className = "cl-change";
-    item.id = `${versionId(release.version)}-${index + 1}`;
+    item.id = `${versionId(release.version)}-s${(sectionIndex || 0) + 1}-${index + 1}`;
     item.dataset.type = change.type;
 
     const mark = document.createElement("span");
@@ -201,24 +207,34 @@
 
     const changes = document.createElement("div");
     changes.className = "cl-changes";
-    const visible = (release.changes || []).filter((change) => matches(change));
-    Object.keys(typeMeta)
-      .sort((a, b) => typeMeta[a].order - typeMeta[b].order)
-      .forEach((type) => {
-        const group = visible.filter((change) => change.type === type);
-        if (!group.length) return;
-        const section = document.createElement("section");
-        section.className = "cl-group";
-        addText(section, "h3", "cl-group-title", typeMeta[type].label);
-        const ul = document.createElement("ul");
-        ul.className = "cl-change-list";
-        group.forEach((change) => {
-          const originalIndex = (release.changes || []).indexOf(change);
-          ul.appendChild(buildChange(release, change, originalIndex));
+    const batches = Array.isArray(release.sections)
+      ? release.sections
+      : [{ title: "", changes: release.changes || [] }];
+    batches.forEach((batch, sectionIndex) => {
+      const visible = (batch.changes || []).filter((change) => matches(change));
+      if (!visible.length) return;
+      const batchNode = document.createElement("section");
+      batchNode.className = "cl-batch";
+      if (batch.title) addText(batchNode, "h3", "cl-batch-title", batch.title);
+      Object.keys(typeMeta)
+        .sort((a, b) => typeMeta[a].order - typeMeta[b].order)
+        .forEach((type) => {
+          const group = visible.filter((change) => change.type === type);
+          if (!group.length) return;
+          const section = document.createElement("section");
+          section.className = "cl-group";
+          addText(section, "h3", "cl-group-title", typeMeta[type].label);
+          const ul = document.createElement("ul");
+          ul.className = "cl-change-list";
+          group.forEach((change) => {
+            const originalIndex = (batch.changes || []).indexOf(change);
+            ul.appendChild(buildChange(release, change, originalIndex, sectionIndex));
+          });
+          section.appendChild(ul);
+          batchNode.appendChild(section);
         });
-        section.appendChild(ul);
-        changes.appendChild(section);
-      });
+      changes.appendChild(batchNode);
+    });
     article.appendChild(changes);
     void changeCount;
     return article;
@@ -230,7 +246,7 @@
     let visibleReleases = 0;
     data.releases.forEach((release, index) => {
       if (!releaseMatches(release)) return;
-      const matching = (release.changes || []).filter((change) => matches(change));
+      const matching = releaseChanges(release).filter((change) => matches(change));
       if (!matching.length && state.q) {
         // 版本标题命中但条目未命中时仍展示版本头，避免“搜到了却空白”。
         if (!releaseMatches(release)) return;

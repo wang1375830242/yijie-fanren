@@ -196,7 +196,23 @@
 }
 .cl-changes {
   display: grid;
-  gap: 18px;
+  gap: 22px;
+}
+.cl-batch {
+  display: grid;
+  gap: 12px;
+}
+.cl-batch + .cl-batch {
+  padding-top: 18px;
+  border-top: 1px dashed rgba(233, 227, 211, 0.1);
+}
+.cl-batch-title {
+  margin: 0;
+  color: var(--gold-2);
+  font-family: var(--kai);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
 }
 .cl-group-title {
   margin: 0 0 7px;
