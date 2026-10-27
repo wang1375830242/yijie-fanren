@@ -121,7 +121,6 @@ function waitForChrome(port) {
         expression: "(() => { const button = document.querySelector('[data-theme-toggle]'); if (!button) return false; button.click(); const panel = document.querySelector('.theme-overlay'); const font = panel && panel.querySelector('[data-font-choice=\"sans\"]'); if (!panel || panel.hidden || !font) return false; font.click(); return document.documentElement.dataset.font === 'sans'; })()",
         expected: true,
       },
-      { url: `${base}/stats.html`, expression: "!!document.getElementById('statsLogin')", expected: true },
       { url: `${base}/play.html`, expression: "document.title.includes('一介凡人')", expected: true },
       {
         url: `${base}/play.html?speed=qa`,

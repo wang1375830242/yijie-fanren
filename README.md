@@ -31,7 +31,7 @@ python server.py
 
 然后打开 <http://127.0.0.1:8765/>。
 
-没有构建步骤，没有 npm 依赖，没有外部字体或 CDN。公共碑林与访问数据由 LeanCloud 后台服务提供；游戏本身断网也能玩。
+没有构建步骤，没有 npm 依赖，没有外部字体或 CDN。公共碑林由自建 `server.py` 后台提供；游戏本身断网也能玩。
 
 ## 页面
 
@@ -72,7 +72,6 @@ python server.py
 | `docs/day-theme.md` | 日间主题、主题开关与覆盖范围 |
 | `docs/focus-mechanics.md` | 六种命运重心的收益、代价与解锁时机 |
 | `docs/event-chains.md` | 父母、道侣、弟子、仇敌的关系链与 npcStates |
-| `docs/leancloud-backend.md` | LeanCloud 数据服务、类权限与本地联调 |
 | `docs/review-fixes-2026-10-24.md` | 本轮评审问题、修复范围与残余风险 |
 
 ## 这一世怎么算
@@ -142,7 +141,7 @@ python server.py
 - `yijie.prefs.v1` — 速度、柔化模式等偏好
 - `yijie.messages.v1` / `yijie.candles.v1` — 只在本机模式下使用的留言与灯数
 
-公共碑林：GitHub Pages 静态版默认只读；点灯与留言需由 `server.py` 或 LeanCloud 云函数代写，避免公开 AppKey 直接成为写令牌。公共留言是公开的，请不要写真实个人信息。留言没有账号删除功能，部署前请考虑审核/清理策略。
+公共碑林：由自建 `server.py` 提供读取、点灯和留言 API；GitHub Pages 通过 HTTPS 调用服务器。公共留言是公开的，请不要写真实个人信息。留言没有账号删除功能，部署前请考虑审核/清理策略。
 
 ## 目录
 

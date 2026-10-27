@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.join(__dirname, "..");
-const pages = ["index.html", "play.html", "hall.html", "codex.html", "about.html", "changelog.html", "stats.html"];
-const cssFiles = ["css/base.css", "css/tokens.css", "css/stats.css", "css/day.css"];
+const pages = ["index.html", "play.html", "hall.html", "codex.html", "about.html", "changelog.html"];
+const cssFiles = ["css/base.css", "css/tokens.css", "css/day.css"];
 let checks = 0;
 
 function ok(value, message) {
@@ -22,10 +22,6 @@ for (const page of pages) {
   ok(/<title>[^<]+<\/title>/.test(source), `${page}: missing title`);
   ok(!/<img\b(?![^>]*\balt=)/i.test(source), `${page}: image without alt`);
 }
-
-const stats = read("stats.html");
-ok(/<label[^>]*for="statsToken"/.test(stats) && /id="statsToken"/.test(stats), "stats: token input needs a label");
-ok(/id="statsStatus"[^>]*aria-live="polite"/.test(stats), "stats: status needs aria-live");
 
 const play = read("play.html");
 ok(/id="choiceOverlay"/.test(play) && /role="dialog"/.test(play), "play: choice overlay should be a dialog");

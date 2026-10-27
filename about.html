@@ -14,13 +14,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0f0b">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="js/theme-init.js?v=20261024eee"></script>
+<script src="js/theme-init.js?v=20261024fff"></script>
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/landing.css">
 <link rel="stylesheet" href="css/hall.css">
 <link rel="stylesheet" href="css/about.css">
-<link rel="stylesheet" href="css/day.css?v=20261024eee">
+<link rel="stylesheet" href="css/day.css?v=20261024fff">
 </head>
 <body class="about-page">
 <noscript><div class="noscript">这个站点需要 JavaScript 才能正常显示。请开启后刷新。</div></noscript>
@@ -127,8 +127,8 @@
         换一个浏览器，就看不见了。
       </p>
       <p>
-        点灯和留言默认也只在本机。GitHub Pages 静态版公共碑林为只读，写入需由
-        `server.py` 或 LeanCloud 云函数代写；公共碑林内容对所有访客可见。
+        点灯和留言默认也只在本机。GitHub Pages 静态版公共碑林会连接自建服务器，
+        写入由 `server.py` 负责；公共碑林内容对所有访客可见。
         请不要写真实姓名、住址或其他个人信息。
       </p>
       <p>
@@ -177,7 +177,7 @@
         会尽快处理。
       </p>
       <p class="tiny dim">
-        设计与实现：一介凡人 · 2026。前端为静态页面，公共数据使用 LeanCloud 后台服务；无第三方字体与图片。
+        设计与实现：一介凡人 · 2026。前端为静态页面，公共数据使用自建服务器后台；无第三方字体与图片。
       </p>
     </section>
   </article>
@@ -192,9 +192,7 @@
   </div>
 </footer>
 
-<script src="js/common.js?v=20261024eee"></script>
-<script src="js/lean-config.js?v=20261024eee"></script>
-<script src="js/cloud.js?v=20261024eee"></script>
-<script src="js/about.js?v=20261024eee"></script>
+<script src="js/common.js?v=20261024fff"></script>
+<script src="js/about.js?v=20261024fff"></script>
 </body>
 </html>

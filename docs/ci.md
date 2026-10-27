@@ -17,15 +17,13 @@ npm test
 
 ```bash
 node tests/syntax-check.js
-node tests/cloud-check.js
-node tests/cloud-function-check.js
 node tests/a11y-check.js
 node tests/browser-smoke.js
 node tests/canon-regression.js
 node tests/changelog-check.js
 ```
 
-项目仍然没有前端 npm 依赖、没有构建步骤，`package.json` 只提供测试脚本入口。`cloud-engine` 的 LeanCloud 依赖只在云引擎部署时安装；`browser-smoke.js` 没有 Chrome 时会自动跳过。
+项目仍然没有前端 npm 依赖、没有构建步骤，`package.json` 只提供测试脚本入口。`browser-smoke.js` 没有 Chrome 时会自动跳过。
 
 ## GitHub Actions
 
@@ -60,15 +58,13 @@ node tests/changelog-check.js
 当前基线：
 
 ```text
-syntax-check: 22 js files ok
-cloud-check: ok
-cloud-function-check: ok
-a11y-check: 38 checks passed
-browser-smoke: 6 pages ok
-canon-regression: 388 checks passed
+syntax-check: 18 js files ok
+a11y-check: 32 checks passed
+browser-smoke: 5 pages ok
+canon-regression: 386 checks passed
 220 runs, 0 issues
 pseudo-spirit=2
-natural-ascensions=8
+natural-ascensions=12
 worst-repeat=2
 changelog-check: 5 releases, 63 changes, schema ok
 ```

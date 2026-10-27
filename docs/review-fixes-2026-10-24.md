@@ -22,7 +22,7 @@
 - 碑林留言按最新 20 条、旧到新显示
 - `__proto__` 等特殊碑 id 被拒绝，留言/灯数映射使用无原型对象
 - 重复灯数按碑汇总
-- LeanCloud 请求增加超时；失败时读回 `server.py`，写操作也会尝试本机 API 再退回本机
+- 公共数据统一由自建 `server.py` 提供；请求失败时退回本机模式
 - 导入人生记录清洗 id、年龄和文本字段，碑林渲染统一转义
 
 ## server.py
@@ -34,18 +34,16 @@
 ## 测试
 
 ```text
-syntax-check: 22 js files ok
-cloud-check: ok
-cloud-function-check: ok
-a11y-check: 38 checks passed
-browser-smoke: 6 pages ok
-canon-regression: 388 checks passed
+syntax-check: 18 js files ok
+a11y-check: 32 checks passed
+browser-smoke: 5 pages ok
+canon-regression: 386 checks passed
 220 runs, 0 issues
-natural-ascensions=8
+natural-ascensions=12
 changelog-check: 5 releases, 63 changes
 ```
 
 ## 仍然需要服务端的部分
 
-静态版默认 `writeMode: "server"`，LeanCloud 客户端不再直写公共碑林或访问记录。  
-统计页已改为管理口令 + `statsAdmin` 云函数；云函数代码在 `cloud-engine/cloud.js`，部署后还需在 LeanCloud 关闭两个统计类的客户端读权限。部署步骤见 `cloud-engine/README.md`。LeanCloud 停服前的目标库迁移尚未执行。
+公共碑林由自建 `server.py` 提供；GitHub Pages 通过 HTTPS 调用 `https://192.144.150.24`。  
+访问统计页运行在服务器上的独立 `/stats/` 服务，不进入项目构建。

@@ -4,7 +4,7 @@
   "private": true,
   "description": "一介凡人 · 纯静态修仙人生模拟器",
   "scripts": {
-    "test": "node tests/syntax-check.js && node tests/cloud-check.js && node tests/cloud-function-check.js && node tests/a11y-check.js && node tests/browser-smoke.js && node tests/canon-regression.js && node tests/changelog-check.js"
+    "test": "node tests/syntax-check.js && node tests/a11y-check.js && node tests/browser-smoke.js && node tests/canon-regression.js && node tests/changelog-check.js"
   },
   "engines": {
     "node": ">=18"

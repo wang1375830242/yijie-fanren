@@ -18,11 +18,4 @@ for (const name of files) {
     process.exit(1);
   }
 }
-const cloudFile = path.join(root, "cloud-engine", "cloud.js");
-try {
-  new vm.Script(fs.readFileSync(cloudFile, "utf8"), { filename: cloudFile });
-} catch (err) {
-  console.error(`syntax-check: cloud-engine/cloud.js: ${err.message}`);
-  process.exit(1);
-}
-console.log(`syntax-check: ${files.length + 1} js files ok`);
+console.log(`syntax-check: ${files.length} js files ok`);
