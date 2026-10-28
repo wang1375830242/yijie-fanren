@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import hmac
 import ipaddress
 import json
@@ -19,6 +20,7 @@ import threading
 import time
 from contextlib import closing
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, unquote, parse_qs
 import posixpath
@@ -27,6 +29,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.environ.get("YIJIE_DATA_DIR", os.path.join(ROOT, "data"))
 DATA_FILE = os.path.join(DATA_DIR, "hall.json")
 GUESTBOOK_DB = os.path.join(DATA_DIR, "guestbook.db")
+VISITS_DB = os.path.join(DATA_DIR, "visits.db")
+VISIT_SALT = os.environ.get("YIJIE_VISIT_SALT", "yijie-visits-v1")
+VISIT_TZ = ZoneInfo("Asia/Shanghai")
 MAX_BODY = 8192
 MAX_MESSAGE = 40
 MAX_GUESTBOOK_NAME = 16
@@ -34,6 +39,17 @@ MAX_GUESTBOOK_TEXT = 200
 MAX_GUESTBOOK_ROWS = 10000
 MAX_MESSAGES_PER_STELE = 20
 MAX_TRACKED_STELES = 5000
+VISIT_PAGES = {
+    "/": "首页",
+    "/index.html": "首页",
+    "/play.html": "推演",
+    "/hall.html": "碑林",
+    "/guestbook.html": "留言板",
+    "/codex.html": "图鉴",
+    "/changelog.html": "更新",
+    "/about.html": "关于",
+}
+VISIT_BOT_RE = re.compile(r"bot|crawler|spider|slurp|bingpreview|headless|python-requests|curl/", re.I)
 WRITE_KEY = os.environ.get("YIJIE_WRITE_KEY", "").strip()
 ALLOWED_ORIGINS = {"https://wang1375830242.github.io"}
 ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
@@ -183,6 +199,84 @@ def init_guestbook() -> None:
             );
             """
         )
+
+
+def visits_connect() -> sqlite3.Connection:
+    conn = sqlite3.connect(VISITS_DB, timeout=5)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_visits() -> None:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with closing(visits_connect()) as conn:
+        conn.executescript(
+            """
+            PRAGMA journal_mode=WAL;
+            CREATE TABLE IF NOT EXISTS visits (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                day TEXT NOT NULL,
+                visited_at TEXT NOT NULL,
+                page TEXT NOT NULL,
+                visitor TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_visits_day ON visits(day);
+            CREATE TABLE IF NOT EXISTS visit_daily (
+                day TEXT PRIMARY KEY,
+                views INTEGER NOT NULL DEFAULT 0,
+                visitors INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS visit_pages (
+                day TEXT NOT NULL,
+                page TEXT NOT NULL,
+                views INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY(day, page)
+            );
+            CREATE TABLE IF NOT EXISTS visit_visitors (
+                day TEXT NOT NULL,
+                visitor TEXT NOT NULL,
+                PRIMARY KEY(day, visitor)
+            );
+            """
+        )
+
+
+def visit_page(raw_path: str) -> str | None:
+    path = urlparse(raw_path).path
+    return VISIT_PAGES.get(path)
+
+
+def visitor_key(ip: str, day: str, ua: str) -> str:
+    # Store only a salted digest; raw IP addresses never enter the database.
+    material = f"{ip}|{day}|{ua}".encode("utf-8")
+    return hmac.new(VISIT_SALT.encode("utf-8"), material, hashlib.sha256).hexdigest()[:32]
+
+
+def record_visit(page: str, ip: str, ua: str) -> None:
+    when = datetime.now(VISIT_TZ)
+    day = when.date().isoformat()
+    visitor = visitor_key(ip, day, ua)
+    with closing(visits_connect()) as conn:
+        with conn:
+            cur = conn.execute(
+                "INSERT OR IGNORE INTO visit_visitors(day, visitor) VALUES(?, ?)",
+                (day, visitor),
+            )
+            is_new = cur.rowcount > 0
+            conn.execute(
+                "INSERT INTO visit_daily(day, views, visitors) VALUES(?, 1, ?) "
+                "ON CONFLICT(day) DO UPDATE SET views = views + 1, visitors = visitors + ?",
+                (day, 1 if is_new else 0, 1 if is_new else 0),
+            )
+            conn.execute(
+                "INSERT INTO visit_pages(day, page, views) VALUES(?, ?, 1) "
+                "ON CONFLICT(day, page) DO UPDATE SET views = views + 1",
+                (day, page),
+            )
+            conn.execute(
+                "INSERT INTO visits(day, visited_at, page, visitor) VALUES(?, ?, ?, ?)",
+                (day, when.isoformat(timespec="seconds"), page, visitor),
+            )
 
 
 def guestbook_row(row: sqlite3.Row) -> dict:
@@ -386,7 +480,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_OPTIONS(self):
         path = urlparse(self.path).path
-        if path not in ("/api/hall", "/api/candle", "/api/message", "/api/guestbook"):
+        if path not in ("/api/hall", "/api/candle", "/api/message", "/api/guestbook", "/api/visit"):
             self._json(404, {"error": "not found"})
             return
         self.send_response(204)
@@ -399,6 +493,35 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if path == "/api/visit":
+            if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                self._json(415, {"error": "json content type required"})
+                return
+            if not self._origin_allowed():
+                self._json(403, {"error": "origin not allowed"})
+                return
+            if not allow_rate(self.client_ip(), "visit", 30, 60):
+                self._json(429, {"error": "too many requests"})
+                return
+            data = self._read_json()
+            if not data or not isinstance(data.get("path"), str):
+                self._json(400, {"error": "invalid path"})
+                return
+            page = visit_page(data.get("path"))
+            if not page:
+                self._json(400, {"error": "unknown page"})
+                return
+            ua = self.headers.get("User-Agent", "")
+            if VISIT_BOT_RE.search(ua):
+                self._json(204, {})
+                return
+            try:
+                record_visit(page, self.client_ip(), ua)
+            except sqlite3.Error:
+                self._json(503, {"error": "visit store unavailable"})
+                return
+            self._json(200, {"ok": True})
+            return
         if path == "/api/guestbook":
             if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
                 self._json(415, {"error": "json content type required"})
@@ -504,6 +627,7 @@ def main():
     if not os.path.exists(DATA_FILE):
         save_state(empty_state())
     init_guestbook()
+    init_visits()
 
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     print(f"一介凡人 · 服务器已启动")

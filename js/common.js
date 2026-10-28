@@ -560,9 +560,29 @@
     WORLD_ODDS,
   };
 
+  function trackVisit() {
+    if (!/^https?:$/.test(location.protocol)) return;
+    if (/^\/stats(\/|$)/.test(location.pathname)) return;
+    const path = (location.pathname.replace(/^\/yijie-fanren(?=\/|$)/, "") || "/").replace(/\/+$/, "") || "/";
+    const known = new Set(["/", "/index.html", "/play.html", "/hall.html", "/guestbook.html", "/codex.html", "/changelog.html", "/about.html"]);
+    if (!known.has(path)) return;
+    const apiBase = location.hostname === "wang1375830242.github.io" ? "https://192.144.150.24" : "";
+    try {
+      fetch(apiBase + "/api/visit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+        keepalive: true,
+        credentials: "omit",
+        mode: "cors",
+      }).catch(() => {});
+    } catch (err) {}
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     nav();
     theme();
     reveal();
+    trackVisit();
   });
 })();
