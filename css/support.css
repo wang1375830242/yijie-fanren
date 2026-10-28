@@ -1,0 +1,30 @@
+.support-main { max-width: 980px; margin: 0 auto; padding: 68px 24px 100px; }
+.support-head { max-width: 760px; padding-bottom: 30px; border-bottom: 1px solid var(--line); }
+.kicker { color: var(--gold); font-size: 12px; letter-spacing: .2em; margin: 0 0 12px; }
+.support-head h1 { font-size: clamp(36px, 7vw, 64px); font-weight: 400; letter-spacing: .1em; margin: 0; }
+.support-head .lead { color: var(--muted); font-size: 16px; line-height: 2; max-width: 680px; margin: 22px 0 0; }
+.support-letter { max-width: 760px; margin: 34px 0 42px; color: var(--text); font-size: 15px; line-height: 2.1; }
+.support-letter p { margin: 0 0 16px; }
+.support-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.qr-card { background: var(--panel); border: 1px solid var(--line); padding: 18px; }
+.qr-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.qr-head h2 { font-size: 18px; font-weight: 400; margin: 0; letter-spacing: .08em; }
+.qr-head p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.qr-mark { width: 36px; height: 36px; display: grid; place-items: center; color: #fff; font-weight: 700; }
+.qr-mark.wechat { background: #1aad19; }
+.qr-mark.alipay { background: #1677ff; }
+.qr-card img { display: block; width: 100%; max-height: 460px; object-fit: contain; background: #fff; }
+.qr-note { color: var(--muted); font-size: 12px; line-height: 1.8; margin: 12px 0 0; }
+.support-metrics { border: 1px solid var(--line); background: var(--panel); padding: 24px; margin-top: 42px; }
+.section-head h2 { font-size: 24px; font-weight: 400; margin: 0 0 8px; letter-spacing: .08em; }
+.section-head p { color: var(--muted); font-size: 13px; line-height: 1.8; margin: 0; }
+.metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+.metric { border-left: 1px solid var(--line); padding-left: 14px; }
+.metric span { display: block; color: var(--muted); font-size: 12px; }
+.metric b { display: block; color: var(--gold); font-size: 28px; font-weight: 400; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.metrics-foot { color: var(--muted); font-size: 12px; margin: 16px 0 0; }
+.support-thanks { max-width: 760px; margin: 72px auto 0; text-align: center; }
+.support-thanks h2 { font-size: 24px; font-weight: 400; letter-spacing: .08em; }
+.support-thanks p { color: var(--muted); line-height: 2; }
+.support-thanks .btn { margin-top: 12px; display: inline-block; }
+@media (max-width: 760px) { .support-main { padding: 38px 16px 70px; } .support-grid { grid-template-columns: 1fr; } .metric-grid { grid-template-columns: repeat(2, 1fr); row-gap: 20px; } .qr-card img { max-height: 420px; } }

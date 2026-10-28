@@ -124,6 +124,7 @@ function waitForChrome(port) {
       { url: `${base}/play.html`, expression: "document.title.includes('一介凡人')", expected: true },
       { url: `${base}/guestbook.html`, expression: "document.title.includes('留言板')", expected: true },
       { url: `${base}/account.html`, expression: "document.title.includes('账号')", expected: true },
+      { url: `${base}/support.html`, expression: "document.title.includes('赞助')", expected: true },
       {
         url: `${base}/play.html?speed=qa`,
         expression: "(() => { const top = document.querySelector('#speeds button[data-speed=\"12\"]'); const menu = document.querySelector('#menuSpeeds button[data-mspeed=\"12\"]'); if (!top || !menu) return false; top.click(); return top.classList.contains('on') && menu.classList.contains('on') && localStorage.getItem('yijie.prefs.v1').includes('\"speed\":12'); })()",

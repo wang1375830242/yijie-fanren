@@ -329,12 +329,17 @@
     const accountLink = document.createElement("a");
     accountLink.href = "account.html";
     accountLink.textContent = "账号";
+    const supportLink = document.createElement("a");
+    supportLink.href = "support.html";
+    supportLink.textContent = "赞助";
     if (bar) {
       const links = bar.querySelector(".nav-links");
       if (links && !links.querySelector('a[href="account.html"]')) links.insertBefore(accountLink.cloneNode(true), links.querySelector(".nav-cta") || null);
+      if (links && !links.querySelector('a[href="support.html"]')) links.insertBefore(supportLink.cloneNode(true), links.querySelector(".nav-cta") || null);
     }
     const accountDrawer = document.querySelector(".nav-drawer");
     if (accountDrawer && !accountDrawer.querySelector('a[href="account.html"]')) accountDrawer.appendChild(accountLink);
+    if (accountDrawer && !accountDrawer.querySelector('a[href="support.html"]')) accountDrawer.appendChild(supportLink);
     if (bar) {
       const onScroll = () => bar.classList.toggle("is-solid", window.scrollY > 24);
       onScroll();
