@@ -109,6 +109,11 @@ async function run() {
   });
   if (res.status !== 429) throw new Error(`same rightmost XFF should be rate limited, got ${res.status}`);
 
+  // Corrupt hall state must fail closed instead of silently overwriting it.
+  fs.writeFileSync(path.join(temp, "hall.json"), "{broken", "utf8");
+  res = await requestRaw("/api/hall");
+  if (res.status !== 503) throw new Error(`corrupt hall should 503, got ${res.status}`);
+
   console.log("server-security-check: ok");
 }
 

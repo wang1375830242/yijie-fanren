@@ -96,4 +96,18 @@
       { label: "离开渡口", effects: { mood: 1 }, outcome: "你沿着海岸走。身后的绳子还在响。" },
     ],
   });
+  add({
+    id: "homage_old_bottle",
+    when: (s) => enabled() && s.world === "human" && s.age >= 12 && s.age <= 30,
+    w: 2,
+    title: "旧瓶传闻",
+    canonRef: "掌天瓶",
+    text: "坊市最角落的酒摊上，一个老修士压低声音说：有人在山里捡到过一只旧瓶，瓶底能渗出青液，催得活枯草。他说完就笑，说这种话每年都有人讲。",
+    choices: [
+      { label: "听完，记在心里", effects: { insight: 2, mood: 1 }, outcome: "你没有追问。老修士把最后一口酒喝完，起身走了。" },
+      { label: "问瓶在哪里", effects: { insight: 3, luck: 1 }, outcome: "他指了指北边，又摇摇头。那条路没有名字。" },
+      { label: "起身离开", effects: { mood: 1 }, outcome: "你走出酒摊。身后的声音很快被风吹散了。" },
+    ],
+  });
+
 })();

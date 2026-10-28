@@ -9,6 +9,8 @@
   const U = XD.util;
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  // 事件作者写的 risk.p 是基础风险；默认只给极小的主角修正，避免隐藏 +34% 抬高。
+  const DEFAULT_RISK_BONUS = 0.12;
 
   class Sim {
     constructor(opts) {
@@ -54,7 +56,7 @@
       const daohao =
         rng.pick(D0.DAOHAO_A) + rng.pick(D0.DAOHAO_B);
 
-      const bottle = rng.chance(0.012);
+      const bottle = false; // 玩家不再持有掌天瓶；旧瓶只作为默认关闭的致敬传闻。
       const isExisting = opts.mode === "existing";
       const startTier = isExisting
         ? world === "spirit"
@@ -448,7 +450,7 @@
       const incomeSign = netIncome >= 0 ? "+" : "";
       const parts = [
         `修为 ×${(Number(f.cult) || 1).toFixed(2)}`,
-        `灵石净 ${incomeSign}${netIncome}/年`,
+        `灵石净 ${incomeSign}${netIncome}/步`,
         `心境 ${f.mood ? (f.mood > 0 ? "+" : "") + f.mood : "+0"}/年`,
       ];
       const incomeParts = [];
@@ -665,7 +667,7 @@
       this.initSectRank();
       if (!this.isSectMember()) return;
       const stepYears = Math.max(1, s.lastStepYears || 1);
-      const years = Math.min(8, stepYears);
+      const years = Math.min(8, stepYears); // 高境界用“每步预算”折算，避免一次性结算数百年
       const rank = D.SECT_RANKS[s.sectRank] || D.SECT_RANKS[0];
       const shareBonus = s.focus === "sect" ? 1.35 : 1;
       s.stones += (rank.share || 0) * years * shareBonus;
@@ -1009,7 +1011,7 @@
       } else {
         const f = this.focusDef();
         const stepYears = Math.max(1, s.lastStepYears || 1);
-        const years = Math.min(8, stepYears);
+        const years = Math.min(8, stepYears); // 高境界用“每步预算”折算，避免一次性结算数百年
         const decay = s.age > s.maxAge * 0.6 ? 0.12 : 0.02;
         if (firstYear) {
           const moodYears = Math.min(2, stepYears);
@@ -1029,7 +1031,7 @@
           (f.cult || 1) *
           (1 + s.cultRate) *
           this.worldCultMul() *
-          (s.bottle ? 2.1 : 1);
+          1;
         // 结丹以后给低灵根一条活路：速度仍受灵根影响，但不让寿元上限变成硬墙。
         const effectiveMul = s.tier >= 3 ? Math.max(mul, 0.8) : mul;
         s.cult = clamp(s.cult + base * effectiveMul, 0, 100);
@@ -1653,7 +1655,7 @@
       const focus = this.focusDef();
       const riskBonus = choice.risk && typeof choice.risk.bonus === "number"
         ? choice.risk.bonus
-        : 0.34;
+        : DEFAULT_RISK_BONUS;
       const attemptedFlag =
         choice.risk && choice.risk.fail && choice.risk.fail.flag
           ? choice.risk.fail.flag
@@ -2075,7 +2077,7 @@
         return { status: "break", tier: s.tier };
       }
       s.cult = 40;
-      s.breakBonus = 0;
+      s.breakBonus = Math.floor(s.breakBonus * 0.5);
       s.breakWaits = 0;
       s.mood = clamp(s.mood - 14, 0, 100);
       this.pushLog("fail", "冲关失败。灵力反噬，你在洞府里躺了三个月。", {
@@ -2374,7 +2376,7 @@
         sectRank: this.sectRankName(),
         sectContrib: Math.round(s.sectContrib || 0),
         place: s.place,
-        bottle: s.bottle,
+        bottle: false,
         wish: this.wishSummary(),
         legacy: this.legacySummary(),
         legendary: !!s.legendary,

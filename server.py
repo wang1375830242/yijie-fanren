@@ -62,6 +62,10 @@ STATIC_EXT = {
     ".txt",
 }
 
+class StateCorrupt(Exception):
+    pass
+
+
 _LOCK = threading.Lock()
 _RATE: dict[tuple[str, str], list[float]] = {}
 
@@ -76,10 +80,10 @@ def load_state() -> dict:
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as fh:
             raw = json.load(fh)
-    except (OSError, ValueError):
-        return empty_state()
+    except (OSError, ValueError) as exc:
+        raise StateCorrupt("hall state is corrupted") from exc
     if not isinstance(raw, dict):
-        return empty_state()
+        raise StateCorrupt("hall state is not an object")
     candles = raw.get("candles")
     messages = raw.get("messages")
     return {
@@ -320,6 +324,9 @@ class Handler(SimpleHTTPRequestHandler):
             target = os.path.realpath(os.path.join(ROOT, *parts))
             if os.path.commonpath([root, target]) != root:
                 return True
+            data_root = os.path.realpath(DATA_DIR)
+            if os.path.commonpath([data_root, target]) == data_root:
+                return True
         except (ValueError, OSError):
             return True
         return False
@@ -336,8 +343,12 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         path = urlparse(self.path).path
         if path == "/api/hall":
-            with _LOCK:
-                state = load_state()
+            try:
+                with _LOCK:
+                    state = load_state()
+            except StateCorrupt:
+                self._json(503, {"error": "hall state unavailable"})
+                return
             self._json(200, counts(state))
             return
         if path == "/api/guestbook":
@@ -452,33 +463,36 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(400, {"error": "invalid stele id"})
             return
 
-        with _LOCK:
-            state = load_state()
-            if stele_id not in state["candles"] and stele_id not in state["messages"]:
-                if tracked_stele_count(state) >= MAX_TRACKED_STELES:
-                    self._json(429, {"error": "stele limit reached"})
+        try:
+            with _LOCK:
+                state = load_state()
+                if stele_id not in state["candles"] and stele_id not in state["messages"]:
+                    if tracked_stele_count(state) >= MAX_TRACKED_STELES:
+                        self._json(429, {"error": "stele limit reached"})
+                        return
+                if path == "/api/candle":
+                    current = state["candles"].get(stele_id, 0)
+                    if not isinstance(current, int):
+                        current = 0
+                    state["candles"][stele_id] = current + 1
+                    save_state(state)
+                    self._json(200, {"count": current + 1, "totalCandles": counts(state)["totalCandles"]})
                     return
-            if path == "/api/candle":
-                current = state["candles"].get(stele_id, 0)
-                if not isinstance(current, int):
-                    current = 0
-                state["candles"][stele_id] = current + 1
+
+                text = clean_text(data.get("text"))
+                if not text:
+                    self._json(400, {"error": "empty message"})
+                    return
+                bucket = state["messages"].get(stele_id, [])
+                if not isinstance(bucket, list):
+                    bucket = []
+                bucket.append(text)
+                state["messages"][stele_id] = bucket[-MAX_MESSAGES_PER_STELE:]
                 save_state(state)
-                self._json(200, {"count": current + 1, "totalCandles": counts(state)["totalCandles"]})
-                return
-
-            text = clean_text(data.get("text"))
-            if not text:
-                self._json(400, {"error": "empty message"})
-                return
-            bucket = state["messages"].get(stele_id, [])
-            if not isinstance(bucket, list):
-                bucket = []
-            bucket.append(text)
-            state["messages"][stele_id] = bucket[-MAX_MESSAGES_PER_STELE:]
-            save_state(state)
-            self._json(200, {"messages": state["messages"][stele_id], "totalMessages": counts(state)["totalMessages"]})
-
+                self._json(200, {"messages": state["messages"][stele_id], "totalMessages": counts(state)["totalMessages"]})
+        except StateCorrupt:
+            self._json(503, {"error": "hall state unavailable"})
+            return
 
 def main():
     parser = argparse.ArgumentParser(description="一介凡人 · 本地服务器")

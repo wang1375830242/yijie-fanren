@@ -129,6 +129,7 @@
     { key: "dao_tea", name: "悟道茶", desc: "悟性 +8。一杯茶，坐三百年。", cost: 350, tierMin: 6, effect: { insight: 8 } },
     { key: "immortal_pill", name: "仙灵丹", desc: "修为 +10%。仙灵气凝成的丹，凡胎受不住。", cost: 800, tierMin: 9, effect: { cult: 10 } },
     { key: "immortal_jade", name: "仙宫玉简", desc: "悟性 +10。前人留下的一线道理。", cost: 700, tierMin: 9, effect: { insight: 10 } },
+    { key: "break_pill", name: "破境丹", desc: "下次突破成功率 +12%。化神以上也能用。", cost: 800, tierMin: 9, effect: { breakBonus: 12 } },
     { key: "immortal_ward", name: "护道仙符", desc: "极大概率挡下一次致命之灾，但仙符也会碎。此世只能求到一枚。", cost: 900, tierMin: 9, once: true, effect: { ward: 1 } },
   ];
 

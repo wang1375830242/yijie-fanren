@@ -40,6 +40,29 @@
     });
   }
 
+  function cleanLegacy(legacy) {
+    if (!legacy || typeof legacy !== "object" || legacy.v !== 1) return null;
+    const finite = (value, fallback = 0) =>
+      Number.isFinite(Number(value)) ? Math.max(-1000, Math.min(100000, Number(value))) : fallback;
+    const source = legacy.source && typeof legacy.source === "object" ? legacy.source : {};
+    return {
+      v: 1,
+      depth: Math.max(0, Math.min(100, Math.floor(finite(legacy.depth, 1)))),
+      rootKey: typeof legacy.rootKey === "string" ? legacy.rootKey.slice(0, 20) : null,
+      rootName: typeof legacy.rootName === "string" ? legacy.rootName.slice(0, 40) : "",
+      insight: finite(legacy.insight),
+      stones: finite(legacy.stones),
+      karma: finite(legacy.karma),
+      ward: Math.max(0, Math.min(2, Math.floor(finite(legacy.ward)))),
+      source: {
+        name: String(source.name || "").slice(0, 40),
+        realm: String(source.realm || "").slice(0, 40),
+        partnerName: String(source.partnerName || "").slice(0, 40),
+        sectName: String(source.sectName || "").slice(0, 40),
+      },
+    };
+  }
+
   function cleanRun(run) {
     if (!run || run.v !== 1 || typeof run.seed !== "number" || !run.state) return null;
     const st = run.state;
@@ -170,7 +193,8 @@
       if (!data || typeof data !== "object") throw new Error("不是有效的人生记录");
       const lives = Array.isArray(data.lives) ? data.lives : [];
       const merged = mergeLives(lives);
-      if (data.legacy && !U.store.legacy()) U.store.setLegacy(data.legacy);
+      const importedLegacy = cleanLegacy(data.legacy);
+      if (importedLegacy && !U.store.legacy()) U.store.setLegacy(importedLegacy);
       mergeLineage(data.lineage);
       mergeSteles(data.steles);
       mergeCandles(data.candles);
@@ -201,7 +225,7 @@
     });
   }
 
-  XD.aboutTools = { cleanLife, mergeLives, mergeCandles, cleanRun };
+  XD.aboutTools = { cleanLife, cleanLegacy, mergeLives, mergeCandles, cleanRun };
 
   refresh();
 })();

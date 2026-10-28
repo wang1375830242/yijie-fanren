@@ -79,6 +79,9 @@ if (candles["old-1"] !== 7 || candles["new-a"] !== 3) throw new Error("candle me
 if (candles.polluted) throw new Error("prototype pollution");
 
 if (T.cleanRun({ v: 1, seed: 1, state: {} }) !== null) throw new Error("malformed run should be rejected");
+if (T.cleanLegacy({ v: 1, source: {}, insight: "<script>" }) === null) throw new Error("malformed legacy should be rejected");
+const legacy = T.cleanLegacy({ v: 1, depth: 2, source: { name: "<x>" }, insight: 10, stones: 20, karma: 2, ward: 1 });
+if (!legacy || legacy.v !== 1 || legacy.insight !== 10 || legacy.source.name !== "<x>") throw new Error("legacy sanitizer failed");
 if (T.cleanRun({ v: 1, seed: 1, state: { origin: {}, root: {}, age: 1, tier: 1, log: [], history: [] } }) === null) {
   throw new Error("valid run should pass");
 }

@@ -38,10 +38,10 @@ syntax-check: 19 js files ok
 a11y-check: 39 checks passed
 browser-smoke: 6 pages ok
 guestbook-check: ok
-canon-regression: 399 checks passed
+canon-regression: 402 checks passed
 220 runs, 0 issues
-natural-ascensions=22
-changelog-check: 7 releases, 75 changes
+natural-ascensions=16
+changelog-check: 7 releases, 80 changes
 ```
 
 ## 仍然需要服务端的部分

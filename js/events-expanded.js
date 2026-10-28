@@ -1017,6 +1017,16 @@
    * 场景超出专用选项数量时，不能拿别的主题的选项硬配，否则会出现
    * 「秘境门口」配「救妖兽/不管」、「传功」配「按规矩办/先退下」。
    */
+  // Choice grammar: generated events get a small, stable set of verbs instead of
+  // two interchangeable +1 effects. Existing event text remains the source of flavor.
+  const CHOICE_GRAMMAR = [
+    { label: "探一探", effects: { insight: 2, luck: 1 }, outcome: "你多看了几眼，把眼前的细节记在心里。" },
+    { label: "取走眼前的东西", effects: { stones: 18, karma: -1 }, outcome: "你收下了能带走的部分，没有回头看。" },
+    { label: "让一步", effects: { karma: 2, mood: 1 }, outcome: "你没有争，退开半步，事情自己过去了。" },
+    { label: "问个明白", effects: { insight: 2, mood: -1 }, outcome: "你问了两句，对方答得很含糊。" },
+    { label: "冒险试一试", risk: { p: 0.25, text: "你赌对了一次。", fail: { death: true, cause: "殁于一时贪念" } }, effects: { luck: 3, stones: 30 }, outcome: "你赌对了。手心全是汗，东西终于到了手里。" },
+  ];
+
   const THEME_FALLBACKS = {
     h_school: [
       { label: "先看看", effects: { insight: 1 }, outcome: "你站在一旁，把眼前的事看完了。" },
@@ -1187,13 +1197,13 @@
         if (theme.key === "h_child" || theme.key === "h_family") {
           const sets = theme.key === "h_child" ? childChoiceGroups(s) : baseSets;
           if (sceneIndex < sets.length) return sets[sceneIndex];
-          return withDetail(FALLBACK_CHOICES[theme.pool]);
+          return withDetail(FALLBACK_CHOICES[theme.pool].concat(CHOICE_GRAMMAR.slice(0, 2)));
         }
         const themeFallback = THEME_FALLBACKS[theme.key];
-        if (themeFallback) return withDetail(themeFallback);
+        if (themeFallback) return withDetail(themeFallback.concat(CHOICE_GRAMMAR.slice(0, 2)));
         const sets = baseSets;
         if (sceneIndex < sets.length) return sets[sceneIndex];
-        return withDetail(FALLBACK_CHOICES[theme.pool]);
+        return withDetail(FALLBACK_CHOICES[theme.pool].concat(CHOICE_GRAMMAR));
       };
       add({
         id: `g_${theme.key}_${i}`,

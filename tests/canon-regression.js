@@ -304,7 +304,7 @@ ok(
   detailedCount >= 50,
   `原著人物应展示详细人物志，实际详细词条 ${detailedCount}`
 );
-ok(gameSource.includes("无名旧瓶"), "H7 角色面板应显示“无名旧瓶”");
+ok(!gameSource.includes("无名旧瓶"), "H7 旧瓶不应再作为玩家状态标签");
 ok(!gameSource.includes("生还 ${"), "濒死选项不应显示生还率");
 ok(
   !/生机较大|九死一生|有凶险/.test(gameSource),
@@ -1349,7 +1349,7 @@ themeChoiceCases.forEach(([id, expected, message]) => {
   const event = XD.EVENTS.find((item) => item.id === id);
   ok(
     event &&
-      event.choices(testFamily).map((choice) => choice.label).join(",") === expected,
+      event.choices(testFamily).slice(0, 2).map((choice) => choice.label).join(",") === expected,
     message
   );
 });
@@ -1647,5 +1647,17 @@ ok(gameSource.includes("1000 + (1 - Number(c.risk.p || 0))"), "自动死亡风�
 /* 自动测试与页面自动模式的边界。 */
 ok(!gameSource.includes("root_test"), "页面自动模式应保持原样，不加入 root_test 特判");
 ok(gameSource.includes('if (p.id === "i_sanshi_wo") return pick(1);') && !gameSource.includes('p.id === "i_daozu"'), "自动模式应保持不证道");
+
+/* 2026-10-28: bottle/break strategy regression. */
+const noBottle = new Sim({ seed: 986, world: "human" });
+ok(noBottle.state.bottle === false, "玩家不应再持有掌天瓶");
+const waitBreak = new Sim({ seed: 987, world: "human" });
+waitBreak.state.tier = 2;
+waitBreak.state.pending = { kind: "break", chance: 0.2 };
+waitBreak.chooseBreak("wait");
+ok(waitBreak.state.breakBonus >= 3 && !waitBreak.state.pending, "稳一稳应增加破境准备");
+
+const grammarEvent = XD.EVENTS.find((event) => event.id === "g_h_school_14");
+ok(grammarEvent && grammarEvent.choices(testFamily).length >= 4, "生成事件应提供超过两个兜底选项");
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; natural-ascensions=${naturalAscensions}; worst-repeat=${worstRepeat}`);

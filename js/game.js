@@ -574,7 +574,6 @@
       immortal: "仙界",
     };
     tags.push(stageNames[sim.stage()]);
-    if (s.bottle) tags.push("无名旧瓶");
     if (s.flags && s.flags.xutian && !s.flags.xutian_closed) {
       tags.push(s.flags.xutian_3_done ? "残图 · 已了" : s.flags.xutian_2_done ? "残图 · 入殿" : "残图 · 半图");
     }
@@ -1074,6 +1073,19 @@
     const fromRealm = sim.displayRealm();
     const target = D.REALMS[state.tier + 1];
     const before = state.log.length;
+    if (!auto && breakPolicy === "steady" && (state.breakWaits || 0) < 3) {
+      const waitBefore = state.log.length;
+      sim.chooseBreak("wait");
+      appendLogs(waitBefore);
+      refreshAll();
+      if (!state.alive) return endLife();
+      paused = false;
+      $("btnPause").textContent = "❚❚";
+      toast("稳一稳：根基更稳，下次破境准备增加");
+      saveRun(true);
+      schedule();
+      return;
+    }
     const result = sim.chooseBreak("push");
     appendLogs(before);
     refreshAll();
@@ -1533,6 +1545,18 @@
       b.addEventListener("click", () => setSpeed(Number(b.dataset.speed)));
     });
     $("btnFF").addEventListener("click", fastForward);
+    function updateBreakMenu() {
+      const btn = $("menuBreak");
+      if (btn) btn.textContent = "破境策略：" + (breakPolicy === "steady" ? "稳一稳" : "强冲");
+    }
+
+    function setBreakPolicy(next) {
+      breakPolicy = next === "steady" ? "steady" : "push";
+      U.store.setPref("breakPolicy", breakPolicy);
+      updateBreakMenu();
+      toast(breakPolicy === "steady" ? "破境策略：稳一稳（消耗时间换准备）" : "破境策略：强冲");
+    }
+
     function setAuto(next) {
       auto = next;
       $("btnAuto").classList.toggle("is-on", auto);
@@ -1546,6 +1570,7 @@
     $("btnAuto").addEventListener("click", () => setAuto(!auto));
     $("menuAuto").addEventListener("click", () => setAuto(!auto));
     $("menuSoft").addEventListener("click", () => setSoft(!soft));
+    $("menuBreak").addEventListener("click", () => setBreakPolicy(breakPolicy === "steady" ? "push" : "steady"));
     $("choicePeek").addEventListener("click", minimizeChoice);
     $("choiceResume").addEventListener("click", resumeChoice);
     $("menuReport").addEventListener("click", () => {

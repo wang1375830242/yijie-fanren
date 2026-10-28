@@ -32,9 +32,9 @@
 ## 验收
 
 ```text
-canon-regression: 399 checks passed
+canon-regression: 402 checks passed
 220 runs, 0 issues
-changelog-check: 7 releases, 75 changes
+changelog-check: 7 releases, 80 changes
 ```
 
 源码回归覆盖：

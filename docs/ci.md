@@ -66,10 +66,10 @@ syntax-check: 19 js files ok
 a11y-check: 39 checks passed
 browser-smoke: 6 pages ok
 guestbook-check: ok
-canon-regression: 399 checks passed
+canon-regression: 402 checks passed
 220 runs, 0 issues
-pseudo-spirit=2
-natural-ascensions=22
+pseudo-spirit=1
+natural-ascensions=16
 worst-repeat=2
-changelog-check: 7 releases, 75 changes, schema ok
+changelog-check: 7 releases, 80 changes, schema ok
 ```

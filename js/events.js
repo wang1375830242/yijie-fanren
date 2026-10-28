@@ -194,13 +194,6 @@
             outcome: "你在七玄门后山劈了十年柴，见过仙人，也见过仙人死。",
           },
         ];
-        if (s.bottle) {
-          base.unshift({
-            label: "夜里，旧瓶里渗出一滴青液",
-            effects: { awaken: true, mood: 8 },
-            outcome: "你把那滴青液倒在舌下。一股冰凉的东西冲开经脉，你疼得在地上打滚，天亮时，你已经能看见空气里流动的光。",
-          });
-        }
         return base;
       }
       const place = (s.origin && s.origin.place) || "";
@@ -605,26 +598,6 @@
         label: "不进去，在谷口收药",
         effects: { stones: 25, insight: 2 },
         outcome: "你在谷口摆了个摊，收购别人带出来的残药。七天赚的比进去还多。",
-      },
-    ],
-  });
-
-  add({
-    id: "q_bottle",
-    when: (s) => s.bottle && s.age >= 12 && s.age <= 30,
-    w: 20,
-    title: "旧瓶",
-    text: "那只从山缝里捡来的旧瓶，今夜忽然发热。瓶底渗出一滴青色的液体，落在桌上，把一小片木屑催成了一株嫩芽。",
-    choices: [
-      {
-        label: "收好，此事绝不外传",
-        effects: { mood: 6, luck: 5, flag: "bottle_known" },
-        outcome: "你把旧瓶缝进贴身的内袋。从今往后，你睡觉都朝里侧。",
-      },
-      {
-        label: "试着把青液滴在灵草上",
-        effects: { stones: 80, cult: 6, flag: "bottle_known" },
-        outcome: "一夜之间，三株灵草长成了三十年药龄。你第一次觉得，命也许是可以改的。",
       },
     ],
   });
