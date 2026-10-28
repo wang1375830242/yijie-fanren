@@ -435,10 +435,10 @@ textarea {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: clamp(14px, 2.2vw, 34px);
+  gap: clamp(12px, 1.55vw, 24px);
   font-family: var(--kai);
-  font-size: 14px;
-  letter-spacing: 0.14em;
+  font-size: 13.5px;
+  letter-spacing: 0.12em;
   color: var(--text-soft);
 }
 .nav-links a {
@@ -463,6 +463,58 @@ textarea {
 .nav-links a:hover::after {
   left: 0;
   right: 0;
+}
+.nav-more {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.nav-more-toggle {
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.nav-more-toggle:hover,
+.nav-more-toggle:focus-visible,
+.nav-more-toggle[aria-expanded="true"] {
+  color: var(--text);
+}
+.nav-more-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 70;
+  min-width: 132px;
+  padding: 6px;
+  border: 1px solid var(--line-2);
+  background: rgba(12, 15, 12, 0.97);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+}
+.nav-more-menu[hidden] { display: none; }
+.nav-more-menu a {
+  display: block;
+  padding: 9px 12px;
+  color: var(--text-soft);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+.nav-more-menu a::after { display: none; }
+.nav-more-menu a:hover,
+.nav-more-menu a:focus-visible {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.045);
+}
+html[data-theme="day"] .nav-more-menu {
+  background: rgba(250, 247, 239, 0.98);
+}
+html[data-theme="day"] .nav-more-menu a:hover,
+html[data-theme="day"] .nav-more-menu a:focus-visible {
+  background: rgba(40, 70, 56, 0.06);
 }
 .nav-cta {
   margin-left: 4px;
@@ -887,4 +939,39 @@ html[data-theme="day"] .theme-overlay {
   .theme-grid--font {
     grid-template-columns: 1fr;
   }
+}
+
+/* 右下角主题入口：不再占用主导航 */
+.theme-fab {
+  position: fixed;
+  right: 22px;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 80;
+  min-height: 38px;
+  padding: 0 15px;
+  border: 1px solid var(--line-2);
+  background: rgba(12, 15, 12, 0.82);
+  color: var(--text-soft);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+.theme-fab:hover,
+.theme-fab:focus-visible {
+  border-color: var(--realm);
+  color: var(--text);
+}
+html[data-theme="day"] .theme-fab {
+  background: rgba(250, 247, 239, 0.9);
+}
+@media (max-width: 640px) {
+  .theme-fab { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+}
+
+.nav-links a.account-nav {
+  max-width: 8em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

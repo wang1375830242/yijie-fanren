@@ -324,6 +324,61 @@
   }
 
   /* ---------- 顶栏 ---------- */
+  function setupNavMore(bar) {
+    const links = bar.querySelector(".nav-links");
+    if (!links || links.querySelector(".nav-more")) return;
+    const more = document.createElement("div");
+    more.className = "nav-more";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "nav-more-toggle";
+    button.textContent = "更多";
+    button.setAttribute("aria-haspopup", "true");
+    button.setAttribute("aria-expanded", "false");
+    const menu = document.createElement("div");
+    menu.className = "nav-more-menu";
+    menu.hidden = true;
+    ["a[href=\"changelog.html\"]", "a[href=\"about.html\"]", "a[href=\"support.html\"]"].forEach((selector) => {
+      const link = links.querySelector(selector);
+      if (link) menu.appendChild(link);
+    });
+    if (!menu.children.length) return;
+    more.appendChild(button);
+    more.appendChild(menu);
+    const cta = links.querySelector(".nav-cta");
+    links.insertBefore(more, cta || null);
+    const account = links.querySelector('a[href="account.html"]');
+    if (account) links.appendChild(account);
+    const close = () => {
+      menu.hidden = true;
+      button.setAttribute("aria-expanded", "false");
+    };
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const open = menu.hidden;
+      menu.hidden = !open;
+      button.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    menu.addEventListener("click", () => close());
+    document.addEventListener("click", (event) => {
+      if (!more.contains(event.target)) close();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") close();
+    });
+  }
+
+  function updateAccountNavLabel() {
+    const session = authSession();
+    const label = session && session.user ? (session.user.displayName || session.user.username || "账号") : "账号";
+    document.querySelectorAll('a[href="account.html"]').forEach((link) => {
+      if (!link.closest(".nav-links, .nav-drawer")) return;
+      link.textContent = label;
+      link.title = session ? `账号 · ${label}` : "账号";
+      link.classList.toggle("account-nav", !!session);
+    });
+  }
+
   function nav() {
     const bar = document.querySelector(".nav");
     const accountLink = document.createElement("a");
@@ -340,6 +395,7 @@
     const accountDrawer = document.querySelector(".nav-drawer");
     if (accountDrawer && !accountDrawer.querySelector('a[href="account.html"]')) accountDrawer.appendChild(accountLink);
     if (accountDrawer && !accountDrawer.querySelector('a[href="support.html"]')) accountDrawer.appendChild(supportLink);
+    if (bar) setupNavMore(bar);
     if (bar) {
       const onScroll = () => bar.classList.toggle("is-solid", window.scrollY > 24);
       onScroll();
@@ -360,6 +416,7 @@
         toggle.focus();
       });
     }
+    updateAccountNavLabel();
   }
 
   /* ---------- 主题（三界气候） ---------- */
@@ -522,19 +579,14 @@
   }
 
   function theme() {
-    const targets = [
-      document.querySelector(".nav-links"),
-      document.querySelector(".nav-drawer"),
-    ].filter(Boolean);
-    targets.forEach((parent) => {
-      if (parent.querySelector("[data-theme-toggle]")) return;
+    if (!document.querySelector(".theme-fab")) {
       const button = document.createElement("button");
       button.type = "button";
       button.dataset.themeToggle = "true";
-      button.className = parent.id === "moreMenu" ? "menu-action theme-toggle-more" : "theme-toggle";
+      button.className = "theme-toggle theme-fab";
       button.addEventListener("click", openThemePanel);
-      parent.appendChild(button);
-    });
+      document.body.appendChild(button);
+    }
     applyTheme(currentTheme());
     applyFont(currentFont());
     window.addEventListener("storage", (event) => {
@@ -565,9 +617,13 @@
   function setAuthSession(session) {
     if (!session || !session.token) { try { localStorage.removeItem(AUTH_KEY); } catch (err) {} return null; }
     try { localStorage.setItem(AUTH_KEY, JSON.stringify(session)); } catch (err) {}
+    updateAccountNavLabel();
     return session;
   }
-  function clearAuthSession() { try { localStorage.removeItem(AUTH_KEY); } catch (err) {} }
+  function clearAuthSession() {
+    try { localStorage.removeItem(AUTH_KEY); } catch (err) {}
+    updateAccountNavLabel();
+  }
   async function authFetch(path, options) {
     const session = authSession();
     const headers = Object.assign({}, (options && options.headers) || {});
