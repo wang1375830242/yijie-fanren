@@ -1660,4 +1660,23 @@ ok(waitBreak.state.breakBonus >= 3 && !waitBreak.state.pending, "稳一稳应增
 const grammarEvent = XD.EVENTS.find((event) => event.id === "g_h_school_14");
 ok(grammarEvent && grammarEvent.choices(testFamily).length >= 4, "生成事件应提供超过两个兜底选项");
 
+/* 2026-10-28: physique / artifact / sect-task feature checks. */
+ok(D.PHYSIQUES && D.PHYSIQUES.length >= 5, "体质池应包含凡体与四种原创体质");
+ok(D.PHYSIQUES.filter((x) => x.key !== "none").every((x) => Number.isFinite(x.rootDelta)), "体质必须声明数值化根骨修正");
+const physiqueSim = new Sim({ seed: 988, world: "human" });
+physiqueSim.state.root = { key: "wei", name: "伪灵根", mul: 0.62 };
+physiqueSim.state.physique = D.PHYSIQUES.find((x) => x.key === "hansui");
+ok(Math.abs(physiqueSim.rootPower() - 0.92) < 1e-9, "寒髓体应以加法修正灵根，不应叠乘");
+const artifactSim = new Sim({ seed: 989, world: "human" });
+ok(artifactSim.bindArtifact("lei_mu") === true && artifactSim.state.artifact.name === "雷击木剑胚", "应能绑定本命法宝");
+ok(artifactSim.bindArtifact("wen_yu") === false, "本命法宝不能重复绑定");
+const taskEvent = XD.EVENT_BY_ID.q_sect_task;
+ok(taskEvent && taskEvent.when({ tier: 1, age: 20, sect: "散修" }) === false, "无宗门不得出现宗门任务");
+ok(taskEvent && taskEvent.when({ tier: 1, age: 20, sect: "黄枫谷" }) === true, "宗门成员应可出现宗门任务");
+ok(!!XD.EVENT_BY_ID.q_appraise, "坊市鉴宝事件应存在");
+const noArtTrib = XD.EVENT_BY_ID.n_tribulation.choices({ tier: 3, cult: 92, artifact: null });
+ok(!noArtTrib.some((c) => c.label.includes("本命法宝")), "没有本命法宝时不应出现法宝迎劫选项");
+const artTrib = XD.EVENT_BY_ID.n_tribulation.choices({ tier: 3, cult: 92, artifact: { broken: false } });
+ok(artTrib.some((c) => c.label.includes("本命法宝")), "持有本命法宝时应出现法宝迎劫选项");
+
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; natural-ascensions=${naturalAscensions}; worst-repeat=${worstRepeat}`);

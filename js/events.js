@@ -576,6 +576,93 @@
   });
 
   add({
+    id: "q_appraise",
+    when: (s) => s.tier >= 1 && s.tier <= 4 && s.age >= 16,
+    w: 7,
+    title: "鉴宝",
+    text: "坊市深处有人摆了一张没有招牌的案子。案上三件旧物，鉴定师只收五块灵石，看完只说一句：信不信由你。",
+    choices: [
+      {
+        label: "花五块灵石，请他掌眼",
+        effects: { stones: -5, insight: 3, luck: 1, flag: "appraised_once" },
+        outcome: "他看了很久，最后指了指其中一件，说这不是本界的东西。你再看时，他已经收摊了。",
+      },
+      {
+        label: "不鉴定，直接买下最不起眼的一件",
+        risk: { p: 0.4, text: "你买对了。", fail: { stones: -30, mood: -3 } },
+        effects: { stones: -30, luck: 3, insight: 2, flag: "market_gamble" },
+        outcome: "回去擦去泥，旧物底下露出一道极细的灵纹。你不知道它值多少，但至少不是废铁。",
+      },
+      {
+        label: "只看，不花灵石",
+        effects: { mood: 1 },
+        outcome: "你把三件旧物都看了一遍，记住了它们的形状，然后走了。",
+      },
+    ],
+  });
+
+  add({
+    id: "q_sect_task",
+    when: (s) =>
+      s.tier >= 1 &&
+      s.tier <= 5 &&
+      s.age >= 16 &&
+      s.sect &&
+      !/散修|散仙|凡俗|杂役|天渊城|北寒仙域|青芦苏氏/.test(s.sect),
+    w: 8,
+    title: "任务堂",
+    text: (s) => `${s.sect}的任务堂挂出一块新木牌。执事说，这次的任务不难，但要看人品。`,
+    choices: [
+      {
+        label: "接采集任务，去后山采灵草",
+        risk: { p: 0.3, text: "你带着灵草回来了。", fail: { death: true, cause: "殁于后山" } },
+        effects: { sectContrib: 12, stones: 30, mood: -2 },
+        outcome: "你在后山走了七天，鞋底磨穿，背篓里多了三株品相不错的灵草。",
+      },
+      {
+        label: "接巡山任务，替宗门守一夜",
+        effects: { sectContrib: 8, stones: 15, mood: -1, insight: 2 },
+        outcome: "山风很大。你守到天亮，什么也没发生，但执事在你的名字后面画了一个圈。",
+      },
+      {
+        label: "不接任务，回去修炼",
+        effects: { mood: 2 },
+        outcome: "你把木牌放回去。任务堂里还有人排队，你没有回头。",
+      },
+    ],
+  });
+
+  add({
+    id: "artifact_choice",
+    when: (s) => s.tier >= 2 && s.tier <= 4 && !s.artifact && !s.flags.artifact_declined,
+    w: 8,
+    title: "本命法宝",
+    text: "筑基之后，你终于可以温养一件本命法宝。器堂的老修士把三件器胚摆在桌上：一段雷击木、一枚旧剑钉、一块温玉。他说，选哪件，往后就要拿命去养。",
+    choices: [
+      {
+        label: "选雷击木剑胚",
+        effects: { artifact: "lei_mu", mood: 3 },
+        outcome: "你割破指尖，把血滴在木上。雷击木轻轻震了一下，像一把还没出鞘的剑。",
+      },
+      {
+        label: "选旧剑钉",
+        effects: { artifact: "jiu_jian", mood: 2 },
+        outcome: "锈钉扎进掌心。你没有松手，直到它不再发烫。",
+      },
+      {
+        label: "选温玉",
+        effects: { artifact: "wen_yu", mood: 5 },
+        outcome: "温玉贴上心口，寒意退了半寸。你听见自己的心跳慢下来。",
+      },
+      {
+        label: "暂不温养本命法宝",
+        effects: { flag: "artifact_declined", mood: 1 },
+        outcome: "你把三件器胚都放回桌上。老修士没有劝你，只说以后还有机会。",
+      },
+    ],
+  });
+
+  add({
     id: "q_valley",
     when: (s) => s.world === "human" && s.tier === 1 && s.age >= 20 && s.sect && s.sect !== "散修",
     w: 8,
@@ -1326,25 +1413,30 @@
     w: 30,
     title: "结婴之劫",
     text: "天上聚起铅灰色的云，云心有一点紫光。你要结婴了。方圆百里的修士都在看着这座山。",
-    choices: [
-      {
-        label: "以本命法宝迎劫",
-        risk: { p: 0.55, text: "雷落了三道，你扛住了。", fail: { death: true, cause: "陨于结婴之劫" } },
-        effects: { breakBonus: 12, mood: 6, cult: 3 },
-        outcome: "第三道雷把你的法宝劈成两半，也把你劈进了元婴期。",
-      },
-      {
-        label: "布阵，借地势卸雷",
-        risk: { p: 0.65, text: "大阵碎了，人还活着。", fail: { death: true, cause: "陨于结婴之劫" } },
-        effects: { breakBonus: 8, stones: -80 },
-        outcome: "阵法替你扛下了大半。你从废墟里爬出来，头发全白了。",
-      },
-      {
-        label: "散去半数修为，避劫",
-        effects: { cult: -40, mood: -10, insight: 8 },
-        outcome: "雷云散了。你保住了命，也保住了结丹期的境界。",
-      },
-    ],
+    choices: (s) => {
+      const base = [
+        {
+          label: "布阵，借地势扛雷",
+          risk: { p: 0.65, text: "大阵碎了，人还活着。", fail: { death: true, cause: "陨于结婴之劫" } },
+          effects: { breakBonus: 8, stones: -80 },
+          outcome: "阵法替你扛下了大半。你从废墟里爬出来，头发全白了。",
+        },
+        {
+          label: "散去半数修为，避劫",
+          effects: { cult: -40, mood: -10, insight: 8 },
+          outcome: "雷云散了。你保住了命，也保住了结丹期的境界。",
+        },
+      ];
+      if (s.artifact && !s.artifact.broken) {
+        base.unshift({
+          label: "以本命法宝迎劫",
+          risk: { p: 0.55, text: "雷落了三道，你扛住了。", fail: { death: true, cause: "陨于结婴之劫", artifactBroken: true } },
+          effects: { breakBonus: 12, mood: 6, cult: 3 },
+          outcome: "第三道雷把你的法宝劈成两半，也把你劈进了元婴期。",
+        });
+      }
+      return base;
+    },
   });
 
   add({

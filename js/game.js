@@ -363,6 +363,7 @@
       ["生于", s.origin.place],
       ["出身", s.origin.family],
       ["灵根", s.root.name],
+      ["体质", s.physique ? s.physique.name : "凡体"],
       ["悟性", s.insight],
       ["气运", s.luck],
       ["寿元", s.maxAge + " 年"],
@@ -562,6 +563,7 @@
     const rankName = sim.sectRankName();
     const tags = [
       s.root.name,
+      s.physique ? s.physique.name : "凡体",
       rankName ? `${s.sect} · ${rankName}` : s.sect || "散修",
       s.origin.family,
     ];
@@ -1302,6 +1304,8 @@
     const fields = [
       ["最高境界", sim.displayRealm()],
       ["灵根", s.root.name],
+      ["体质", s.physique ? s.physique.name : "凡体"],
+      ["本命法宝", s.artifact ? `${s.artifact.name}${s.artifact.broken ? " · 已碎" : ` · ${s.artifact.stage || 0} 重`}` : "未温养"],
       ["宗门", s.sect ? `${s.sect}${sim.sectRankName() ? " · " + sim.sectRankName() : ""}` : "散修"],
       ["道侣", partnerField],
       ["弟子", disciplineField],
@@ -1396,6 +1400,8 @@
       ["生 于", s.origin.place],
       ["出 身", s.origin.family],
       ["灵 根", s.root.name],
+      ["体 质", s.physique ? s.physique.name : "凡体"],
+      ["法 宝", s.artifact ? s.artifact.name : "无"],
       ["宗 门", s.sect ? `${s.sect}${sim.sectRankName() ? " · " + sim.sectRankName() : ""}` : "散修"],
       ["道 侣", s.partner
         ? s.partner.status === "separated" || s.partner.status === "left"

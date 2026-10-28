@@ -57,6 +57,7 @@
         rng.pick(D0.DAOHAO_A) + rng.pick(D0.DAOHAO_B);
 
       const bottle = false; // 玩家不再持有掌天瓶；旧瓶只作为默认关闭的致敬传闻。
+      const physique = root.key === "none" ? null : rng.weighted(D0.PHYSIQUES, (x) => x.w);
       const isExisting = opts.mode === "existing";
       const startTier = isExisting
         ? world === "spirit"
@@ -77,7 +78,7 @@
       const realm = D0.REALMS[startTier];
 
       const insight = clamp(
-        32 + (origin.mods.insight || 0) + rng.int(0, 22),
+        32 + (origin.mods.insight || 0) + rng.int(0, 22) + ((physique && physique.insight) || 0),
         10,
         96
       );
@@ -95,7 +96,7 @@
         path: startTier > 0 ? "cultivator" : "unsettled",
         tier: startTier,
         age: startAge,
-        maxAge: realm.life,
+        maxAge: Math.round(realm.life * ((physique && physique.lifeMul) || 1)),
         cult: 0,
         mood,
         karma: 0,
@@ -144,6 +145,8 @@
         },
         lastChainAge: -999,
         bottle,
+        physique,
+        artifact: null,
         flags: {},
         seen: {},
         recentEvents: [],
@@ -983,10 +986,40 @@
       };
     }
 
+    bodyLifeMul() {
+      return (this.state.physique && Number(this.state.physique.lifeMul)) || 1;
+    }
+
+    realmLife(tier) {
+      const realm = D.REALMS[Math.max(0, Math.min(13, Number(tier) || 0))] || D.REALMS[0];
+      return Math.round((realm.life || 0) * this.bodyLifeMul());
+    }
+
+    rootPower() {
+      const root = Number(this.state.root && this.state.root.mul) || 0;
+      const delta = Number(this.state.physique && this.state.physique.rootDelta) || 0;
+      return Math.max(0, root + delta);
+    }
+
+    artifactRiskBonus() {
+      const a = this.state.artifact;
+      if (!a || a.broken) return 0;
+      const def = D.PLAYER_ARTIFACTS.find((x) => x.key === a.key);
+      return Number(def && def.riskBonus) || 0;
+    }
+
+    artifactBreakBonus() {
+      const a = this.state.artifact;
+      if (!a || a.broken) return 0;
+      const def = D.PLAYER_ARTIFACTS.find((x) => x.key === a.key);
+      return (Number(def && def.breakBonus) || 0) + Math.max(0, Number(a.stage) || 0) * 0.01;
+    }
+
     annualIncome() {
       const s = this.state;
       const base = this.focusDef().stones || 0;
-      return Math.round(base * (1 + Math.max(0, s.tier - 1) * 0.18));
+      const bodyMul = s.focus === "alchemy" && s.physique && s.physique.alchemyIncome ? s.physique.alchemyIncome : 1;
+      return Math.round(base * bodyMul * (1 + Math.max(0, s.tier - 1) * 0.18));
     }
 
     annualUpkeep() {
@@ -1012,7 +1045,7 @@
         const f = this.focusDef();
         const stepYears = Math.max(1, s.lastStepYears || 1);
         const years = Math.min(8, stepYears); // 高境界用“每步预算”折算，避免一次性结算数百年
-        const decay = s.age > s.maxAge * 0.6 ? 0.12 : 0.02;
+        const decay = (s.age > s.maxAge * 0.6 ? 0.12 : 0.02) + ((s.physique && s.physique.moodDecay) || 0);
         if (firstYear) {
           const moodYears = Math.min(2, stepYears);
           s.mood = clamp(s.mood + (f.mood || 0) * moodYears - decay * years, 0, 100);
@@ -1025,7 +1058,7 @@
         }
         const base = (100 / this.realm().need) * (this.realm().pace || 1);
         const mul =
-          s.root.mul *
+          this.rootPower() *
           (0.75 + s.insight / 200) *
           (0.82 + s.mood / 240) *
           (f.cult || 1) *
@@ -1668,6 +1701,7 @@
         ? clamp(
             choice.risk.p +
               riskBonus +
+              this.artifactRiskBonus() +
               (s.luck - 50) * 0.002 +
               (Number(focus.luck) || 0) * 0.03 -
               (Number(focus.risk) || 0) * 0.02,
@@ -1683,6 +1717,7 @@
       } else if (choice.risk) {
         // 失败只结算 risk.fail，不再携带成功选项的 effects。
         effects = Object.assign({}, choice.risk.fail || {});
+        if (effects.artifactBroken && s.artifact) s.artifact.broken = true;
         delete effects.death;
         delete effects.cause;
         result.effects = effects;
@@ -1824,9 +1859,23 @@
       return { status: "died", text: failShown, chance };
     }
 
+    bindArtifact(key) {
+      const s = this.state;
+      if (s.artifact) return false;
+      const def = D.PLAYER_ARTIFACTS.find((x) => x.key === key);
+      if (!def) return false;
+      s.artifact = { key: def.key, name: def.name, stage: 0, bond: 0, broken: false };
+      if (Number(def.maxAge)) s.maxAge += Number(def.maxAge);
+      if (Number(def.mood)) s.mood = clamp(s.mood + Number(def.mood), 0, 100);
+      this.pushLog("system", `你以精血温养${def.name}，从此它与你气息相连。`, { title: "本命法宝" });
+      return true;
+    }
+
     apply(effects) {
       const s = this.state;
       if (!effects) return;
+      if (effects.artifactBroken && s.artifact) s.artifact.broken = true;
+      if (effects.artifact && !s.artifact) this.bindArtifact(effects.artifact);
       if (typeof effects.cult === "number")
         s.cult = clamp(s.cult + effects.cult, 0, 100);
       if (typeof effects.mood === "number") s.mood = clamp(s.mood + effects.mood, 0, 100);
@@ -1956,7 +2005,7 @@
         s.path = "cultivator";
         s.tier = 1;
         s.cult = 0;
-        s.maxAge = Math.max(s.maxAge, D.REALMS[1].life);
+        s.maxAge = Math.max(s.maxAge, this.realmLife(1));
         this.pushLog("system", "你踏入了炼气期。从此，你与凡人不是一路人了。");
       }
       if (effects.path === "mortal" && s.path !== "mortal") {
@@ -1968,7 +2017,7 @@
         s.path = "cultivator";
         s.tier = 1;
         s.cult = 0;
-        s.maxAge = Math.max(s.maxAge, D.REALMS[1].life);
+        s.maxAge = Math.max(s.maxAge, this.realmLife(1));
         this.initSectRank();
         this.pushLog("system", "你踏入炼气期。山门在身后合上，人间从此隔了一层。");
       }
@@ -2004,7 +2053,7 @@
         // 化神修士穿过空间节点后仍是化神，炼虚要在灵界重新突破。
         s.tier = 5;
         s.cult = 0;
-        s.maxAge = Math.max(s.maxAge, D.REALMS[5].life);
+        s.maxAge = Math.max(s.maxAge, this.realmLife(5));
         s.flags.arrived_spirit = false;
         s.flags.spirit_ascended = true;
         s.place = "灵界 · 天渊城";
@@ -2017,7 +2066,7 @@
         s.world = "immortal";
         s.tier = 9;
         s.cult = 0;
-        s.maxAge = Math.max(s.maxAge, D.REALMS[9].life);
+        s.maxAge = Math.max(s.maxAge, this.realmLife(9));
         s.flags.arrived_immortal = false;
         s.place = "仙界 · 北寒仙域";
         s.sect = "北寒仙域 · 散仙";
@@ -2037,7 +2086,9 @@
         Math.max(0, s.tier - 8) * (s.startWorld === "immortal" ? 0.04 : 0.12) +
         s.mood * 0.0015 +
         s.insight * 0.0006 +
-        (s.root.mul - 1) * 0.04 +
+        (this.rootPower() - 1) * 0.04 +
+        ((s.physique && s.physique.breakBonus) || 0) +
+        this.artifactBreakBonus() +
         Math.min(s.breakBonus, 25) / 100 -
         (s.flags.demon ? 0.1 : 0) -
         (s.flags.heart_scar ? 0.05 : 0);
@@ -2067,7 +2118,8 @@
         s.breakBonus = 0;
         s.breakWaits = 0;
         s.mood = clamp(s.mood + 10, 0, 100);
-        s.maxAge = Math.max(s.maxAge, D.REALMS[s.tier].life);
+        s.maxAge = Math.max(s.maxAge, this.realmLife(s.tier));
+        if (s.artifact && !s.artifact.broken) s.artifact.stage = Math.min(3, (s.artifact.stage || 0) + 1);
         const r = this.realm();
         this.pushLog("break", `天地灵气倒灌。你破境了——${r.name}。`, {
           title: "破境",
@@ -2321,6 +2373,8 @@
       if (!Array.isArray(sim.state.choiceTrace)) sim.state.choiceTrace = [];
       if (!Array.isArray(sim.state.log)) sim.state.log = [];
       if (!Array.isArray(sim.state.history)) sim.state.history = [];
+      if (!sim.state.physique || typeof sim.state.physique !== "object") sim.state.physique = null;
+      if (!sim.state.artifact || typeof sim.state.artifact !== "object") sim.state.artifact = null;
       sim.ensureChainState();
       sim.rng.setState(run.rng);
       sim.socialRng.setState(run.socialRng);
@@ -2377,6 +2431,8 @@
         sectContrib: Math.round(s.sectContrib || 0),
         place: s.place,
         bottle: false,
+        physique: s.physique ? { key: s.physique.key, name: s.physique.name } : null,
+        artifact: s.artifact ? { key: s.artifact.key, name: s.artifact.name, stage: s.artifact.stage || 0, broken: !!s.artifact.broken } : null,
         wish: this.wishSummary(),
         legacy: this.legacySummary(),
         legendary: !!s.legendary,
