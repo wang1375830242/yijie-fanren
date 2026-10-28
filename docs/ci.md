@@ -62,9 +62,9 @@ node tests/changelog-check.js
 当前基线：
 
 ```text
-syntax-check: 19 js files ok
+syntax-check: 21 js files ok
 a11y-check: 43 checks passed
-browser-smoke: 6 pages ok
+browser-smoke: 7 pages ok
 guestbook-check: ok
 canon-regression: 412 checks passed
 220 runs, 0 issues
