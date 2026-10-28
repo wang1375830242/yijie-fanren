@@ -1092,7 +1092,7 @@
           (1 - Math.min(3, s.injury || 0) * 0.06) *
           this.worldCultMul();
         // 结丹以后给低灵根一条活路：速度仍受灵根影响，但不让寿元上限变成硬墙。
-        const effectiveMul = s.tier >= 3 ? Math.max(mul, 0.8) : mul;
+        const effectiveMul = s.tier >= 3 ? Math.max(mul, 0.55) : mul;
         s.cult = clamp(s.cult + base * effectiveMul, 0, 100);
       }
 
