@@ -1084,7 +1084,7 @@
         }
         const base = (100 / this.realm().need) * (this.realm().pace || 1);
         const mul =
-          this.rootPower() *
+          (0.5 + this.rootPower() * 0.5) *
           (0.75 + s.insight / 200) *
           (0.82 + s.mood / 240) *
           (f.cult || 1) *
@@ -1474,8 +1474,6 @@
     canBreak() {
       const s = this.state;
       const t = s.tier;
-      const next = D.REALMS[t + 1];
-      if (next && Number(next.minAge) && s.age < Number(next.minAge)) return false;
       // 5→6 需要先在灵界落地；仙界本地出生没有经过人界飞升，
       // 允许直接在仙界完成化神→炼虚的门槛，否则会永远卡在化神后期。
       if (t === 5) {
