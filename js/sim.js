@@ -10,7 +10,7 @@
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   // 事件作者写的 risk.p 是基础风险；默认只给极小的主角修正，避免隐藏 +34% 抬高。
-  const DEFAULT_RISK_BONUS = 0.12;
+  const DEFAULT_RISK_BONUS = 0;
 
   class Sim {
     constructor(opts) {
@@ -106,6 +106,10 @@
         insight,
         luck,
         breakBonus: 0,
+        breakPrep: 0,
+        injury: 0,
+        sectPath: null,
+        karmaBook: [],
         ward: 0,
         cultRate: 0,
         root,
@@ -223,6 +227,8 @@
         stones: Math.round(number(raw.stones, 0, 120, 0)),
         karma: Math.round(number(raw.karma, -10, 10, 0)),
         ward: raw.ward ? 1 : 0,
+        bequest: ["dao", "artifact", "path", "karma"].includes(raw.bequest) ? raw.bequest : "dao",
+        burden: ["", "injury", "debt"].includes(raw.burden) ? raw.burden : "",
         source: raw.source && typeof raw.source === "object" ? raw.source : null,
       };
     }
@@ -250,10 +256,13 @@
       s.stones += stones;
       s.karma = clamp(s.karma + legacy.karma, -100, 100);
       if (legacy.ward) s.ward = Math.max(s.ward, 1);
+      if (legacy.burden === "debt") s.karma = clamp(s.karma - 5, -100, 100);
       return {
         v: 1,
         depth: legacy.depth,
         rootKey: legacy.rootKey,
+        bequest: legacy.bequest || "dao",
+        burden: legacy.burden || "",
         source: legacy.source,
         applied: {
           insight: s.insight - beforeInsight,
@@ -290,6 +299,8 @@
         stones: Math.max(5, Math.round((10 + s.tier * 5) * decay)),
         karma: clamp(Math.round((s.karma || 0) * 0.15), -8, 8),
         ward: s.tier >= 6 ? 1 : 0,
+        bequest: s.artifact ? "artifact" : s.sectPath ? "path" : (s.karma || 0) >= 20 ? "karma" : "dao",
+        burden: (s.injury || 0) >= 2 ? "injury" : (s.karma || 0) <= -20 ? "debt" : "",
         source: {
           name: s.name,
           seed: s.seed,
@@ -1001,6 +1012,21 @@
       return Math.max(0, root + delta);
     }
 
+    buildLevel() {
+      const s = this.state;
+      if (!s.sectPath) return 0;
+      let level = 0;
+      const artifactDef = s.artifact && D.PLAYER_ARTIFACTS.find((x) => x.key === s.artifact.key);
+      if (artifactDef && artifactDef.path === s.sectPath && !s.artifact.broken) level += 1;
+      if (s.physique && s.physique.path === s.sectPath) level += 1;
+      return level;
+    }
+
+    buildName() {
+      const path = D.SECT_PATHS.find((x) => x.key === this.state.sectPath);
+      return path ? path.name : "无道统";
+    }
+
     artifactRiskBonus() {
       const a = this.state.artifact;
       if (!a || a.broken) return 0;
@@ -1062,9 +1088,9 @@
           (0.75 + s.insight / 200) *
           (0.82 + s.mood / 240) *
           (f.cult || 1) *
-          (1 + s.cultRate) *
-          this.worldCultMul() *
-          1;
+          (1 + (s.cultRate || 0)) *
+          (1 - Math.min(3, s.injury || 0) * 0.06) *
+          this.worldCultMul();
         // 结丹以后给低灵根一条活路：速度仍受灵根影响，但不让寿元上限变成硬墙。
         const effectiveMul = s.tier >= 3 ? Math.max(mul, 0.8) : mul;
         s.cult = clamp(s.cult + base * effectiveMul, 0, 100);
@@ -1718,6 +1744,7 @@
         // 失败只结算 risk.fail，不再携带成功选项的 effects。
         effects = Object.assign({}, choice.risk.fail || {});
         if (effects.artifactBroken && s.artifact) s.artifact.broken = true;
+        if (!choice.risk.fail || !choice.risk.fail.death) effects.injury = Math.min(3, (s.injury || 0) + 1);
         delete effects.death;
         delete effects.cause;
         result.effects = effects;
@@ -1879,23 +1906,15 @@
       if (typeof effects.cult === "number")
         s.cult = clamp(s.cult + effects.cult, 0, 100);
       if (typeof effects.mood === "number") s.mood = clamp(s.mood + effects.mood, 0, 100);
-      if (typeof effects.karma === "number") s.karma = clamp(s.karma + effects.karma, -100, 100);
+      if (typeof effects.karma === "number") {
+        s.karma = clamp(s.karma + effects.karma, -100, 100);
+        if (effects.karma !== 0) {
+          s.karmaBook = Array.isArray(s.karmaBook) ? s.karmaBook : [];
+          s.karmaBook.push({ age: s.age, value: effects.karma });
+          if (s.karmaBook.length > 20) s.karmaBook = s.karmaBook.slice(-20);
+        }
+      }
       if (!s.traits) s.traits = { kind: 0, ruthless: 0, curious: 0, bold: 0, calm: 0 };
-      if (typeof effects.karma === "number" && effects.karma > 0) {
-        s.traits.kind += Math.min(3, Math.ceil(effects.karma / 2));
-      }
-      if (typeof effects.karma === "number" && effects.karma < 0) {
-        s.traits.ruthless += Math.min(3, Math.ceil(-effects.karma / 2));
-      }
-      if (typeof effects.insight === "number" && effects.insight > 0) {
-        s.traits.curious += Math.min(2, Math.ceil(effects.insight / 2));
-      }
-      if (typeof effects.luck === "number" && effects.luck > 0) {
-        s.traits.bold += 1;
-      }
-      if (typeof effects.mood === "number" && effects.mood > 0) {
-        s.traits.calm += 1;
-      }
       if (typeof effects.insight === "number")
         s.insight = clamp(s.insight + effects.insight, 0, 100);
       if (typeof effects.luck === "number") s.luck = clamp(s.luck + effects.luck, 0, 100);
@@ -1909,6 +1928,13 @@
       if (typeof effects.ward === "number") s.ward += effects.ward;
       if (typeof effects.cultRate === "number") s.cultRate += effects.cultRate;
       if (effects.flag) s.flags[effects.flag] = true;
+      if (typeof effects.sectPath === "string" && D.SECT_PATHS.some((x) => x.key === effects.sectPath)) s.sectPath = effects.sectPath;
+      if (effects.trait && typeof effects.trait === "object") {
+        Object.keys(effects.trait).forEach((key) => {
+          if (Object.prototype.hasOwnProperty.call(s.traits, key)) s.traits[key] = clamp((s.traits[key] || 0) + Number(effects.trait[key] || 0), 0, 10);
+        });
+      }
+      if (typeof effects.injury === "number") s.injury = clamp((s.injury || 0) + effects.injury, 0, 3);
       if (effects.sect) {
         const nextSect = effects.sect;
         const actual = (value) =>
@@ -2078,9 +2104,9 @@
       s.mood = clamp(s.mood + 8, 0, 100);
     }
 
-    breakChance() {
+    breakForecast() {
       const s = this.state;
-      let p =
+      const base =
         0.78 -
         s.tier * 0.04 -
         Math.max(0, s.tier - 8) * (s.startWorld === "immortal" ? 0.04 : 0.12) +
@@ -2092,7 +2118,14 @@
         Math.min(s.breakBonus, 25) / 100 -
         (s.flags.demon ? 0.1 : 0) -
         (s.flags.heart_scar ? 0.05 : 0);
-      return clamp(p, 0.15, 0.94);
+      const prep = Math.min(3, Math.max(0, Number(s.breakPrep) || 0)) * 0.03;
+      const injury = Math.min(3, Math.max(0, Number(s.injury) || 0)) * 0.03;
+      const final = clamp(base + prep - injury, 0.12, 0.94);
+      return { base: clamp(base, 0, 1), prep, injury, chance: final };
+    }
+
+    breakChance() {
+      return this.breakForecast().chance;
     }
 
     chooseBreak(action) {
@@ -2102,9 +2135,13 @@
       this.recordChoice("break", 0, { action });
       s.pending = null;
       if (action === "wait") {
-        if ((s.breakWaits || 0) >= 3) return { status: "blocked" };
+        if ((s.breakWaits || 0) >= 3) {
+          s.pending = { kind: "break", chance: this.breakChance() };
+          return { status: "blocked" };
+        }
         s.breakWaits = (s.breakWaits || 0) + 1;
-        s.age += Math.min(8, Math.max(1, Math.round(this.realm().per)));
+        s.breakPrep = Math.min(3, (s.breakPrep || 0) + 1);
+        s.age += Math.max(1, Math.min(120, Math.round(this.realm().per || 1)));
         s.mood = clamp(s.mood + 8, 0, 100);
         s.breakBonus += 3;
         this.pushLog("system", "你按下躁动的心，又稳固了几年根基。");
@@ -2117,6 +2154,8 @@
         s.cult = 0;
         s.breakBonus = 0;
         s.breakWaits = 0;
+        s.breakPrep = 0;
+        s.injury = Math.max(0, (s.injury || 0) - 1);
         s.mood = clamp(s.mood + 10, 0, 100);
         s.maxAge = Math.max(s.maxAge, this.realmLife(s.tier));
         if (s.artifact && !s.artifact.broken) s.artifact.stage = Math.min(3, (s.artifact.stage || 0) + 1);
@@ -2131,6 +2170,8 @@
       s.cult = 40;
       s.breakBonus = Math.floor(s.breakBonus * 0.5);
       s.breakWaits = 0;
+      s.breakPrep = Math.max(0, (s.breakPrep || 0) - 1);
+      s.injury = Math.min(3, (s.injury || 0) + 1);
       s.mood = clamp(s.mood - 14, 0, 100);
       this.pushLog("fail", "冲关失败。灵力反噬，你在洞府里躺了三个月。", {
         title: "功亏一篑",
@@ -2436,6 +2477,7 @@
         wish: this.wishSummary(),
         legacy: this.legacySummary(),
         legendary: !!s.legendary,
+        karmaBook: Array.isArray(s.karmaBook) ? s.karmaBook.slice(-8) : [],
         ts: endedTs,
       };
     }

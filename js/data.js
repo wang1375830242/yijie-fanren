@@ -46,12 +46,20 @@
     { key: "none", name: "凡骨", mul: 0, w: 16, text: "经脉闭塞，灵窍未开。此生的路在人间，不在山上。" },
   ];
   /* ---------------- 体质（原创玩家池；原著体质只进图鉴） ---------------- */
+  /* ---------------- 四条道统 ---------------- */
+  const SECT_PATHS = [
+    { key: "dan", name: "丹鼎", desc: "以丹火养命，破境稳，收入稳。" },
+    { key: "jian", name: "剑锋", desc: "以杀证道，风险与法宝成长更快。" },
+    { key: "zhen", name: "阵心", desc: "以阵势借力，准备与守成更强。" },
+    { key: "you", name: "游侠", desc: "不靠山门，遇事多，路更野。" },
+  ];
+
   const PHYSIQUES = [
     { key: "none", name: "凡体", w: 885, rootDelta: 0, desc: "没有特殊体质。修行靠灵根、心性和一点运气。" },
-    { key: "qingmu", name: "青木体", w: 35, rootDelta: 0.08, lifeMul: 1.05, alchemyIncome: 1.25, desc: "木气亲和，灵植与丹火都更容易养活；寿元略长，但斗法不占便宜。" },
-    { key: "hansui", name: "寒髓体", w: 30, rootDelta: 0.30, lifeMul: 0.90, moodDecay: 0.06, desc: "经脉天生偏寒，吐纳极快；代价是心境更容易被寒气侵蚀，寿元也短一截。" },
-    { key: "dunjin", name: "钝金体", w: 25, rootDelta: -0.10, breakBonus: 0.04, desc: "灵根不显，筋骨却沉。冲关时比旁人稳，平时修炼慢半拍。" },
-    { key: "kongqiao", name: "空窍体", w: 25, rootDelta: 0.05, insight: 10, lifeMul: 0.85, desc: "灵窍通透，悟性极高；身体却像一只漏底的瓶子，寿元与灵气容量都偏弱。" },
+    { key: "qingmu", name: "青木体", path: "dan", w: 35, rootDelta: 0.08, lifeMul: 1.05, alchemyIncome: 1.25, desc: "木气亲和，灵植与丹火都更容易养活；寿元略长，但斗法不占便宜。" },
+    { key: "hansui", name: "寒髓体", path: "jian", w: 30, rootDelta: 0.30, lifeMul: 0.90, moodDecay: 0.06, desc: "经脉天生偏寒，吐纳极快；代价是心境更容易被寒气侵蚀，寿元也短一截。" },
+    { key: "dunjin", name: "钝金体", path: "zhen", w: 25, rootDelta: -0.10, breakBonus: 0.04, desc: "灵根不显，筋骨却沉。冲关时比旁人稳，平时修炼慢半拍。" },
+    { key: "kongqiao", name: "空窍体", path: "you", w: 25, rootDelta: 0.05, insight: 10, lifeMul: 0.85, desc: "灵窍通透，悟性极高；身体却像一只漏底的瓶子，寿元与灵气容量都偏弱。" },
   ];
 
   /* 原著特殊体质：只作为图鉴/传说，不参与随机出生池。 */
@@ -131,9 +139,9 @@
   /* ---------------- 货栈 ---------------- */
   /* ---------------- 本命法宝器胚（原创，不抢原著法宝） ---------------- */
   const PLAYER_ARTIFACTS = [
-    { key: "lei_mu", name: "雷击木剑胚", desc: "雷火劈过的旧木，剑意未成，锋芒先藏。", breakBonus: 0.02, maxStage: 3 },
-    { key: "jiu_jian", name: "旧剑钉", desc: "从断剑里拔出的一枚锈钉，杀气比剑身还重。", breakBonus: 0.01, riskBonus: 0.02, maxStage: 3 },
-    { key: "wen_yu", name: "温玉", desc: "一块常年温热的旧玉，贴身时能稳住心神。", breakBonus: 0.01, maxAge: 12, mood: 4, maxStage: 3 },
+    { key: "lei_mu", name: "雷击木剑胚", path: "jian", desc: "雷火劈过的旧木，剑意未成，锋芒先藏。", breakBonus: 0.02, maxStage: 3 },
+    { key: "jiu_jian", name: "旧剑钉", path: "jian", desc: "从断剑里拔出的一枚锈钉，杀气比剑身还重。", breakBonus: 0.01, riskBonus: 0.02, maxStage: 3 },
+    { key: "wen_yu", name: "温玉", path: "dan", desc: "一块常年温热的旧玉，贴身时能稳住心神。", breakBonus: 0.01, maxAge: 12, mood: 4, maxStage: 3 },
   ];
 
   const SHOP = [
@@ -577,6 +585,7 @@
     FOCUS,
     SECT_RANKS,
     PHYSIQUES,
+    SECT_PATHS,
     CANON_PHYSIQUES,
     PLAYER_ARTIFACTS,
     SHOP,

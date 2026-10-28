@@ -1016,12 +1016,12 @@ ok(
   "突破应自动播放动画，并在动画结束后继续流程"
 );
 ok(
-  !gameSource.includes("return openBreak()") && !gameSource.includes("openBreak();"),
-  "突破不应再打开手动冲关弹窗"
+  gameSource.includes("openBreakPrompt") && gameSource.includes("breakForecast"),
+  "破境应提供带成算的玩家决策面板"
 );
 ok(
-  gameSource.includes('state.pending.kind === "break") return startAutoBreak()'),
-  "破境 pending 应进入自动突破流程"
+  gameSource.includes('startAutoBreak("push")'),
+  "自动模式仍应能直接进入破境流程"
 );
 ok(
   fs.readFileSync(path.join(ROOT, "play.html"), "utf8").includes("choicePeek") &&
@@ -1678,5 +1678,29 @@ const noArtTrib = XD.EVENT_BY_ID.n_tribulation.choices({ tier: 3, cult: 92, arti
 ok(!noArtTrib.some((c) => c.label.includes("本命法宝")), "没有本命法宝时不应出现法宝迎劫选项");
 const artTrib = XD.EVENT_BY_ID.n_tribulation.choices({ tier: 3, cult: 92, artifact: { broken: false } });
 ok(artTrib.some((c) => c.label.includes("本命法宝")), "持有本命法宝时应出现法宝迎劫选项");
+
+/* 2026-10-28: strategy iteration checks. */
+const strategySim = new Sim({ seed: 990, world: "human" });
+strategySim.state.tier = 3;
+strategySim.state.mood = 50;
+const forecast = strategySim.breakForecast();
+ok(forecast.chance >= 0.12 && forecast.chance <= 0.94, "破境面板应给出边界内成算");
+strategySim.state.breakPrep = 2;
+strategySim.state.injury = 1;
+const forecast2 = strategySim.breakForecast();
+ok(Math.abs(forecast2.prep - 0.06) < 1e-9 && Math.abs(forecast2.injury - 0.03) < 1e-9, "准备与伤势应分别计入成算");
+const buildSim = new Sim({ seed: 991, world: "human" });
+buildSim.state.sectPath = "jian";
+buildSim.state.physique = { key: "hansui", name: "寒髓体", path: "jian" };
+buildSim.state.artifact = { key: "lei_mu", name: "雷击木剑胚", stage: 0, broken: false };
+ok(buildSim.buildLevel() === 2 && buildSim.buildName() === "剑锋", "道统应形成法宝/体质 Build");
+const legacyStrategy = new Sim({ seed: 992, world: "human" });
+legacyStrategy.state.tier = 9;
+legacyStrategy.state.sectPath = "jian";
+legacyStrategy.state.artifact = { key: "lei_mu", name: "雷击木剑胚", stage: 1, broken: false };
+const legacyV2 = legacyStrategy.legacySummary();
+ok(legacyV2.bequest === "artifact", "有本命法宝的前世应留下遗物传承");
+const cleanV2 = new Sim({ seed: 993, world: "human", legacy: legacyV2 });
+ok(cleanV2.state.legacy && cleanV2.state.legacy.bequest === "artifact", "传承 bequest 应能带入下一世");
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; natural-ascensions=${naturalAscensions}; worst-repeat=${worstRepeat}`);

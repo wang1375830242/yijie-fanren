@@ -202,6 +202,7 @@
       legacy,
     });
     state = sim.state;
+    if (legacy && U.store.markLegacyUsed) U.store.markLegacyUsed(seed);
     endSummary = null;
     saved = false;
     setTheme(state.world);
@@ -364,6 +365,7 @@
       ["出身", s.origin.family],
       ["灵根", s.root.name],
       ["体质", s.physique ? s.physique.name : "凡体"],
+      ["道统", sim.buildName ? sim.buildName() : "无道统"],
       ["悟性", s.insight],
       ["气运", s.luck],
       ["寿元", s.maxAge + " 年"],
@@ -564,6 +566,7 @@
     const tags = [
       s.root.name,
       s.physique ? s.physique.name : "凡体",
+      sim.buildName ? sim.buildName() : "无道统",
       rankName ? `${s.sect} · ${rankName}` : s.sect || "散修",
       s.origin.family,
     ];
@@ -883,7 +886,10 @@
     clearTimeout(autoTimer);
     resetPromptChrome();
     if (!state.pending) return;
-    if (state.pending.kind === "break") return startAutoBreak();
+    if (state.pending.kind === "break") {
+      if (auto) return startAutoBreak("push");
+      return openBreakPrompt();
+    }
     if (state.pending.kind === "danger") return openDanger();
     const p = state.pending;
     if (auto) {
@@ -1059,7 +1065,35 @@
     schedule();
   }
 
-  function startAutoBreak() {
+  function openBreakPrompt() {
+    const s = state;
+    if (!s || !s.pending || s.pending.kind !== "break") return;
+    const f = sim.breakForecast();
+    const pct = (v) => Math.round(v * 100);
+    $("choiceKicker").textContent = "破 境";
+    $("choiceTitle").textContent = "此关怎么过";
+    $("choiceText").textContent = `当前成算 ${pct(f.chance)}%。根基准备 +${pct(f.prep)}%，伤势 -${pct(f.injury)}%。稳一稳会耗时间去补准备；强冲则现在赌这一关。`;
+    const canWait = (s.breakWaits || 0) < 3;
+    $("choiceOpts").innerHTML = `
+      <button class="opt" type="button" data-break-action="push">
+        <b>强冲</b><span>消耗一次机会，按当前成算结算。</span>
+      </button>
+      <button class="opt" type="button" data-break-action="wait" ${canWait ? "" : "disabled"}>
+        <b>稳一稳</b><span>${canWait ? "耗去一段寿元，补一层根基准备。" : "已经稳了三次，再等也没有用了。"}</span>
+      </button>`;
+    $("choiceOpts").querySelectorAll("[data-break-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        $("choiceOverlay").hidden = true;
+        startAutoBreak(button.dataset.breakAction);
+      });
+    });
+    $("choiceOverlay").hidden = false;
+    startWhisper();
+    trapChoicePrompt();
+    $("choiceTitle").focus({ preventScroll: true });
+  }
+
+  function startAutoBreak(action) {
     if (!state || !state.pending || state.pending.kind !== "break") return;
     clearTimeout(timer);
     clearTimeout(autoTimer);
@@ -1075,7 +1109,8 @@
     const fromRealm = sim.displayRealm();
     const target = D.REALMS[state.tier + 1];
     const before = state.log.length;
-    if (!auto && breakPolicy === "steady" && (state.breakWaits || 0) < 3) {
+    const chosenAction = action || (auto ? "push" : breakPolicy === "steady" ? "wait" : "push");
+    if (chosenAction === "wait" && (state.breakWaits || 0) < 3) {
       const waitBefore = state.log.length;
       sim.chooseBreak("wait");
       appendLogs(waitBefore);
@@ -1088,7 +1123,7 @@
       schedule();
       return;
     }
-    const result = sim.chooseBreak("push");
+    const result = sim.chooseBreak(chosenAction === "wait" ? "wait" : "push");
     appendLogs(before);
     refreshAll();
     const success = !!(result && result.status === "break");
@@ -1197,6 +1232,8 @@
       "未了因果",
       legacy.karma ? `因果 ${legacy.karma > 0 ? "+" : ""}${legacy.karma}` : "无牵无挂",
     ]);
+    if (legacy.bequest) rows.push(["传承", legacy.bequest === "artifact" ? "遗物 · 本命法宝余烬" : legacy.bequest === "path" ? "道统 · 同一条路" : legacy.bequest === "karma" ? "因果 · 一段旧缘" : "道果 · 一点悟性"]);
+    if (legacy.burden) rows.push(["负担", legacy.burden === "injury" ? "旧伤 · 下一世体弱" : legacy.burden === "debt" ? "业债 · 有人会来讨" : legacy.burden]);
     $("legacySource").textContent = `${source.name || "无名"} · ${source.realm || "凡人"} · ${source.cause || "离世"} · ${source.age || 0}岁`;
     $("legacyList").innerHTML = rows
       .map(
@@ -1305,6 +1342,7 @@
       ["最高境界", sim.displayRealm()],
       ["灵根", s.root.name],
       ["体质", s.physique ? s.physique.name : "凡体"],
+      ["道统", sim.buildName ? sim.buildName() : "无道统"],
       ["本命法宝", s.artifact ? `${s.artifact.name}${s.artifact.broken ? " · 已碎" : ` · ${s.artifact.stage || 0} 重`}` : "未温养"],
       ["宗门", s.sect ? `${s.sect}${sim.sectRankName() ? " · " + sim.sectRankName() : ""}` : "散修"],
       ["道侣", partnerField],

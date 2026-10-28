@@ -616,12 +616,12 @@
       {
         label: "接采集任务，去后山采灵草",
         risk: { p: 0.3, text: "你带着灵草回来了。", fail: { death: true, cause: "殁于后山" } },
-        effects: { sectContrib: 12, stones: 30, mood: -2 },
+        effects: { sectContrib: 12, stones: 30, mood: -2, trait: { bold: 1 } },
         outcome: "你在后山走了七天，鞋底磨穿，背篓里多了三株品相不错的灵草。",
       },
       {
         label: "接巡山任务，替宗门守一夜",
-        effects: { sectContrib: 8, stones: 15, mood: -1, insight: 2 },
+        effects: { sectContrib: 8, stones: 15, mood: -1, insight: 2, trait: { calm: 1 } },
         outcome: "山风很大。你守到天亮，什么也没发生，但执事在你的名字后面画了一个圈。",
       },
       {
@@ -629,6 +629,25 @@
         effects: { mood: 2 },
         outcome: "你把木牌放回去。任务堂里还有人排队，你没有回头。",
       },
+    ],
+  });
+
+  add({
+    id: "sect_path_choice",
+    when: (s) =>
+      s.tier >= 2 &&
+      s.tier <= 6 &&
+      s.sect &&
+      !/散修|散仙|凡俗|杂役|天渊城|北寒仙域|青芦苏氏/.test(s.sect) &&
+      !s.sectPath,
+    w: 8,
+    title: "道统",
+    text: "执事把四枚旧玉牌摆在案上。丹、剑、阵、游，各是一条路。选了，往后山门给你的东西，和你欠山门的东西，都会不一样。",
+    choices: [
+      { label: "取丹鼎玉牌", effects: { sectPath: "dan", sectContrib: 10, mood: 3 }, outcome: "你把玉牌收进袖中。丹房的火，从此有你一份。" },
+      { label: "取剑锋玉牌", effects: { sectPath: "jian", sectContrib: 10, mood: 2, trait: { bold: 1 } }, outcome: "玉牌边缘很利。你握紧时，掌心留下了一道白痕。" },
+      { label: "取阵心玉牌", effects: { sectPath: "zhen", sectContrib: 10, insight: 3 }, outcome: "玉牌背面刻着半个阵图。你看了很久，才把它翻过来。" },
+      { label: "取游侠玉牌", effects: { sectPath: "you", stones: 20, luck: 3 }, outcome: "执事皱了皱眉，还是把玉牌给了你。山门外的路，本来就不在山上。" },
     ],
   });
 
@@ -641,17 +660,17 @@
     choices: [
       {
         label: "选雷击木剑胚",
-        effects: { artifact: "lei_mu", mood: 3 },
+        effects: { artifact: "lei_mu", mood: 3, trait: { bold: 1 } },
         outcome: "你割破指尖，把血滴在木上。雷击木轻轻震了一下，像一把还没出鞘的剑。",
       },
       {
         label: "选旧剑钉",
-        effects: { artifact: "jiu_jian", mood: 2 },
+        effects: { artifact: "jiu_jian", mood: 2, trait: { ruthless: 1 } },
         outcome: "锈钉扎进掌心。你没有松手，直到它不再发烫。",
       },
       {
         label: "选温玉",
-        effects: { artifact: "wen_yu", mood: 5 },
+        effects: { artifact: "wen_yu", mood: 5, trait: { calm: 1 } },
         outcome: "温玉贴上心口，寒意退了半寸。你听见自己的心跳慢下来。",
       },
       {
