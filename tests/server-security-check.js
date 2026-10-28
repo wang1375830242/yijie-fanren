@@ -109,6 +109,17 @@ async function run() {
   });
   if (res.status !== 429) throw new Error(`same rightmost XFF should be rate limited, got ${res.status}`);
 
+  // Visit tracking must be JSON + origin checked and stored in SQLite.
+  res = await post("/api/visit", { path: "/play.html" }, { "Content-Type": "text/plain", Origin: "https://evil.example" });
+  if (res.status !== 415) throw new Error(`visit text/plain should be 415, got ${res.status}`);
+  res = await post("/api/visit", { path: "/play.html" }, { Origin: "https://evil.example" });
+  if (res.status !== 403) throw new Error(`visit evil origin should be 403, got ${res.status}`);
+  res = await post("/api/visit", { path: "/play.html" }, { Origin: "https://wang1375830242.github.io" });
+  if (res.status !== 200) throw new Error(`visit valid post should be 200, got ${res.status}`);
+  res = await post("/api/visit", { path: "/not-a-page" }, { Origin: "https://wang1375830242.github.io" });
+  if (res.status !== 400) throw new Error(`unknown visit page should be 400, got ${res.status}`);
+  if (!fs.existsSync(path.join(temp, "visits.db"))) throw new Error("visits.db should be created");
+
   // Corrupt hall state must fail closed instead of silently overwriting it.
   fs.writeFileSync(path.join(temp, "hall.json"), "{broken", "utf8");
   res = await requestRaw("/api/hall");
