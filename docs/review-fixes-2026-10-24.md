@@ -35,13 +35,13 @@
 
 ```text
 syntax-check: 19 js files ok
-a11y-check: 39 checks passed
+a11y-check: 43 checks passed
 browser-smoke: 6 pages ok
 guestbook-check: ok
 canon-regression: 412 checks passed
 220 runs, 0 issues
 natural-ascensions=9
-changelog-check: 7 releases, 86 changes
+changelog-check: 7 releases, 90 changes
 ```
 
 ## 仍然需要服务端的部分

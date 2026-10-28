@@ -120,6 +120,34 @@ async function run() {
   if (res.status !== 400) throw new Error(`unknown visit page should be 400, got ${res.status}`);
   if (!fs.existsSync(path.join(temp, "visits.db"))) throw new Error("visits.db should be created");
 
+  // Account lifecycle: register, token, cloud save, guestbook ownership.
+  const username = "qa" + Date.now();
+  res = await post("/api/auth/register", { username, password: "password123", displayName: "QA" });
+  if (res.status !== 201) throw new Error(`register should be 201, got ${res.status}`);
+  const account = JSON.parse(res.body);
+  if (!account.token || !account.user || account.user.username !== username) throw new Error("register response incomplete");
+  res = await requestRaw("/api/auth/me", { headers: { Authorization: "Bearer " + account.token } });
+  if (res.status !== 200) throw new Error(`me should be 200, got ${res.status}`);
+  res = await requestRaw("/api/account/save", { headers: { Authorization: "Bearer " + account.token } });
+  if (res.status !== 200 || JSON.parse(res.body).exists !== false) throw new Error("new account save should be empty");
+  res = await requestRaw("/api/account/save", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + account.token },
+    body: JSON.stringify({ snapshot: { v: 1, lives: [{ id: "qa-life" }] }, baseRevision: 0 }),
+  });
+  if (res.status !== 200) throw new Error(`account save should be 200, got ${res.status}`);
+  res = await post("/api/guestbook", { text: "account hello" }, { Authorization: "Bearer " + account.token });
+  if (res.status !== 201 || !JSON.parse(res.body).message.mine) throw new Error("account guestbook should be mine");
+  const messageId = JSON.parse(res.body).message.id;
+  res = await requestRaw(`/api/guestbook/${messageId}/delete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + account.token },
+    body: "{}",
+  });
+  if (res.status !== 200) throw new Error(`own guestbook delete should be 200, got ${res.status}`);
+  const other = await post("/api/auth/login", { username, password: "wrong-pass" });
+  if (other.status !== 401) throw new Error(`wrong password should be 401, got ${other.status}`);
+
   // Corrupt hall state must fail closed instead of silently overwriting it.
   fs.writeFileSync(path.join(temp, "hall.json"), "{broken", "utf8");
   res = await requestRaw("/api/hall");

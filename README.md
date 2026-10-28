@@ -134,7 +134,7 @@ python server.py
 
 ## 数据与隐私
 
-没有账号。人生记录、速度、柔化模式偏好存在浏览器 `localStorage`：
+不登录也能玩。人生记录、速度、柔化模式偏好存在浏览器 `localStorage`；注册账号后可选择把最近人生同步到云端：
 
 - `yijie.lives.v1` — 人生记录
 - `yijie.legacy.v1` — 下一世道果（一次性使用）

@@ -4,6 +4,7 @@
 (function () {
   "use strict";
   const $ = (id) => document.getElementById(id);
+  const U = XD.util;
   const API_BASE =
     location.hostname === "wang1375830242.github.io" ? "https://192.144.150.24" : "";
   const apiUrl = (path) => API_BASE + path;
@@ -19,6 +20,7 @@
   const status = $("gbStatus");
   let nextBefore = null;
   let loading = false;
+  function session() { return U.auth && U.auth.session(); }
 
   function setStatus(text, isError) {
     status.textContent = text;
@@ -53,6 +55,20 @@
     text.className = "gb-card-text";
     text.textContent = message.text || "";
     card.append(head, text);
+    if (message.mine && message.id !== undefined) {
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "gb-delete";
+      del.textContent = "删除";
+      del.addEventListener("click", async () => {
+        if (!confirm("删除这条留言？")) return;
+        del.disabled = true;
+        const res = await U.auth.fetch(`/api/guestbook/${encodeURIComponent(message.id)}/delete`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+        if (res.ok) card.remove();
+        else del.disabled = false;
+      });
+      card.append(del);
+    }
     return card;
   }
 
@@ -85,7 +101,7 @@
     try {
       const query = new URLSearchParams({ limit: "20" });
       if (nextBefore) query.set("before", String(nextBefore));
-      const res = await fetch(apiUrl("/api/guestbook?" + query.toString()), {
+      const res = await U.auth.fetch("/api/guestbook?" + query.toString(), {
         cache: "no-store",
         signal: controller.signal,
       });
@@ -121,12 +137,12 @@
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10000);
     try {
-      const res = await fetch(apiUrl("/api/guestbook"), {
+      const res = await U.auth.fetch("/api/guestbook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
         body: JSON.stringify({
-          name: nameInput.value.trim(),
+          name: session() ? "" : nameInput.value.trim(),
           text,
           website: website.value,
         }),
@@ -150,6 +166,11 @@
     }
   }
 
+  if (session()) {
+    nameInput.value = session().user.displayName || "";
+    nameInput.disabled = true;
+    nameInput.title = "已登录，使用账号显示名";
+  }
   textInput.addEventListener("input", () => {
     count.textContent = Array.from(textInput.value).length + " / 200";
   });

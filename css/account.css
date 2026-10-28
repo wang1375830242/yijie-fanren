@@ -1,0 +1,29 @@
+.account-main { max-width: 860px; margin: 0 auto; padding: 64px 24px 100px; }
+.account-head { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 24px; }
+.account-head .kicker { color: var(--gold); font-size: 12px; letter-spacing: .2em; margin: 0 0 10px; }
+.account-head h1 { font-size: clamp(32px, 6vw, 52px); font-weight: 400; letter-spacing: .12em; margin: 0; }
+.account-head .sub { color: var(--muted); margin: 12px 0 0; max-width: 640px; line-height: 1.9; }
+.account-panel { border: 1px solid var(--line); background: var(--panel); padding: 24px; margin: 18px 0; }
+.account-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.account-tabs button { border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; padding: 8px 18px; cursor: pointer; }
+.account-tabs button.on { color: var(--gold); border-color: var(--gold); }
+.account-form { display: grid; gap: 16px; max-width: 480px; }
+.account-form label { display: grid; gap: 7px; color: var(--muted); font-size: 13px; letter-spacing: .06em; }
+.account-form input { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--line); color: var(--text); font: inherit; padding: 11px 12px; }
+.account-form input:focus { outline: 1px solid var(--gold); outline-offset: 1px; }
+.account-form small { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.account-status { min-height: 24px; color: var(--muted); margin: 16px 0 0; font-size: 13px; }
+.account-status.is-error { color: var(--red); }
+.recovery-box { border: 1px dashed var(--gold); padding: 16px; margin-top: 18px; color: var(--text); }
+.recovery-box strong { display: block; color: var(--gold); margin-bottom: 8px; }
+.recovery-box code { display: block; font-size: 20px; letter-spacing: .12em; margin: 8px 0; color: var(--gold); }
+.recovery-box p { color: var(--muted); font-size: 12px; margin: 0; }
+.account-who { display: flex; align-items: center; gap: 14px; }
+.account-avatar { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid var(--gold); color: var(--gold); font-size: 22px; }
+.account-who div { display: grid; gap: 4px; flex: 1; }
+.account-who strong { font-weight: 400; font-size: 20px; }
+.account-who small { color: var(--muted); }
+.account-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.account-note { color: var(--muted); font-size: 12px; line-height: 1.8; margin: 18px 0 0; }
+.account-note summary { cursor: pointer; color: var(--text); }
+@media (max-width: 640px) { .account-main { padding: 36px 16px 70px; } .account-panel { padding: 18px; } }

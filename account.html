@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>账号 · 一介凡人</title>
+<meta name="description" content="一介凡人账号：跨设备保存最近人生、留言身份与云端备份。">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<script src="js/theme-init.js?v=20261027a"></script>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/account.css">
+<link rel="stylesheet" href="css/day.css?v=20261027a">
+</head>
+<body class="account-page">
+<noscript><div class="noscript">账号页需要 JavaScript 才能使用。</div></noscript>
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="seal">凡</span><span class="brand-name">一介凡人<em>账号</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="hall.html">碑林</a>
+      <a href="guestbook.html">留言板</a>
+      <a href="codex.html">图鉴</a>
+      <a href="changelog.html">更新</a>
+      <a href="about.html">关于</a>
+      <a class="btn btn--sm nav-cta" href="play.html">推演一个</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="菜单" aria-expanded="false">☰</button>
+  </div>
+</nav>
+<div class="nav-drawer">
+  <a href="index.html">首页</a>
+  <a href="hall.html">碑林</a>
+  <a href="guestbook.html">留言板</a>
+  <a href="codex.html">图鉴</a>
+  <a href="changelog.html">更新</a>
+  <a href="about.html">关于</a>
+  <a href="play.html">推演一个</a>
+</div>
+
+<main class="account-main wrap">
+  <header class="account-head">
+    <p class="kicker">此身之外 · 另留一份</p>
+    <h1>账号</h1>
+    <p class="sub">不登录也能玩。登录后，最近的人生、传承与碑林阅读记录可以跨设备保留；留言会显示账号名。</p>
+  </header>
+
+  <section class="account-panel" id="accountGuest">
+    <div class="account-tabs" role="tablist" aria-label="登录或注册">
+      <button type="button" data-auth-tab="login" class="on" role="tab" aria-selected="true">登录</button>
+      <button type="button" data-auth-tab="register" role="tab" aria-selected="false">注册</button>
+      <button type="button" data-auth-tab="recover" role="tab" aria-selected="false">找回</button>
+    </div>
+
+    <form id="loginForm" class="account-form" autocomplete="on">
+      <label>用户名<input id="loginUser" name="username" type="text" autocomplete="username" maxlength="24" required></label>
+      <label>密码<input id="loginPass" name="password" type="password" autocomplete="current-password" maxlength="128" required></label>
+      <button class="btn" type="submit">登录</button>
+    </form>
+
+    <form id="registerForm" class="account-form" autocomplete="on" hidden>
+      <label>用户名<input id="registerUser" name="username" type="text" autocomplete="username" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" required><small>3–24 位字母、数字或下划线，登录用，不公开。</small></label>
+      <label>公开显示名<input id="registerName" name="displayName" type="text" autocomplete="nickname" maxlength="20" placeholder="留言时显示的名字"></label>
+      <label>密码<input id="registerPass" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required><small>至少 8 位。没有邮箱找回，请保存注册后显示的恢复码。</small></label>
+      <button class="btn" type="submit">注册</button>
+    </form>
+
+    <form id="recoverForm" class="account-form" autocomplete="off" hidden>
+      <label>用户名<input id="recoverUser" type="text" maxlength="24" required></label>
+      <label>恢复码<input id="recoverCodeInput" type="text" maxlength="32" required></label>
+      <label>新密码<input id="recoverPass" type="password" minlength="8" maxlength="128" required></label>
+      <button class="btn" type="submit">重置密码</button>
+    </form>
+
+    <p class="account-status" id="accountStatus" role="status" aria-live="polite"></p>
+    <div class="recovery-box" id="recoveryBox" hidden>
+      <strong>恢复码 · 只显示这一次</strong>
+      <code id="recoveryCode"></code>
+      <p>请抄下来。忘记密码时只能靠它；丢失后无法找回账号。</p>
+    </div>
+  </section>
+
+  <section class="account-panel" id="accountSigned" hidden>
+    <div class="account-who">
+      <span class="account-avatar" id="accountAvatar">凡</span>
+      <div><strong id="accountName">—</strong><small id="accountUser">—</small></div>
+      <button class="btn btn--sm" type="button" id="logoutBtn">退出</button>
+    </div>
+    <p class="account-status" id="syncStatus" role="status" aria-live="polite">尚未同步</p>
+    <div class="account-actions">
+      <button class="btn" type="button" id="syncBtn">立即同步</button>
+      <button class="btn btn--sm" type="button" id="exportBtn">导出本机记录</button>
+      <button class="btn btn--sm" type="button" id="importLocalBtn" hidden>导入本机匿名数据</button>
+    </div>
+    <p class="account-note">云端保留本机最近 60 世、当前人生、传承、碑林阅读与灯数。账号只保存这些数据，不保存密码明文。</p>
+    <details class="account-note">
+      <summary>账号安全说明</summary>
+      <p>当前为 GitHub Pages 跨站 Token 方案，token 保存在本机 localStorage。不要把账号借给不信任的设备，也不要在页面中粘贴第三方脚本。</p>
+    </details>
+  </section>
+</main>
+
+<script src="js/common.js?v=20261028a"></script>
+<script src="js/account-sync.js?v=20261028a"></script>
+<script src="js/account.js?v=20261028a"></script>
+</body>
+</html>

@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.join(__dirname, "..");
-const pages = ["index.html", "play.html", "hall.html", "guestbook.html", "codex.html", "about.html", "changelog.html"];
-const cssFiles = ["css/base.css", "css/tokens.css", "css/day.css", "css/guestbook.css"];
+const pages = ["index.html", "play.html", "hall.html", "guestbook.html", "codex.html", "about.html", "changelog.html", "account.html"];
+const cssFiles = ["css/base.css", "css/tokens.css", "css/day.css", "css/guestbook.css", "css/account.css"];
 let checks = 0;
 
 function ok(value, message) {

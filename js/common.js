@@ -326,6 +326,15 @@
   /* ---------- 顶栏 ---------- */
   function nav() {
     const bar = document.querySelector(".nav");
+    const accountLink = document.createElement("a");
+    accountLink.href = "account.html";
+    accountLink.textContent = "账号";
+    if (bar) {
+      const links = bar.querySelector(".nav-links");
+      if (links && !links.querySelector('a[href="account.html"]')) links.insertBefore(accountLink.cloneNode(true), links.querySelector(".nav-cta") || null);
+    }
+    const accountDrawer = document.querySelector(".nav-drawer");
+    if (accountDrawer && !accountDrawer.querySelector('a[href="account.html"]')) accountDrawer.appendChild(accountLink);
     if (bar) {
       const onScroll = () => bar.classList.toggle("is-solid", window.scrollY > 24);
       onScroll();
@@ -540,6 +549,27 @@
     immortal: 0.001,
   };
 
+  const AUTH_KEY = "yijie.auth.v1";
+  const API_BASE = typeof location !== "undefined" && location.hostname === "wang1375830242.github.io" ? "https://192.144.150.24" : "";
+  function authSession() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
+      return raw && typeof raw.token === "string" && raw.token ? raw : null;
+    } catch (err) { return null; }
+  }
+  function setAuthSession(session) {
+    if (!session || !session.token) { try { localStorage.removeItem(AUTH_KEY); } catch (err) {} return null; }
+    try { localStorage.setItem(AUTH_KEY, JSON.stringify(session)); } catch (err) {}
+    return session;
+  }
+  function clearAuthSession() { try { localStorage.removeItem(AUTH_KEY); } catch (err) {} }
+  async function authFetch(path, options) {
+    const session = authSession();
+    const headers = Object.assign({}, (options && options.headers) || {});
+    if (session) headers.Authorization = "Bearer " + session.token;
+    return fetch(API_BASE + path, Object.assign({}, options || {}, { headers }));
+  }
+
   XD.util = {
     RNG,
     store,
@@ -558,6 +588,7 @@
     openThemePanel,
     toggleTheme,
     WORLD_ODDS,
+    auth: { session: authSession, setSession: setAuthSession, clear: clearAuthSession, apiBase: API_BASE, fetch: authFetch },
   };
 
   function trackVisit() {
@@ -579,6 +610,7 @@
     } catch (err) {}
   }
 
+  /* ---------- 账号（GitHub Pages 跨站 Token 方案） ---------- */
   document.addEventListener("DOMContentLoaded", () => {
     nav();
     theme();

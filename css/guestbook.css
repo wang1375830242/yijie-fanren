@@ -178,3 +178,6 @@
     font-size: 20px;
   }
 }
+
+.gb-delete { margin-left: auto; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 12px; padding: 4px 8px; cursor: pointer; }
+.gb-delete:hover { border-color: var(--red); color: var(--red); }

@@ -34,7 +34,7 @@
 ```text
 canon-regression: 412 checks passed
 220 runs, 0 issues
-changelog-check: 7 releases, 86 changes
+changelog-check: 7 releases, 90 changes
 ```
 
 源码回归覆盖：

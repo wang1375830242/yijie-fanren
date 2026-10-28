@@ -63,7 +63,7 @@ node tests/changelog-check.js
 
 ```text
 syntax-check: 19 js files ok
-a11y-check: 39 checks passed
+a11y-check: 43 checks passed
 browser-smoke: 6 pages ok
 guestbook-check: ok
 canon-regression: 412 checks passed
@@ -71,5 +71,5 @@ canon-regression: 412 checks passed
 pseudo-spirit=2
 natural-ascensions=9
 worst-repeat=2
-changelog-check: 7 releases, 86 changes, schema ok
+changelog-check: 7 releases, 90 changes, schema ok
 ```
