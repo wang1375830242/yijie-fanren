@@ -16,41 +16,76 @@
 
   function cleanLife(life) {
     if (!life || typeof life !== "object") return null;
-    const id = String(life.id || `life-${life.seed}`)
+    const seed = Number.isFinite(Number(life.seed)) ? Number(life.seed) : "unknown";
+    const fallbackTs = Number.isFinite(Number(life.ts)) ? Number(life.ts) : Date.now();
+    const id = String(life.id || life.lifeKey || `life-${seed}-${fallbackTs}`)
       .replace(/[^A-Za-z0-9_-]/g, "")
       .slice(0, 64);
     if (!id) return null;
+    const deeds = Array.isArray(life.deeds)
+      ? life.deeds.slice(0, 80).map((deed) => ({
+          age: Number.isFinite(Number(deed && deed.age))
+            ? Math.max(0, Math.floor(Number(deed.age)))
+            : 0,
+          text: String((deed && deed.text) || "").slice(0, 240),
+        })).filter((deed) => deed.text)
+      : [];
     return Object.assign({}, life, {
       id,
       age: Number.isFinite(Number(life.age)) ? Math.max(0, Math.floor(Number(life.age))) : 0,
       name: String(life.name || "无名").slice(0, 40),
       realm: String(life.realm || "凡人").slice(0, 40),
       epitaph: String(life.epitaph || "").slice(0, 160),
+      deeds,
     });
   }
 
+  function cleanRun(run) {
+    if (!run || run.v !== 1 || typeof run.seed !== "number" || !run.state) return null;
+    const st = run.state;
+    if (!st.origin || !st.root || !Number.isFinite(Number(st.age)) || !Number.isFinite(Number(st.tier))) return null;
+    if (!Array.isArray(st.log) || !Array.isArray(st.history)) return null;
+    return run;
+  }
+
   function mergeLives(incoming) {
+    if (!Array.isArray(incoming)) return { added: 0, dropped: 0 };
     const current = U.store.lives();
     const seen = new Set(current.map((life) => life.id || `life-${life.seed}`));
-    let added = 0;
+    const accepted = [];
     for (const raw of incoming) {
       const life = cleanLife(raw);
       if (!life) continue;
-      const key = life.id;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      current.push(life);
-      added += 1;
+      if (seen.has(life.id)) continue;
+      seen.add(life.id);
+      accepted.push(life);
     }
-    U.store.setLives(current);
-    return added;
+    const merged = accepted.concat(current).slice(0, 60);
+    U.store.setLives(merged);
+    const added = accepted.filter((life) => merged.includes(life)).length;
+    return { added, dropped: accepted.length - added };
+  }
+
+  function mergeCandles(incoming) {
+    if (!incoming || typeof incoming !== "object") return;
+    const current = U.store.candles() || {};
+    Object.keys(incoming).forEach((id) => {
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) return;
+      if (id === "__proto__" || id === "constructor" || id === "prototype") return;
+      const n = Math.max(0, Math.floor(Number(incoming[id]) || 0));
+      if (!n) return;
+      current[id] = Math.max(Number(current[id]) || 0, n);
+    });
+    if (U.store.setCandles) U.store.setCandles(current);
   }
 
   function mergeLineage(incoming) {
     if (!incoming || incoming.v !== 1) return;
+    const incomingEntries = Array.isArray(incoming.entries) ? incoming.entries : [];
     const current = U.store.lineage();
     const byKey = new Map();
-    [...(current.entries || []), ...(incoming.entries || [])].forEach((entry) => {
+    [...(current.entries || []), ...incomingEntries].forEach((entry) => {
+      if (!entry || typeof entry !== "object") return;
       const key = entry.lifeKey || `no:${entry.no}`;
       if (!byKey.has(key)) byKey.set(key, entry);
     });
@@ -74,7 +109,9 @@
 
   function mergeSteles(incoming) {
     if (!Array.isArray(incoming)) return;
-    U.store.setSteles([...(U.store.steles() || []), ...incoming]);
+    const valid = incoming
+      .filter((id) => typeof id === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(id));
+    U.store.setSteles([...(U.store.steles() || []), ...valid]);
   }
 
   $("btnClear").addEventListener("click", () => {
@@ -132,17 +169,22 @@
       const data = JSON.parse(await file.text());
       if (!data || typeof data !== "object") throw new Error("不是有效的人生记录");
       const lives = Array.isArray(data.lives) ? data.lives : [];
-      const added = mergeLives(lives);
+      const merged = mergeLives(lives);
       if (data.legacy && !U.store.legacy()) U.store.setLegacy(data.legacy);
       mergeLineage(data.lineage);
       mergeSteles(data.steles);
-      if (data.run && data.run.v === 1) {
+      mergeCandles(data.candles);
+      const importedRun = cleanRun(data.run);
+      if (importedRun) {
         if (!U.store.run() || confirm("导入会覆盖本机未完成的一世，继续吗？")) {
-          U.store.setRun(data.run);
+          U.store.setRun(importedRun);
         }
       }
       refresh();
-      U.toast(`导入完成，新增 ${added} 段人生`);
+      U.toast(
+        `导入完成，新增 ${merged.added} 段人生` +
+          (merged.dropped ? `，因上限跳过 ${merged.dropped} 段` : "")
+      );
     } catch (err) {
       U.toast("导入失败：文件不是有效的人生记录");
     } finally {
@@ -158,6 +200,8 @@
       U.toast(canonToggle.checked ? "已启用致敬事件" : "已关闭致敬事件");
     });
   }
+
+  XD.aboutTools = { cleanLife, mergeLives, mergeCandles, cleanRun };
 
   refresh();
 })();

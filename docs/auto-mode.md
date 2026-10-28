@@ -1,6 +1,6 @@
 # 自动模式
 
-日期：2026-10-24  
+日期：2026-10-24
 状态：已实现
 
 ## 规则
@@ -23,7 +23,7 @@
 
 ## 实现
 
-- `openPrompt()` 在 `auto` 时进入 `autoChooseEvent()`
+- `openPrompt()` 在普通事件且 `auto` 时进入 `autoChooseEvent()`；濒死事件始终打开选择层
 - `autoChooseEvent()` 复用原自动选项评分策略
 - 不显示 `#choiceOverlay`
 - `startAutoBreak()` 路径不变
@@ -32,9 +32,9 @@
 ## 验收
 
 ```text
-canon-regression: 357 checks passed
+canon-regression: 399 checks passed
 220 runs, 0 issues
-changelog-check: 20 releases, 55 changes
+changelog-check: 7 releases, 75 changes
 ```
 
 源码回归覆盖：

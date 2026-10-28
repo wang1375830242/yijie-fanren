@@ -1180,6 +1180,13 @@ let pseudoReachedSpirit = 0;
 let naturalAscensions = 0;
 let worstRepeat = 0;
 function affordableChoice(state) {
+
+  if (state.pending && state.pending.id === "root_test") {
+    const begin = (state.pending.choices || []).findIndex(
+      (choice) => choice.effects && (choice.effects.begin || choice.effects.awaken)
+    );
+    if (begin >= 0) return begin;
+  }
   const choices = (state.pending && state.pending.choices) || [];
   for (let i = 0; i < choices.length; i++) {
     const choice = choices[i];
@@ -1540,5 +1547,105 @@ immortalAbandon.state.age = 1800;
 immortalAbandon.state.flags.i_main_2 = true;
 immortalAbandon.maybeMainline();
 ok(immortalAbandon.state.flags.i_main_closed, "仙界主线越过太乙后应明确收束");
+
+/* 2026-10-28: risk/state regression for the approved fix batch. */
+function capturedRisk(eventId, mutate) {
+  const testSim = new Sim({ seed: 981, world: "immortal" });
+  if (mutate) mutate(testSim);
+  testSim.trigger(eventId);
+  let captured = null;
+  testSim.rng.chance = (p) => {
+    captured = p;
+    return true;
+  };
+  testSim.choose(0);
+  return captured;
+}
+const woChance = capturedRisk("i_sanshi_wo", (sim) => {
+  sim.state.tier = 12;
+  sim.state.cult = 90;
+  sim.state.luck = 50;
+  sim.state.focus = "cultivate";
+  sim.state.flags.sanshi_shan = true;
+});
+ok(Math.abs(woChance - 0.55) < 1e-9, "斩我应使用显式 0.55 风险，而不是隐藏 +0.34");
+
+const daozuChance = capturedRisk("i_daozu", (sim) => {
+  sim.state.tier = 12;
+  sim.state.cult = 90;
+  sim.state.luck = 50;
+  sim.state.focus = "cultivate";
+  sim.state.flags.sanshi_e = true;
+  sim.state.flags.sanshi_shan = true;
+  sim.state.flags.sanshi_wo = true;
+});
+ok(Math.abs(daozuChance - 0.45) < 1e-9, "道祖之争应使用显式 0.45 风险，而不是隐藏 +0.34");
+
+const mainlineFlag = new Sim({ seed: 982, world: "spirit" });
+mainlineFlag.state.tier = 5;
+mainlineFlag.state.age = 100;
+mainlineFlag.state.maxAge = 2000;
+mainlineFlag.state.flags.arrived_spirit_seen = true;
+mainlineFlag.state.flags.s_main_1 = true;
+mainlineFlag.maybeMainline();
+ok(mainlineFlag.state.pending && mainlineFlag.state.pending.id === "s_main_2", "主线应进入 s_main_2");
+mainlineFlag.rng.chance = () => false;
+mainlineFlag.choose(0);
+mainlineFlag.rng.chance = () => true;
+mainlineFlag.resolveDanger(0);
+ok(mainlineFlag.state.flags.s_main_2 === true && !mainlineFlag.state.flags.s_main_3, "s_main_2 濒死存活应只写入 s_main_2");
+mainlineFlag.maybeMainline();
+ok(mainlineFlag.state.pending && mainlineFlag.state.pending.id === "s_main_3", "s_main_2 存活后应能进入 s_main_3");
+
+const immortalNativeBreak = new Sim({ seed: 983, world: "immortal" });
+immortalNativeBreak.state.tier = 5;
+immortalNativeBreak.state.cult = 100;
+immortalNativeBreak.state.mood = 100;
+immortalNativeBreak.state.insight = 100;
+immortalNativeBreak.state.pending = { kind: "break", chance: 1 };
+immortalNativeBreak.rng.chance = () => true;
+immortalNativeBreak.chooseBreak("push");
+ok(immortalNativeBreak.state.tier === 6 && immortalNativeBreak.state.world === "immortal", "仙界出生 5→6 不应降级到灵界");
+
+const failedSpiritGate = new Sim({ seed: 984, world: "human" });
+failedSpiritGate.state.tier = 5;
+failedSpiritGate.state.cult = 90;
+failedSpiritGate.state.age = 100;
+failedSpiritGate.trigger("d_node");
+failedSpiritGate.rng.chance = () => false;
+failedSpiritGate.choose(0);
+ok(failedSpiritGate.state.flags.spirit_attempted === true, "d_node 失败应写入 spirit_attempted");
+
+const failedImmortalGate = new Sim({ seed: 985, world: "spirit" });
+failedImmortalGate.state.tier = 8;
+failedImmortalGate.state.cult = 85;
+failedImmortalGate.state.age = 100;
+failedImmortalGate.trigger("m_ascend");
+failedImmortalGate.rng.chance = () => false;
+failedImmortalGate.choose(0);
+ok(failedImmortalGate.state.flags.immortal_attempted === true, "m_ascend 失败应写入 immortal_attempted");
+
+const rootAuditState = {
+  pending: {
+    id: "root_test",
+    choices: [
+      { effects: { path: "mortal" } },
+      { effects: { begin: true } },
+    ],
+  },
+  stones: 0,
+};
+ok(affordableChoice(rootAuditState) === 1, "自动测试应优先选择 root_test 的修行分支");
+
+const dangerSection = gameSource.slice(
+  gameSource.indexOf("function openDanger"),
+  gameSource.indexOf("function autoChooseEvent")
+);
+ok(!dangerSection.includes("if (auto)"), "自动模式不应静默结算濒死选择");
+ok(gameSource.includes("1000 + (1 - Number(c.risk.p || 0))"), "自动死亡风险应优先选择更高存活概率");
+
+/* 自动测试与页面自动模式的边界。 */
+ok(!gameSource.includes("root_test"), "页面自动模式应保持原样，不加入 root_test 特判");
+ok(gameSource.includes('if (p.id === "i_sanshi_wo") return pick(1);') && !gameSource.includes('p.id === "i_daozu"'), "自动模式应保持不证道");
 
 console.log(`canon-regression: ${checks} checks passed; 220 runs, 0 issues; pseudo-spirit=${pseudoReachedSpirit}; natural-ascensions=${naturalAscensions}; worst-repeat=${worstRepeat}`);

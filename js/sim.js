@@ -1654,6 +1654,14 @@
       const riskBonus = choice.risk && typeof choice.risk.bonus === "number"
         ? choice.risk.bonus
         : 0.34;
+      const attemptedFlag =
+        choice.risk && choice.risk.fail && choice.risk.fail.flag
+          ? choice.risk.fail.flag
+          : "";
+      if (attemptedFlag) {
+        s.flags = s.flags || {};
+        s.flags[attemptedFlag] = true;
+      }
       const riskChance = choice.risk
         ? clamp(
             choice.risk.p +
@@ -1771,16 +1779,6 @@
       if (!opt) return null;
       // 渡劫失败后从濒死中活下来，也要给下一次尝试留出冷却，避免同一条天劫连续弹出。
       s.flags = s.flags || {};
-      if (p.eventId === "m_ascend") {
-        s.flags.wait_immortal_until = Math.max(s.flags.wait_immortal_until || 0, s.age + 500);
-      }
-      if (p.eventId === "d_node") {
-        s.flags.wait_spirit_until = Math.max(s.flags.wait_spirit_until || 0, s.age + 500);
-      }
-      // 西线/北寒线的风险节点从濒死中活下来，也要推进主线段，避免同一段剧情反复重播。
-      if (p.eventId === "s_main_2") s.flags.s_main_3 = true;
-      if (p.eventId === "s_main_3") s.flags.s_main_3 = true;
-      if (p.eventId === "i_main_2") s.flags.i_main_2 = true;
       if (opt.ward && s.ward < 1) {
         this.pushLog("system", "你身上没有护身玉符。");
         return { status: "blocked" };
@@ -1802,6 +1800,16 @@
       const chance = clamp(opt.p + (s.luck - 50) * 0.0005, 0.05, 0.95);
       if (this.rng.chance(chance)) {
         this.apply(opt.effects);
+        if (p.eventId === "m_ascend") {
+          s.flags.wait_immortal_until = Math.max(s.flags.wait_immortal_until || 0, s.age + 500);
+        }
+        if (p.eventId === "d_node") {
+          s.flags.wait_spirit_until = Math.max(s.flags.wait_spirit_until || 0, s.age + 500);
+        }
+        // 主线风险节点只有真正活下来才推进，且 s_main_2 不能跳过 s_main_3。
+        if (p.eventId === "s_main_2") s.flags.s_main_2 = true;
+        if (p.eventId === "s_main_3") s.flags.s_main_3 = true;
+        if (p.eventId === "i_main_2") s.flags.i_main_2 = true;
         const shown = this.uniqueText(opt.text);
         this.pushLog("choice", `你选择了「${opt.label}」。${shown}`);
         s.pending = null;
@@ -2062,7 +2070,8 @@
         this.pushLog("break", `天地灵气倒灌。你破境了——${r.name}。`, {
           title: "破境",
         });
-        if (s.tier === 6 || s.tier === 9) s.world = r.world;
+        if (s.tier === 6 && s.world === "human") s.world = "spirit";
+        if (s.tier === 9 && s.world === "spirit") s.world = "immortal";
         return { status: "break", tier: s.tier };
       }
       s.cult = 40;
@@ -2287,6 +2296,17 @@
 
     static restore(run) {
       if (!run || run.v !== 1 || !run.state || typeof run.seed !== "number") return null;
+      const st = run.state;
+      if (
+        !st.origin ||
+        !st.root ||
+        !Number.isFinite(Number(st.age)) ||
+        !Number.isFinite(Number(st.tier)) ||
+        !Array.isArray(st.log) ||
+        !Array.isArray(st.history)
+      ) {
+        return null;
+      }
       const sim = new Sim({
         seed: run.seed >>> 0,
         world: run.world || run.state.world || "human",
@@ -2307,6 +2327,7 @@
 
     summary() {
       const s = this.state;
+      const endedTs = Date.now();
       const milestones = Array.isArray(s.milestones) ? s.milestones : [];
       const keyMilestones =
         milestones.length <= 3
@@ -2324,7 +2345,7 @@
       });
       const deeds = merged.slice(-6);
       return {
-        id: "life-" + s.seed,
+        id: "life-" + s.seed + "-" + endedTs.toString(36),
         seed: s.seed,
         name: s.name,
         daohao: s.daohao,
@@ -2357,7 +2378,7 @@
         wish: this.wishSummary(),
         legacy: this.legacySummary(),
         legendary: !!s.legendary,
-        ts: Date.now(),
+        ts: endedTs,
       };
     }
   }

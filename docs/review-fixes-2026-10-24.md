@@ -1,6 +1,6 @@
 # 代码评审修复记录
 
-日期：2026-10-24  
+日期：2026-10-24
 状态：已修复并验证
 
 ## 关系链
@@ -38,13 +38,13 @@ syntax-check: 19 js files ok
 a11y-check: 39 checks passed
 browser-smoke: 6 pages ok
 guestbook-check: ok
-canon-regression: 386 checks passed
+canon-regression: 399 checks passed
 220 runs, 0 issues
-natural-ascensions=17
-changelog-check: 6 releases, 67 changes
+natural-ascensions=22
+changelog-check: 7 releases, 75 changes
 ```
 
 ## 仍然需要服务端的部分
 
-公共碑林由自建 `server.py` 提供；GitHub Pages 通过 HTTPS 调用 `https://192.144.150.24`。  
+公共碑林由自建 `server.py` 提供；GitHub Pages 通过 HTTPS 调用 `https://192.144.150.24`。
 访问统计页运行在服务器上的独立 `/stats/` 服务，不进入项目构建。

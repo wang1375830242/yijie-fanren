@@ -1,6 +1,6 @@
 # 自动化回归
 
-日期：2026-10-23  
+日期：2026-10-23
 状态：已接入
 
 ## 目的
@@ -20,6 +20,8 @@ node tests/syntax-check.js
 node tests/a11y-check.js
 node tests/browser-smoke.js
 node tests/guestbook-check.js
+node tests/import-check.js
+node tests/server-security-check.js
 node tests/canon-regression.js
 node tests/changelog-check.js
 ```
@@ -43,7 +45,8 @@ node tests/changelog-check.js
 
 1. checkout
 2. setup-node 20
-3. `npm test`
+3. setup-python 3.12（供 `guestbook-check` / `server-security-check` 使用）
+4. `npm test`
 
 失败会在 Actions 和 README 徽章上显示红叉。
 
@@ -63,10 +66,10 @@ syntax-check: 19 js files ok
 a11y-check: 39 checks passed
 browser-smoke: 6 pages ok
 guestbook-check: ok
-canon-regression: 386 checks passed
+canon-regression: 399 checks passed
 220 runs, 0 issues
-pseudo-spirit=4
-natural-ascensions=17
+pseudo-spirit=2
+natural-ascensions=22
 worst-repeat=2
-changelog-check: 6 releases, 67 changes, schema ok
+changelog-check: 7 releases, 75 changes, schema ok
 ```

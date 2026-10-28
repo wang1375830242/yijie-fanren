@@ -191,6 +191,18 @@
     candles() {
       return read(KEY_CANDLES, {});
     },
+    setCandles(candles) {
+      const out = Object.create(null);
+      if (candles && typeof candles === "object") {
+        Object.keys(candles).forEach((id) => {
+          if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) return;
+          if (id === "__proto__" || id === "constructor" || id === "prototype") return;
+          const n = Math.max(0, Math.floor(Number(candles[id]) || 0));
+          if (n) out[id] = n;
+        });
+      }
+      return write(KEY_CANDLES, out);
+    },
     light(id) {
       const c = store.candles();
       c[id] = (c[id] || 0) + 1;

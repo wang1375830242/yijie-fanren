@@ -175,7 +175,10 @@ sudo apt install -y caddy
 sudo tee /etc/caddy/Caddyfile >/dev/null <<'EOF'
 play.example.com {
     encode gzip
-    reverse_proxy 127.0.0.1:8765
+    reverse_proxy 127.0.0.1:8765 {
+        # 覆盖客户端伪造的 X-Real-IP；服务端同时只信任回环代理。
+        header_up X-Real-IP {remote_host}
+    }
 }
 EOF
 
@@ -183,7 +186,7 @@ sudo systemctl reload caddy
 sudo systemctl status caddy --no-pager
 ```
 
-Caddy 会自动处理 80/443 和证书。需要确认：
+Caddy 会自动处理 80/443 和证书。上面的 `header_up X-Real-IP {remote_host}` 会覆盖客户端伪造的转发头；如果前面还有 CDN/负载均衡，需要显式配置可信代理链，不能直接信任任意 `X-Forwarded-For`。需要确认：
 
 - 域名 A/AAAA 记录已经指向这台服务器；
 - 云厂商安全组 / 防火墙放行 80、443；
@@ -452,7 +455,7 @@ sudo python3 tools/backup_hall.py \
 
 ## 8.1 公开写入与防滥用
 
-当前公开发布不设置 `YIJIE_WRITE_KEY`，任何访客都可以点灯和留言。  
+当前公开发布不设置 `YIJIE_WRITE_KEY`，任何访客都可以点灯和留言。
 `server.py` 在环境变量为空时允许匿名写入；保留该变量只用于私有部署，前端当前不会自动发送口令，设置后会导致写入返回 401。
 
 公开写入依靠以下边界控制：

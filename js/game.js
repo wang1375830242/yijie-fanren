@@ -510,8 +510,9 @@
      日志
      ====================================================================== */
   function entryHTML(e, idx) {
-    const year = `<div class="log-year">${e.age}<span>岁</span></div>`;
-    let cls = "k-" + e.kind;
+    const year = `<div class="log-year">${U.esc(e.age)}<span>岁</span></div>`;
+    const logKind = String(e.kind || "").replace(/[^A-Za-z-]/g, "");
+    let cls = "k-" + logKind;
     if (e.kind === "death") {
       return `<div class="log-entry ${cls}">${year}<div class="log-text">${U.esc(soften(e.text))}</div></div>`;
     }
@@ -680,7 +681,7 @@
     $("peersList").innerHTML = s.peers
       .map((p) => {
         const dead = !p.alive;
-        return `<div class="peer${dead ? " dead" : ""}"><div class="peer-name">${p.name}</div><div class="peer-meta">${p.root} · ${p.place}</div><div class="peer-realm">${dead ? p.fate : D.REALMS[p.tier].name}</div></div>`;
+        return `<div class="peer${dead ? " dead" : ""}"><div class="peer-name">${U.esc(p.name)}</div><div class="peer-meta">${U.esc(p.root)} · ${U.esc(p.place)}</div><div class="peer-realm">${dead ? U.esc(p.fate) : U.esc((D.REALMS[p.tier] || {}).name || "")}</div></div>`;
       })
       .join("");
 
@@ -832,31 +833,6 @@
     trapChoicePrompt();
     const first = $("choiceOpts").querySelector(".opt:not([disabled])");
     if (first) first.focus();
-    if (auto) {
-      const costOf = (c) =>
-        c.costStones > 0
-          ? c.costStones < 1
-            ? Math.max(1, Math.floor(state.stones * c.costStones))
-            : Math.floor(c.costStones)
-          : 0;
-      const usable = p.options
-        .map((c, i) => ({ c, i }))
-        .filter((x) => !x.c.ward && costOf(x.c) <= state.stones)
-        .sort((a, b) => (b.c.p || 0) - (a.c.p || 0));
-      if (!usable.length) {
-        p.options.push({
-          label: "拿不出灵石，只能硬扛",
-          p: 0.15,
-          effects: { mood: -10 },
-          text: "你身上没有灵石，只能咬着牙承受这一击。",
-          costStones: 0,
-          ward: false,
-        });
-        autoTimer = setTimeout(() => choose(p.options.length - 1), 500);
-      } else {
-        autoTimer = setTimeout(() => choose(usable[0].i), 800);
-      }
-    }
   }
 
   function autoChooseEvent(p) {
@@ -885,7 +861,7 @@
         return cost <= state.stones;
       });
     const score = (c) => {
-      if (c.risk && c.risk.fail && c.risk.fail.death) return 1000 + Number(c.risk.p || 0);
+      if (c.risk && c.risk.fail && c.risk.fail.death) return 1000 + (1 - Number(c.risk.p || 0));
       if (c.risk) return 10 + (1 - Number(c.risk.p || 0));
       return 0;
     };
@@ -1285,7 +1261,7 @@
       ? finale.acts
           .map(
             (act) =>
-              `<div class="act"><span class="act-tag">${U.esc(act.tag)}</span><span class="act-age">${act.age == null ? "—" : act.age + "岁"}</span><span class="act-text">${U.esc(soften(act.text))}</span></div>`
+              `<div class="act"><span class="act-tag">${U.esc(act.tag)}</span><span class="act-age">${act.age == null ? "—" : U.esc(act.age) + "岁"}</span><span class="act-text">${U.esc(soften(act.text))}</span></div>`
           )
           .join("")
       : "";
@@ -1336,7 +1312,7 @@
         .slice(-5)
         .map(
           (d) =>
-            `<div class="deed"><span class="deed-age">${d.age}岁</span><span>${U.esc(soften(d.text))}</span></div>`
+            `<div class="deed"><span class="deed-age">${U.esc(d.age)}岁</span><span>${U.esc(soften(d.text))}</span></div>`
         )
         .join("") || '<div class="deed"><span class="deed-age">—</span><span>这一世没有留下什么值得记下的事。</span></div>';
 

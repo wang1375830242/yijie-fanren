@@ -1962,7 +1962,7 @@
     choices: [
       {
         label: "斩我",
-        risk: { p: 0.55, text: "你赢了。", fail: { death: true, cause: "陨于斩三尸" } },
+        risk: { p: 0.55, bonus: 0, text: "你赢了。", fail: { death: true, cause: "陨于斩三尸" } },
         noRescue: true,
         effects: { insight: 12, mood: -10, flag: "sanshi_wo" },
         outcome: "你一剑斩下去，镜子里的人先笑了，然后碎了。门后没有声音，只有一条很长的路。",
@@ -1995,7 +1995,7 @@
     choices: [
       {
         label: "争",
-        risk: { p: 0.45, text: "你赢了。", fail: { death: true, cause: "陨于道祖之争" } },
+        risk: { p: 0.45, bonus: 0, text: "你赢了。", fail: { death: true, cause: "陨于道祖之争" } },
         effects: { become: "daozu" },
         outcome: "你坐上了那条大道的尽头。万界忽然安静下来，安静得能听见自己的心跳。",
       },

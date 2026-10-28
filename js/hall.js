@@ -382,7 +382,7 @@
       .map(([k, v]) => `<div class="sm-field"><dt>${k}</dt><dd>${U.esc(v)}</dd></div>`)
       .join("");
     $("smDeeds").innerHTML = (x.deeds || [])
-      .map((d) => `<div class="sm-deed"><b>${d.age}岁</b><span>${U.esc(d.text)}</span></div>`)
+      .map((d) => `<div class="sm-deed"><b>${U.esc(d.age)}岁</b><span>${U.esc(d.text)}</span></div>`)
       .join("");
     $("smDeeds").style.display = (x.deeds || []).length ? "block" : "none";
     $("smCandles").textContent = candleCount(x.id) + " 盏";

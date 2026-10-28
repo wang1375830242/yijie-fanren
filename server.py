@@ -236,10 +236,11 @@ class Handler(SimpleHTTPRequestHandler):
         """只信任回环代理传入的真实 IP，防止客户端直接伪造代理头。"""
         peer = self.client_address[0]
         if peer in ("127.0.0.1", "::1"):
-            raw = self.headers.get("X-Real-IP", "").strip()
-            if not raw:
-                forwarded = self.headers.get("X-Forwarded-For", "").split(",", 1)[0].strip()
-                raw = forwarded
+            # Caddy/Nginx append the real peer to X-Forwarded-For. Trust the
+            # rightmost hop, not the first (which the client can supply).
+            forwarded = self.headers.get("X-Forwarded-For", "")
+            candidates = [part.strip() for part in forwarded.split(",") if part.strip()]
+            raw = candidates[-1] if candidates else self.headers.get("X-Real-IP", "").strip()
             try:
                 return str(ipaddress.ip_address(raw))
             except ValueError:
@@ -288,7 +289,12 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _blocked_static(self, raw_path: str) -> bool:
         """只允许公开页面、样式、脚本和资源，按真实路径与扩展名校验。"""
-        path = posixpath.normpath(unquote(raw_path or "/"))
+        decoded = unquote(raw_path or "/")
+        # Reject NUL and Windows separators before any os.path call. A
+        # backslash can bypass the POSIX-style segment checks on Windows.
+        if "\x00" in decoded or "\\" in decoded:
+            return True
+        path = posixpath.normpath(decoded)
         if not path.startswith("/"):
             return True
         parts = [part for part in path.split("/") if part]
@@ -309,12 +315,12 @@ class Handler(SimpleHTTPRequestHandler):
         ext = os.path.splitext(parts[-1].casefold())[1]
         if ext not in STATIC_EXT:
             return True
-        root = os.path.realpath(ROOT)
-        target = os.path.realpath(os.path.join(ROOT, *parts))
         try:
+            root = os.path.realpath(ROOT)
+            target = os.path.realpath(os.path.join(ROOT, *parts))
             if os.path.commonpath([root, target]) != root:
                 return True
-        except ValueError:
+        except (ValueError, OSError):
             return True
         return False
 
@@ -374,7 +380,7 @@ class Handler(SimpleHTTPRequestHandler):
             return
         self.send_response(204)
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Yijie-Write-Key")
         self.send_header("Access-Control-Max-Age", "600")
         self.send_header("Connection", "close")
         self.close_connection = True
@@ -424,6 +430,12 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if path not in ("/api/candle", "/api/message"):
             self._json(404, {"error": "not found"})
+            return
+        if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+            self._json(415, {"error": "json content type required"})
+            return
+        if not self._origin_allowed():
+            self._json(403, {"error": "origin not allowed"})
             return
         if not allow_rate(self.client_ip(), path, 30 if path.endswith("candle") else 8):
             self._json(429, {"error": "too many requests"})
