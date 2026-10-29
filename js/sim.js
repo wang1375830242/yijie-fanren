@@ -165,6 +165,7 @@
         milestones: [],
         lastAmbient: null,
         recentAmbient: [],
+        recentAmbientKeys: [],
         stepsSinceEvent: 0,
         pending: null,
         alive: true,
@@ -911,6 +912,59 @@
       return false;
     }
 
+    maybeSectIdentity() {
+      const s = this.state;
+      if (s.world !== "human" || s.pending || s.tier < 2 || s.tier > 6) return false;
+      if (s.sectPath || !this.isSectMember() || s.seen.sect_path_choice) return false;
+      this.trigger("sect_path_choice");
+      return true;
+    }
+
+    maybePathArtifact() {
+      const s = this.state;
+      if (
+        s.world !== "human" ||
+        s.pending ||
+        s.tier < 2 ||
+        s.tier > 4 ||
+        !s.sectPath ||
+        s.artifact ||
+        s.flags.artifact_declined ||
+        s.seen.artifact_choice
+      ) {
+        return false;
+      }
+      this.trigger("artifact_choice");
+      return true;
+    }
+
+    maybePathFeature() {
+      const s = this.state;
+      if (s.world !== "human" || s.pending || s.tier < 2 || !s.sectPath) return false;
+      const id = `sect_path_${s.sectPath}`;
+      if (s.seen[id] || !XD.EVENT_BY_ID[id]) return false;
+      this.trigger(id);
+      return true;
+    }
+
+    maybePathAwakening() {
+      const s = this.state;
+      if (
+        s.world !== "human" ||
+        s.pending ||
+        s.tier < 2 ||
+        !s.sectPath ||
+        !s.physique ||
+        s.physique.path !== s.sectPath ||
+        s.physiqueAwakened ||
+        s.seen.physique_awakening
+      ) {
+        return false;
+      }
+      this.trigger("physique_awakening");
+      return true;
+    }
+
     maybeLegacyEcho() {
       const s = this.state;
       if (
@@ -1384,6 +1438,12 @@
       if (!s.pending && this.maybeChain()) return;
       // 地域/宗门身份锚点：一局各一次，保证玩家能遇见
       if (!s.pending && this.maybeIdentityAnchors()) return;
+      // 道统是 Build 的入口，做成稳定节点而不是随机池事件
+      if (!s.pending && this.maybeSectIdentity()) return;
+      // 道统确定后，优先给匹配器胚与一次道统身份事件
+      if (!s.pending && this.maybePathArtifact()) return;
+      if (!s.pending && this.maybePathFeature()) return;
+      if (!s.pending && this.maybePathAwakening()) return;
       // 再一世：前世回响，一局最多一次
       if (!s.pending && this.maybeLegacyEcho()) return;
       // 随机事件
@@ -1400,13 +1460,21 @@
         const group = this.ambientGroup();
         const pool = D.AMBIENT[group];
         const recent = s.recentAmbient || [];
+        const recentKeys = s.recentAmbientKeys || [];
         let line = this.rng.pick(pool);
+        let lineKey = `ambient:${group}:${line}`;
         let guard = 0;
-        while (pool.length > 1 && recent.indexOf(line) >= 0 && guard++ < 6) {
+        while (
+          pool.length > 1 &&
+          (recent.indexOf(line) >= 0 || recentKeys.indexOf(lineKey) >= 0) &&
+          guard++ < 8
+        ) {
           line = this.rng.pick(pool);
+          lineKey = `ambient:${group}:${line}`;
         }
         line = this.familyText(line);
-        s.recentAmbient = recent.concat(line).slice(-4);
+        s.recentAmbient = recent.concat(line).slice(-10);
+        s.recentAmbientKeys = recentKeys.concat(lineKey).slice(-10);
         this.pushLog("ambient", line);
       }
     }
@@ -1764,6 +1832,9 @@
       }
 
       this.noteSceneUse(s.pending.sceneKey, choice);
+      if (s.pending.id === "m_ascend") {
+        s.flags.ascend_attempts = (Number(s.flags.ascend_attempts) || 0) + 1;
+      }
 
       const result = { text: "", effects: choice.effects || {}, died: false };
       let effects = Object.assign({}, choice.effects || {});
@@ -2492,6 +2563,7 @@
       if (!Array.isArray(sim.state.choiceTrace)) sim.state.choiceTrace = [];
       if (!Array.isArray(sim.state.log)) sim.state.log = [];
       if (!Array.isArray(sim.state.history)) sim.state.history = [];
+      if (!Array.isArray(sim.state.recentAmbientKeys)) sim.state.recentAmbientKeys = [];
       if (!sim.state.physique || typeof sim.state.physique !== "object") sim.state.physique = null;
       if (sim.state.physique && !sim.state.physique.path) {
         const def = D.PHYSIQUES.find((x) => x.key === sim.state.physique.key);

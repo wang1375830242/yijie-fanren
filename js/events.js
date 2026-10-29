@@ -670,29 +670,26 @@
     when: (s) => s.tier >= 2 && s.tier <= 4 && !s.artifact && !s.flags.artifact_declined,
     w: 8,
     title: "本命法宝",
-    text: "筑基之后，你终于可以温养一件本命法宝。器堂的老修士把三件器胚摆在桌上：一段雷击木、一枚旧剑钉、一块温玉。他说，选哪件，往后就要拿命去养。",
-    choices: [
-      {
-        label: "选雷击木剑胚",
-        effects: { artifact: "lei_mu", mood: 3, trait: { bold: 1 } },
-        outcome: "你割破指尖，把血滴在木上。雷击木轻轻震了一下，像一把还没出鞘的剑。",
-      },
-      {
-        label: "选旧剑钉",
-        effects: { artifact: "jiu_jian", mood: 2, trait: { ruthless: 1 } },
-        outcome: "锈钉扎进掌心。你没有松手，直到它不再发烫。",
-      },
-      {
-        label: "选温玉",
-        effects: { artifact: "wen_yu", mood: 5, trait: { calm: 1 } },
-        outcome: "温玉贴上心口，寒意退了半寸。你听见自己的心跳慢下来。",
-      },
-      {
-        label: "暂不温养本命法宝",
-        effects: { flag: "artifact_declined", mood: 1 },
-        outcome: "你把三件器胚都放回桌上。老修士没有劝你，只说以后还有机会。",
-      },
-    ],
+    text: (s) =>
+      s.sectPath
+        ? `器堂按你的道统送来相合的器胚。老修士说，选哪件，往后就要拿命去养。`
+        : "筑基之后，你终于可以温养一件本命法宝。器堂的老修士把几件器胚摆在桌上。他说，选哪件，往后就要拿命去养。",
+    choices: (s) => {
+      const defs = s.sectPath
+        ? D.PLAYER_ARTIFACTS.filter((a) => a.path === s.sectPath)
+        : D.PLAYER_ARTIFACTS;
+      return defs.map((a) => ({
+        label: `选${a.name}`,
+        effects: { artifact: a.key, mood: 3 },
+        outcome: `你把精血滴在${a.name}上。它轻轻震了一下，像是认下了你。`,
+      })).concat([
+        {
+          label: "暂不温养本命法宝",
+          effects: { flag: "artifact_declined", mood: 1 },
+          outcome: "你把器胚都放回桌上。老修士没有劝你，只说以后还有机会。",
+        },
+      ]);
+    },
   });
 
   add({
@@ -1581,7 +1578,15 @@
     w: 40,
     once: false,
     title: "渡劫飞升",
-    text: "大乘后期，天不再下雨。你抬头，看见云层里有一道门。门后面是仙界。要过去，得先挨过九道天雷。",
+    text: (s) => {
+      const n = Number(s.flags && s.flags.ascend_attempts) || 0;
+      const variants = [
+        "大乘后期，天不再下雨。你抬头，看见云层里有一道门。门后面是仙界。要过去，得先挨过九道天雷。",
+        "云层里的门又开了一次。这一次，天雷没有先落，风先停了。你听见很远的地方有人在数数。",
+        "你再次站到门前。门上的纹路比上一次更清楚，像有人用雷火替你描过一遍。",
+      ];
+      return variants[n % variants.length];
+    },
     choices: [
       {
         label: "迎雷而上",
@@ -2904,7 +2909,7 @@
     id: "sect_path_jian",
     when: (s) => s.sectPath === "jian" && s.tier >= 2,
     once: true, w: 4, title: "剑匣",
-    text: "剑冢深处传来一声轻响。你埋本命法宝的地方，多了一道没有主人的剑痕。",
+    text: "剑冢深处传来一声轻响。你练剑的地方，多了一道没有主人的剑痕。",
     choices: [
       { label: "以剑意回应", effects: { artifactBond: 20, insight: 3, trait: { bold: 1 } }, outcome: "剑痕与你共鸣了一瞬。你的本命法宝在匣中轻轻震动。" },
       { label: "把剑痕记下来", effects: { insight: 5, mood: 2 }, outcome: "你没有拔剑。那道剑痕留在纸上，比留在石上更久。" },

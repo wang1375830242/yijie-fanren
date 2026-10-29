@@ -1679,6 +1679,10 @@ ok(!noArtTrib.some((c) => c.label.includes("本命法宝")), "没有本命法宝
 const artTrib = XD.EVENT_BY_ID.n_tribulation.choices({ tier: 3, cult: 92, artifact: { broken: false } });
 ok(artTrib.some((c) => c.label.includes("本命法宝")), "持有本命法宝时应出现法宝迎劫选项");
 
+/* 2026-10-29: ambient pool sizing checks. */
+ok(Object.values(D.AMBIENT).every((pool) => pool.length >= 20), "每个阶段的环境旁白池至少应有 20 条");
+ok(D.AMBIENT.core.length >= 20, "结丹阶段环境旁白池应足够支撑长局");
+
 /* 2026-10-29: scene pool and regional/sect identity checks. */
 ok(XD.EVENT_BY_ID.g_h_region_yue_0 && XD.EVENT_BY_ID.g_h_region_yue_0.when({ world: "human", tier: 1, origin: { place: "越国·青牛镇" } }), "越国区域事件应命中越国出生");
 ok(!XD.EVENT_BY_ID.g_h_region_yue_0.when({ world: "human", tier: 1, origin: { place: "天南·临江府" } }), "越国区域事件不应命中天南出生");
