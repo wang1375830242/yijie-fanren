@@ -489,6 +489,10 @@
       return D.FOCUS.find((f) => f.key === this.state.focus) || D.FOCUS[0];
     }
 
+    focusOptions() {
+      return D.FOCUS.filter((f) => f.key !== "sect" || this.isSectMember());
+    }
+
     sectContribPerYear() {
       const s = this.state;
       const focusBonus = s.focus === "sect" ? 2 : 1;
@@ -2245,9 +2249,9 @@
       const s = this.state;
       if (world === "spirit") {
         s.world = "spirit";
-        // 化神修士穿过空间节点后仍是化神，炼虚要在灵界重新突破。
+        // 化神修士穿过空间节点后仍是化神，境界小阶段不因换界回退。
         s.tier = 5;
-        s.cult = 0;
+        s.cult = Math.max(0, Math.min(99, Number(s.cult) || 0));
         s.maxAge = Math.max(s.maxAge, this.realmLife(5));
         s.flags.arrived_spirit = false;
         s.flags.spirit_ascended = true;

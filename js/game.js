@@ -27,7 +27,6 @@
   let whisperTimer = null;
   let shopPaused = false;
   let rollingLife = false;
-  let soft = false;
   let releasePromptTrap = null;
   let releaseShopTrap = null;
   let runSaveWarned = false;
@@ -88,38 +87,8 @@
     U.toast(msg);
   }
 
-  const SOFT_MAP = [
-    [/碎尸/g, "遗蜕"],
-    [/尸体/g, "遗蜕"],
-    [/死尸/g, "遗蜕"],
-    [/头颅/g, "影子"],
-    [/惨死/g, "离世"],
-    [/杀死/g, "了断"],
-    [/死亡/g, "离世"],
-    [/生死/g, "生离"],
-    [/鲜血/g, "微光"],
-    [/血迹/g, "痕迹"],
-    [/血流/g, "流光"],
-    [/死/g, "离去"],
-    [/血/g, "尘"],
-    [/杀/g, "了断"],
-  ];
-  function soften(text) {
-    if (!soft || text == null) return String(text == null ? "" : text);
-    let out = String(text);
-    for (const [re, to] of SOFT_MAP) out = out.replace(re, to);
-    return out;
-  }
-
-  function setSoft(value, quiet) {
-    soft = !!value;
-    const box = $("softMode");
-    if (box) box.checked = soft;
-    const btn = $("menuSoft");
-    if (btn) btn.textContent = `柔化模式：${soft ? "开" : "关"}`;
-    U.store.setPref("soft", soft);
-    if (!quiet) toast(soft ? "柔化模式已开" : "柔化模式已关");
-    if (state && state.log) renderLogAll();
+  function textOf(value) {
+    return String(value == null ? "" : value);
   }
 
   /* ======================================================================
@@ -130,8 +99,6 @@
     $("rollDial").innerHTML = A.dial({ spin: true });
     const saved = U.store.prefs();
     if (saved.speed) setSpeed(saved.speed);
-    setSoft(saved.soft, true);
-    $("softMode").addEventListener("change", () => setSoft($("softMode").checked));
     const params = new URLSearchParams(location.search);
     const qWorld = params.get("world");
     const qPace = params.get("pace");
@@ -407,7 +374,9 @@
       return;
     }
     const locked = state.tier === 0;
-    $("focusChips").innerHTML = D.FOCUS.map(
+    const focusOptions = sim.focusOptions();
+    if (!focusOptions.some((f) => f.key === state.focus)) state.focus = focusOptions[0].key;
+    $("focusChips").innerHTML = focusOptions.map(
       (f) =>
         `<button class="chip${f.key === state.focus ? " on" : ""}" data-focus="${f.key}" type="button" title="${U.esc(f.desc)}"${locked ? ' disabled aria-disabled="true"' : ""}>${f.name}</button>`
     ).join("");
@@ -518,10 +487,10 @@
     const logKind = String(e.kind || "").replace(/[^A-Za-z-]/g, "");
     let cls = "k-" + logKind;
     if (e.kind === "death") {
-      return `<div class="log-entry ${cls}">${year}<div class="log-text">${U.esc(soften(e.text))}</div></div>`;
+      return `<div class="log-entry ${cls}">${year}<div class="log-text">${U.esc(textOf(e.text))}</div></div>`;
     }
-    const title = e.title ? `<span class="ev-title">${U.esc(soften(e.title))}</span>` : "";
-    return `<div class="log-entry ${cls}" data-i="${idx}">${year}<div class="log-text">${title}${U.esc(soften(e.text))}</div></div>`;
+    const title = e.title ? `<span class="ev-title">${U.esc(textOf(e.title))}</span>` : "";
+    return `<div class="log-entry ${cls}" data-i="${idx}">${year}<div class="log-text">${title}${U.esc(textOf(e.text))}</div></div>`;
   }
 
   function appendLogs(from) {
@@ -801,8 +770,8 @@
     const p = state.pending;
     if (!p || p.kind !== "danger") return;
     $("choiceKicker").textContent = "濒 死";
-    $("choiceTitle").textContent = soften(p.title || "濒死");
-    $("choiceText").textContent = soften(p.text || "");
+    $("choiceTitle").textContent = textOf(p.title || "濒死");
+    $("choiceText").textContent = textOf(p.text || "");
     $("choiceOpts").innerHTML = p.options
       .map((c, i) => {
         const cost =
@@ -825,7 +794,7 @@
         return `<button class="opt opt--danger" type="button" data-i="${i}" ${
           disabled ? "disabled" : ""
         }>
-          <b>${U.esc(soften(c.label))}</b>
+          <b>${U.esc(textOf(c.label))}</b>
           <span>${cost}</span>
         </button>`;
       })
@@ -942,8 +911,8 @@
       });
     }
     $("choiceKicker").textContent = "抉 择";
-    $("choiceTitle").textContent = soften(p.title || "");
-    $("choiceText").textContent = soften(p.text || "");
+    $("choiceTitle").textContent = textOf(p.title || "");
+    $("choiceText").textContent = textOf(p.text || "");
     $("choiceOpts").innerHTML = p.choices
       .map((c, i) => {
         const required =
@@ -963,7 +932,7 @@
           const value = Math.min(max, min);
           const affordable = max >= min && !poor;
           return `<div class="opt opt--donate${affordable ? "" : " is-disabled"}" data-i="${i}">
-            <b>${U.esc(soften(c.label))}</b>
+            <b>${U.esc(textOf(c.label))}</b>
             <div class="donate-row">
               <input class="donate-range" type="range" min="${min}" max="${Math.max(min, max)}" step="${step}" value="${value}" aria-label="捐出灵石数量" ${affordable ? "" : "disabled"}>
               <span class="donate-value">${affordable ? value + " 灵石" : "灵石不足"}</span>
@@ -983,7 +952,7 @@
           ? `<span>${U.esc(c.note)}</span>`
           : "";
         return `<button class="opt" type="button" data-i="${i}" ${disabled ? "disabled" : ""}>
-          <b>${U.esc(soften(c.label))}</b>
+          <b>${U.esc(textOf(c.label))}</b>
           ${sub}
         </button>`;
       })
@@ -1351,21 +1320,19 @@
       心魔缠身: "道 消",
     };
     const finale = endSummary.finale;
-    $("endTitle").textContent = soft && !s.legendary
-      ? "远 行"
-      : (finale && finale.title) || (s.legendary ? "证 道" : titles[s.cause] || "陨 落");
+    $("endTitle").textContent = (finale && finale.title) || (s.legendary ? "证 道" : titles[s.cause] || "陨 落");
     $("endSub").textContent = `${worldName(s.world)} · ${sim.displayRealm()} · 享年 ${s.endedAt != null ? s.endedAt : s.age} 岁${finale ? " · " + finale.karmaLabel : ""} · 第 ${lifeNo} 世`;
     $("endSeal").textContent = s.name[0];
     $("endName").textContent = s.name + (s.path === "cultivator" && s.daohao ? ` · ${s.daohao}` : "");
-    $("endLife").textContent = `${s.origin.place} · ${s.origin.family} · ${soften(s.cause)}`;
-    $("endEpitaph").textContent = "「" + soften(s.epitaph || "此人一生，不足为外人道。") + "」";
-    $("endWish").textContent = endSummary.wish ? `遗愿：${soften(endSummary.wish.text)}` : "";
-    $("endNarrative").textContent = finale ? soften(finale.narrative || "") : "";
+    $("endLife").textContent = `${s.origin.place} · ${s.origin.family} · ${textOf(s.cause)}`;
+    $("endEpitaph").textContent = "「" + textOf(s.epitaph || "此人一生，不足为外人道。") + "」";
+    $("endWish").textContent = endSummary.wish ? `遗愿：${textOf(endSummary.wish.text)}` : "";
+    $("endNarrative").textContent = finale ? textOf(finale.narrative || "") : "";
     $("endActs").innerHTML = finale && finale.acts
       ? finale.acts
           .map(
             (act) =>
-              `<div class="act"><span class="act-tag">${U.esc(act.tag)}</span><span class="act-age">${act.age == null ? "—" : U.esc(act.age) + "岁"}</span><span class="act-text">${U.esc(soften(act.text))}</span></div>`
+              `<div class="act"><span class="act-tag">${U.esc(act.tag)}</span><span class="act-age">${act.age == null ? "—" : U.esc(act.age) + "岁"}</span><span class="act-text">${U.esc(textOf(act.text))}</span></div>`
           )
           .join("")
       : "";
@@ -1420,7 +1387,7 @@
         .slice(-5)
         .map(
           (d) =>
-            `<div class="deed"><span class="deed-age">${U.esc(d.age)}岁</span><span>${U.esc(soften(d.text))}</span></div>`
+            `<div class="deed"><span class="deed-age">${U.esc(d.age)}岁</span><span>${U.esc(textOf(d.text))}</span></div>`
         )
         .join("") || '<div class="deed"><span class="deed-age">—</span><span>这一世没有留下什么值得记下的事。</span></div>';
 
@@ -1481,12 +1448,12 @@
     ctx.fillText(s.realm, 110, 540);
     ctx.fillStyle = "rgba(233,227,211,.45)";
     ctx.font = '22px "KaiTi","STKaiti",serif';
-    ctx.fillText(`享年 ${s.age} 岁 · ${soften(s.cause)}`, 112, 588);
+    ctx.fillText(`享年 ${s.age} 岁 · ${textOf(s.cause)}`, 112, 588);
 
     // 墓志
     ctx.fillStyle = "#d9d2be";
     ctx.font = '30px "KaiTi","STKaiti",serif';
-    wrapText(ctx, "「" + soften(s.epitaph || "此人一生，不足为外人道。") + "」", 110, 700, W - 220, 48);
+    wrapText(ctx, "「" + textOf(s.epitaph || "此人一生，不足为外人道。") + "」", 110, 700, W - 220, 48);
 
     // 数据
     const rows = [
@@ -1668,7 +1635,6 @@
     }
     $("btnAuto").addEventListener("click", () => setAuto(!auto));
     $("menuAuto").addEventListener("click", () => setAuto(!auto));
-    $("menuSoft").addEventListener("click", () => setSoft(!soft));
     $("menuBreak").addEventListener("click", () => setBreakPolicy(breakPolicy === "steady" ? "push" : "steady"));
     $("choicePeek").addEventListener("click", minimizeChoice);
     $("choiceResume").addEventListener("click", resumeChoice);

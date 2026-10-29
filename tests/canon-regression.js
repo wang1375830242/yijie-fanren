@@ -176,10 +176,12 @@ ok(
 /* H2：化神进入灵界仍是化神，之后再突破炼虚。 */
 const ascend = new Sim({ seed: 3, world: "human" });
 ascend.state.tier = 5;
+ascend.state.cult = 82;
 ascend.state.age = 1200;
 ascend.ascendTo("spirit");
 ok(ascend.state.world === "spirit", "H2 进入灵界后 world 应为 spirit");
 ok(ascend.state.tier === 5, "H2 进入灵界后仍应是化神 tier=5");
+ok(ascend.displayRealm().includes("后期"), "H2 化神后期飞升灵界后不应回退为化神初期");
 ok(ascend.canBreak(), "H2 飞升灵界后的化神应能继续冲击炼虚");
 ascend.state.pending = { kind: "break", chance: 1 };
 ascend.chooseBreak("push");
@@ -462,6 +464,16 @@ ok(
   !!XD.EVENT_BY_ID.q_first_sword.when(rogue.state) === false,
   "散修不应触发宗门发剑事件"
 );
+const rogueFocus = new Sim({ seed: 22, world: "human" });
+rogueFocus.state.path = "cultivator";
+rogueFocus.state.tier = 2;
+rogueFocus.state.sect = "散修";
+ok(!rogueFocus.focusOptions().some((f) => f.key === "sect"), "散修不能选择宗门重心");
+const memberFocus = new Sim({ seed: 23, world: "human" });
+memberFocus.state.path = "cultivator";
+memberFocus.state.tier = 2;
+memberFocus.state.sect = "黄枫谷";
+ok(memberFocus.focusOptions().some((f) => f.key === "sect"), "宗门成员可以选择宗门重心");
 const orphan = new Sim({ seed: 6, world: "human" });
 orphan.state.age = 5;
 orphan.maybeAgeQuestion();
@@ -550,6 +562,8 @@ ok(
     gameSource.includes("disabled aria-disabled"),
   "行动栏应显示重心效果并在炼气前禁用"
 );
+ok(!gameSource.includes("softMode") && !/柔化模式/.test(gameSource), "柔化模式应从界面与渲染逻辑移除");
+ok(gameSource.includes("focusOptions()"), "命运重心应按宗门身份提供可用选项");
 ok(
   gameSource.includes("autoChooseEvent") &&
     gameSource.includes("if (auto)") &&
