@@ -795,6 +795,42 @@
   };
 
   /* 给回归测试读取场景池；运行时只读，不参与事件生成。 */
+  /* 2026-10-29: 场景池二次扩充；旧存档只读 sceneKey，不受影响。 */
+  POOLS.child.scenes.push(
+    "你蹲在门槛上，看蚂蚁把一只死虫子抬进墙缝。",
+    "父亲在院里劈柴，斧头落下去，木屑飞到你脚边。",
+    "镇上来了个卖糖人的，你看了很久，最后只买了一小块。",
+    "你和邻家孩子去河滩捡石头，回来时鞋里全是沙。",
+    "夜里风大，窗户纸一直响，你把它按住了好几次。",
+    "祖母把旧棉被抱出来晒，阳光里全是细细的灰。",
+    "你在山上摘了一把酸果，酸得眼睛都眯起来。",
+    "村里的狗生了一窝崽，你每天去看，却不敢摸。",
+    "秋收后田里空了，你在秸秆堆里睡了一觉。",
+    "先生让你背一段书，你背到一半忘了下一句。",
+    "你第一次看见铁匠打铁，火星溅到墙上又灭掉。",
+    "母亲在灯下补你的衣裳，针脚比白天歪了一些。",
+    "村口来了一队挑担的人，扁担上挂着叮当响的铜铃。",
+    "你在庙会的人群里走散了，后来在原地等到了家里人。",
+    "冬天井沿结了冰，你伸脚去试，险些滑下去。",
+    "你在灶台边帮倒忙，被热气熏得直眨眼。",
+    "父亲把一只旧木匣放到柜顶，说等你长大再打开。",
+    "你趴在田埂上看水，水里有一条很小的鱼。",
+    "邻居家办喜事，你分到一颗染红的鸡蛋。",
+    "雨停后屋后冒出好多蘑菇，大人不让你碰。"
+  );
+  ["home", "sect", "wild", "market", "war", "spirit", "immortal", "partner"].forEach((key) => {
+    POOLS[key].scenes.push(
+      "风从门缝里钻进来，把桌上的纸吹得翻了一页。",
+      "远处传来一声闷响，像有什么东西落进了山里。",
+      "你看见一个陌生人站在路边，他没有先开口。",
+      "旧物上落了一层灰，你伸手一抹，露出几道旧痕。",
+      "有人在你身后停了一下，又继续往前走。",
+      "天色比往常暗得早，路上的影子拉得很长。",
+      "你听见有人在低声商量，声音被风吹散了大半。",
+      "路边的草叶上挂着水，走过去时打湿了衣角。"
+    );
+  });
+
   XD.SCENE_POOLS = POOLS;
 
   /* 场景数量多于专用选项组时，用中性选项兜底，避免“旧屋信件”配到“浇水/砍掉”。 */
@@ -1168,6 +1204,57 @@
     i_time: "immortal",
     i_law: "immortal",
   };
+  THEMES.push(
+    {
+      key: "h_region_yue", pool: "market", count: 18,
+      when: (s) => s.world === "human" && s.tier >= 1 && /越国/.test((s.origin && s.origin.place) || ""),
+      w: 6, titles: ["越国", "嘉元城", "药市", "黄枫谷", "青牛镇", "山道"],
+      hook: "越国的山路你走过很多遍，每一遍都有人在路边卖东西。",
+    },
+    {
+      key: "h_region_tiannan", pool: "wild", count: 18,
+      when: (s) => s.world === "human" && s.tier >= 1 && /天南/.test((s.origin && s.origin.place) || ""),
+      w: 6, titles: ["天南", "临江府", "镖车", "山口", "雨", "旧路"],
+      hook: "天南的雨总在半路落下，像有人提前等在那里。",
+    },
+    {
+      key: "h_region_dajin", pool: "sect", count: 18,
+      when: (s) => s.world === "human" && s.tier >= 1 && /大晋/.test((s.origin && s.origin.place) || ""),
+      w: 5, titles: ["大晋", "晋州", "官船", "京城", "旧宅", "门阀"],
+      hook: "大晋的规矩比山路多，走错一步就要多绕很多年。",
+    },
+    {
+      key: "h_region_luantian", pool: "wild", count: 18,
+      when: (s) => s.world === "human" && s.tier >= 1 && /乱星海/.test((s.origin && s.origin.place) || ""),
+      w: 6, titles: ["乱星海", "石螺岛", "潮汐", "礁道", "海兽", "船"],
+      hook: "乱星海的潮水退下去时，总会露出一些不该看见的东西。",
+    },
+    {
+      key: "h_sect_dan", pool: "sect", count: 18,
+      when: (s) => s.world === "human" && s.sectPath === "dan",
+      w: 6, titles: ["丹房", "炉火", "药园", "火候", "废丹", "开炉"],
+      hook: "丹房的火不问你从哪里来，只问你守不守得住。",
+    },
+    {
+      key: "h_sect_jian", pool: "sect", count: 18,
+      when: (s) => s.world === "human" && s.sectPath === "jian",
+      w: 6, titles: ["剑坪", "剑匣", "试剑", "剑痕", "磨剑", "山风"],
+      hook: "剑锋一脉的山风很硬，吹久了人会变得不爱说话。",
+    },
+    {
+      key: "h_sect_zhen", pool: "sect", count: 18,
+      when: (s) => s.world === "human" && s.sectPath === "zhen",
+      w: 6, titles: ["阵眼", "阵图", "石阵", "护山", "推演", "夜巡"],
+      hook: "阵心一脉的人习惯先看脚下，再抬头看天。",
+    },
+    {
+      key: "h_sect_you", pool: "wild", count: 18,
+      when: (s) => s.world === "human" && s.sectPath === "you",
+      w: 6, titles: ["野路", "客栈", "渡口", "游侠", "旧友", "远方"],
+      hook: "游侠一脉没有固定的山门，走到哪里，哪里就算是半个家。",
+    }
+  );
+
   THEMES.forEach((theme) => {
     if (STAGE_BY_THEME[theme.key]) theme.stage = STAGE_BY_THEME[theme.key];
     if (DANGER_BY_THEME[theme.key]) theme.danger = DANGER_BY_THEME[theme.key];
@@ -1176,7 +1263,7 @@
 
   THEMES.forEach((theme, ti) => {
     const pool = POOLS[theme.pool];
-    const count = theme.key === "h_child" ? 400 : N;
+    const count = Number(theme.count) || (theme.key === "h_child" ? 400 : N);
     for (let i = 0; i < count; i++) {
       const title = theme.titles[i % theme.titles.length];
       const sceneIndex = i % pool.scenes.length;
@@ -1210,7 +1297,7 @@
         when: theme.when,
         w: theme.w + (i % 3),
         title,
-        sceneKey: `${theme.key}:${scene}`,
+        sceneKey: `${theme.pool}:${scene}`,
         stage: theme.stage,
         tone: ["kind", "curious", "bold", "calm", "ruthless"][i % 5],
         text: (s) =>

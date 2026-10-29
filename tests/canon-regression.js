@@ -1372,9 +1372,9 @@ ok(
 const sceneCounts = Object.fromEntries(
   Object.entries(XD.SCENE_POOLS || {}).map(([key, pool]) => [key, pool.scenes.length])
 );
-ok(sceneCounts.child === 60, `童年场景应为 60，实际 ${sceneCounts.child}`);
+ok(sceneCounts.child === 80, `童年场景应为 80，实际 ${sceneCounts.child}`);
 ["home", "sect", "wild", "market", "war", "spirit", "immortal", "partner"].forEach((key) => {
-  ok(sceneCounts[key] >= 20, `${key} 场景至少 20，实际 ${sceneCounts[key]}`);
+  ok(sceneCounts[key] >= 28, `${key} 场景至少 28，实际 ${sceneCounts[key]}`);
 });
 const sceneSim = new Sim({ seed: 951, world: "human" });
 sceneSim.noteSceneUse("test-scene", { risk: { p: 0.2 } });
@@ -1678,6 +1678,15 @@ const noArtTrib = XD.EVENT_BY_ID.n_tribulation.choices({ tier: 3, cult: 92, arti
 ok(!noArtTrib.some((c) => c.label.includes("本命法宝")), "没有本命法宝时不应出现法宝迎劫选项");
 const artTrib = XD.EVENT_BY_ID.n_tribulation.choices({ tier: 3, cult: 92, artifact: { broken: false } });
 ok(artTrib.some((c) => c.label.includes("本命法宝")), "持有本命法宝时应出现法宝迎劫选项");
+
+/* 2026-10-29: scene pool and regional/sect identity checks. */
+ok(XD.EVENT_BY_ID.g_h_region_yue_0 && XD.EVENT_BY_ID.g_h_region_yue_0.when({ world: "human", tier: 1, origin: { place: "越国·青牛镇" } }), "越国区域事件应命中越国出生");
+ok(!XD.EVENT_BY_ID.g_h_region_yue_0.when({ world: "human", tier: 1, origin: { place: "天南·临江府" } }), "越国区域事件不应命中天南出生");
+ok(XD.EVENT_BY_ID.g_h_sect_dan_0 && XD.EVENT_BY_ID.g_h_sect_dan_0.when({ world: "human", sectPath: "dan" }), "丹鼎道统应命中丹房事件");
+ok(XD.EVENT_BY_ID.g_h_sect_you_0 && XD.EVENT_BY_ID.g_h_sect_you_0.when({ world: "human", sectPath: "you" }), "游侠道统应命中野路事件");
+ok(String(XD.EVENT_BY_ID.g_h_school_0.sceneKey).startsWith("sect:"), "sceneKey 应按场景池而不是主题名去重");
+const sceneKeys = new Set(XD.EVENTS.filter((event) => event.id.startsWith("g_")).map((event) => event.sceneKey));
+ok(sceneKeys.size >= 300, `场景池去重键应保持一定规模，实际 ${sceneKeys.size}`);
 
 /* 2026-10-29: build depth and karma event checks. */
 const deepBuild = new Sim({ seed: 997, world: "human" });
