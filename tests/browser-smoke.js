@@ -123,7 +123,7 @@ function waitForChrome(port) {
       },
       { url: `${base}/play.html`, expression: "document.title.includes('一介凡人')", expected: true },
       { url: `${base}/guestbook.html`, expression: "document.title.includes('留言板')", expected: true },
-      { url: `${base}/account.html`, expression: "document.title.includes('账号')", expected: true },
+      { url: `${base}/account.html`, expression: "document.title.includes('账号') && !!window.XD.LifeCard && !!document.getElementById('shareCanvas')", expected: true },
       { url: `${base}/support.html`, expression: "document.title.includes('赞助')", expected: true },
       {
         url: `${base}/play.html?speed=qa`,

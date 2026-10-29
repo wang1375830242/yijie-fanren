@@ -8,7 +8,8 @@
   const $ = (id) => document.getElementById(id);
   let currentUser = null;
   let visibleLives = 10;
-  const D = XD.DATA;
+  const WORLD_NAMES = { human: "人界", spirit: "灵界", immortal: "仙界", mortal: "凡间" };
+  const REALM_NAMES = ["凡人", "炼气期", "筑基期", "结丹期", "元婴期", "化神期", "炼虚期", "合体期", "大乘期", "真仙", "金仙", "太乙", "大罗", "道祖"];
 
   function api(path, options) {
     return auth.fetch(path, options);
@@ -25,16 +26,16 @@
   }
 
   function worldName(value) {
-    return (D.WORLD_META && D.WORLD_META[value] && D.WORLD_META[value].name) || value || "未知";
+    return WORLD_NAMES[value] || value || "未知";
   }
 
   function realmName(tier, cult) {
-    const realm = D.REALMS && D.REALMS[Number(tier)];
-    if (!realm) return "凡人";
-    if (Number(tier) === 0) return realm.name;
+    const index = Math.max(0, Math.min(REALM_NAMES.length - 1, Number(tier) || 0));
+    const name = REALM_NAMES[index];
+    if (index === 0) return name;
     const value = Number(cult) || 0;
     const sub = value < 34 ? "初期" : value < 67 ? "中期" : "后期";
-    return `${realm.name} · ${sub}`;
+    return `${name} · ${sub}`;
   }
 
   function dateText(value) {
@@ -97,6 +98,26 @@
       });
       deeds.append(list);
       detail.append(deeds);
+    }
+    if (window.XD && XD.LifeCard) {
+      const actions = el("div", "record-actions");
+      const download = el("button", "btn btn--sm", "下载命格卡");
+      download.type = "button";
+      download.addEventListener("click", () => {
+        if (XD.LifeCard.download(life, $("shareCanvas"))) setStatus("命格卡已生成。");
+        else setStatus("命格卡生成失败，请换一台设备或稍后再试。", true);
+      });
+      const share = el("button", "btn btn--sm", "分享命格卡");
+      share.type = "button";
+      share.addEventListener("click", async () => {
+        setStatus("正在生成命格卡…");
+        const result = await XD.LifeCard.share(life, $("shareCanvas"));
+        if (result === "shared") setStatus("命格卡已分享。");
+        else if (result === "downloaded") setStatus("当前设备不支持直接分享，已下载命格卡。");
+        else setStatus("已取消分享。");
+      });
+      actions.append(download, share);
+      detail.append(actions);
     }
     card.append(detail);
     toggle.addEventListener("click", () => {

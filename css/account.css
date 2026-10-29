@@ -72,3 +72,7 @@
   .record-summary { flex-direction: column; gap: 3px; }
   .record-summary time { text-align: left; }
 }
+
+.record-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.record-actions .btn { font-size: 12px; }
+@media (max-width: 640px) { .record-actions .btn { width: 100%; } }
