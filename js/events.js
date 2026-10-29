@@ -633,6 +633,20 @@
   });
 
   add({
+    id: "trait_gate_choice",
+    when: (s) => s.tier >= 2,
+    once: true,
+    w: 6,
+    title: "旧账",
+    text: "山门外有人拦路，说你早年欠下的一笔旧账，今日该有个说法。",
+    choices: [
+      { label: "以狠厉压服", requires: { trait: { ruthless: 2 } }, effects: { sectContrib: 6, stones: 20, karma: -4, trait: { ruthless: 1 } }, outcome: "你没有讲理。对方退了，周围的人也记住了你的眼神。" },
+      { label: "以静气化解", requires: { trait: { calm: 2 } }, effects: { mood: 6, insight: 3, karma: 2, trait: { calm: 1 } }, outcome: "你把话听完，只说了三句。旧账没有变成新仇。" },
+      { label: "按规矩赔礼", effects: { sectContrib: 2, mood: -2, karma: 1 }, outcome: "你赔了礼，也把这段因果轻轻放下。" },
+    ],
+  });
+
+  add({
     id: "sect_path_choice",
     when: (s) =>
       s.tier >= 2 &&

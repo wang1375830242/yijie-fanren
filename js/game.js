@@ -882,6 +882,21 @@
     pick(chosen.i, chosen.c.donate ? { donateAmount: chosen.c.donate.min || 10 } : undefined);
   }
 
+  const TRAIT_LABELS = { kind: "仁", ruthless: "狠", curious: "悟", bold: "勇", calm: "静" };
+  function choiceRequirement(choice, current) {
+    const req = choice.requires || {};
+    if (req.trait) {
+      for (const key of Object.keys(req.trait)) {
+        const need = Number(req.trait[key]) || 0;
+        if ((Number(current.traits[key]) || 0) < need) return `心性不足：${TRAIT_LABELS[key] || key} ${need}`;
+      }
+    }
+    if (req.karmaMin != null && current.karma < Number(req.karmaMin)) return `因果不足：至少 ${req.karmaMin}`;
+    if (req.karmaMax != null && current.karma > Number(req.karmaMax)) return `因果过重：最多 ${req.karmaMax}`;
+    if (req.sectPath && current.sectPath !== req.sectPath) return "道统不合";
+    return "";
+  }
+
   function openPrompt() {
     clearTimeout(autoTimer);
     resetPromptChrome();
@@ -915,6 +930,7 @@
     const anyAffordable = p.choices.some(
       (c) =>
         state.stones >= costOf(c) &&
+        !choiceRequirement(c, state) &&
         !(waitLocked && c.effects && c.effects.wait)
     );
     if (!anyAffordable) {
@@ -937,7 +953,8 @@
             : 0;
         const poor = required > state.stones;        const isWait = !!(c.effects && c.effects.wait);
         const blockedWait = waitLocked && isWait;
-        const disabled = poor || blockedWait;
+        const requirement = choiceRequirement(c, state);
+        const disabled = poor || blockedWait || !!requirement;
         if (c.donate) {
           const min = Number(c.donate.min) || 10;
           const max = Math.min(Number(c.donate.max) || state.stones, state.stones);
@@ -959,6 +976,8 @@
           ? `<span>再等下去，心气就散了。此路只能走一次。</span>`
           : poor
           ? `<span>身上灵石不够，做不到。</span>`
+          : requirement
+          ? `<span>${U.esc(requirement)}</span>`
           : c.note
           ? `<span>${U.esc(c.note)}</span>`
           : "";

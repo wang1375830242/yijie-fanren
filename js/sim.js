@@ -1674,6 +1674,27 @@
       if (!s.pending || s.pending.kind !== "event") return null;
       const choice = s.pending.choices[index];
       if (!choice) return null;
+      const req = choice.requires || {};
+      if (req.trait) {
+        for (const key of Object.keys(req.trait)) {
+          if ((Number(s.traits[key]) || 0) < Number(req.trait[key])) {
+            this.pushLog("system", "你的心性还不足以走这条路。");
+            return { status: "blocked" };
+          }
+        }
+      }
+      if (req.karmaMin != null && s.karma < Number(req.karmaMin)) {
+        this.pushLog("system", "你的因果还不够。");
+        return { status: "blocked" };
+      }
+      if (req.karmaMax != null && s.karma > Number(req.karmaMax)) {
+        this.pushLog("system", "你的因果太重，这条路走不通。");
+        return { status: "blocked" };
+      }
+      if (req.sectPath && s.sectPath !== req.sectPath) {
+        this.pushLog("system", "你的道统不合，无法选择这条路。");
+        return { status: "blocked" };
+      }
       const required =
         choice.requires && choice.requires.stones != null
           ? choice.requires.stones
