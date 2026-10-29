@@ -10,7 +10,7 @@
 
 - 静态前端：`index.html`、`play.html`、`hall.html`、`guestbook.html`、`codex.html`、`about.html`
 - 公共碑林与留言板后端：`server.py`
-- 服务器后台：`/stats/`（访问统计与留言管理，部署在服务器，不进静态仓库）
+- 服务器后台：`/stats/`（访问统计、用户管理与留言管理，部署在服务器，不进静态仓库；功能说明见 `docs/admin-stats-2026-10-29.md`）
 - 运行时数据：`data/hall.json`、`data/guestbook.db`（由 `server.py` 自动创建）
 - 访问统计：`data/visits.db`（SQLite，`server.py` 通过 `/api/visit` 记录；`/stats/` 只读该库，Nginx 日志仅用于旧数据一次性回填）
 
