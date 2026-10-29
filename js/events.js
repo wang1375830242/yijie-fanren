@@ -777,7 +777,8 @@
     once: false,
     title: "宗门提拔",
     text: (s) => {
-      const rank = (D.SECT_RANKS && D.SECT_RANKS[s.sectRank]) || { name: "外门" };
+      const ranks = (D.SECT_RANKS_BY_WORLD && D.SECT_RANKS_BY_WORLD[s.world]) || D.SECT_RANKS || [];
+      const rank = ranks[s.sectRank] || { name: "外门" };
       return `${s.sect}的执事在议事堂点到你的名字。凭这些年的贡献，你被擢升为${rank.name}。堂下有人抬头看你，也有人低头记下了你的名字。`;
     },
     choices: [

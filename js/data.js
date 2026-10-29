@@ -129,12 +129,40 @@
   ];
 
   /* 宗门职位：贡献达到门槛且境界足够时晋升 */
+  /* 人界宗门职级：境界决定职级下限，贡献决定同境界内能否继续晋升。 */
   const SECT_RANKS = [
     { name: "外门", need: 0, tierMin: 1, share: 5 },
     { name: "内门", need: 60, tierMin: 2, share: 12 },
-    { name: "执事", need: 180, tierMin: 3, share: 25 },
-    { name: "长老", need: 420, tierMin: 5, share: 50 },
+    { name: "执事", need: 180, tierMin: 2, share: 25 },
+    { name: "长老", need: 420, tierMin: 3, share: 40 },
+    { name: "大长老", need: 700, tierMin: 4, share: 60 },
+    { name: "太上长老", need: 1000, tierMin: 5, share: 80 },
   ];
+  const SECT_RANKS_BY_WORLD = {
+    human: SECT_RANKS,
+    spirit: [
+      { name: "外门", need: 0, tierMin: 6, share: 5 },
+      { name: "内门", need: 180, tierMin: 6, share: 12 },
+      { name: "执事", need: 480, tierMin: 6, share: 25 },
+      { name: "长老", need: 900, tierMin: 7, share: 40 },
+      { name: "大长老", need: 1500, tierMin: 8, share: 60 },
+      { name: "太上长老", need: 2400, tierMin: 8, share: 80 },
+    ],
+    immortal: [
+      { name: "仙官", need: 0, tierMin: 9, share: 5 },
+      { name: "执事", need: 600, tierMin: 9, share: 12 },
+      { name: "长老", need: 1600, tierMin: 10, share: 25 },
+      { name: "大长老", need: 3600, tierMin: 11, share: 40 },
+      { name: "仙君", need: 7200, tierMin: 12, share: 60 },
+      { name: "掌教", need: 12000, tierMin: 13, share: 80 },
+    ],
+  };
+  /* 境界保底：元婴不能还是外门；灵界/仙界按界面职级上移。 */
+  const SECT_RANK_FLOORS = {
+    human: { 1: 0, 2: 1, 3: 3, 4: 4, 5: 5 },
+    spirit: { 6: 1, 7: 3, 8: 4 },
+    immortal: { 9: 1, 10: 2, 11: 3, 12: 4, 13: 5 },
+  };
 
   /* ---------------- 货栈 ---------------- */
   /* ---------------- 本命法宝器胚（原创，不抢原著法宝） ---------------- */
@@ -687,6 +715,8 @@
     DAOHAO_B,
     FOCUS,
     SECT_RANKS,
+    SECT_RANKS_BY_WORLD,
+    SECT_RANK_FLOORS,
     PHYSIQUES,
     SECT_PATHS,
     CANON_PHYSIQUES,

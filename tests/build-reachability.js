@@ -91,7 +91,9 @@ function danger(sim) {
 
 const levels = {};
 const paths = {};
+const rankCounts = {};
 let maxBuild = 0;
+let highRealmOuter = 0;
 for (let i = 0; i < N; i++) {
   const sim = new X.Sim({ seed: (100000 + i * 7919) >>> 0, world: worlds[i % worlds.length], mode: "birth" });
   const s = sim.state;
@@ -109,6 +111,11 @@ for (let i = 0; i < N; i++) {
   levels[level] = (levels[level] || 0) + 1;
   paths[s.sectPath || "none"] = (paths[s.sectPath || "none"] || 0) + 1;
   maxBuild = Math.max(maxBuild, level);
+  if (sim.isSectMember()) {
+    const rank = sim.sectRankName();
+    rankCounts[rank] = (rankCounts[rank] || 0) + 1;
+    if (sim.state.tier >= 4 && ["外门", "内门", "执事"].includes(rank)) highRealmOuter += 1;
+  }
 }
 if (maxBuild < 2) {
   throw new Error(`300 局中最高 Build 仅 ${maxBuild}，Build 不可达`);
@@ -116,4 +123,7 @@ if (maxBuild < 2) {
 for (const key of ["dan", "jian", "zhen", "you"]) {
   if (!paths[key]) throw new Error(`300 局中没有出现 ${key} 道统`);
 }
-console.log(JSON.stringify({ runs: N, maxBuild, levels, paths }));
+if (highRealmOuter > 0) {
+  throw new Error(`300 局中有 ${highRealmOuter} 位元婴/化神修士仍是外门/内门/执事`);
+}
+console.log(JSON.stringify({ runs: N, maxBuild, levels, paths, rankCounts, highRealmOuter }));

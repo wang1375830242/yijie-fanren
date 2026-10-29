@@ -520,14 +520,14 @@ ok(
     wanderReport.text.includes("风险成功 +3%") &&
     wanderReport.text.includes("危险 +1") &&
     wanderReport.text.includes("灵石净") &&
-    wanderReport.netIncome === 7,
+    wanderReport.netIncome === 14,
   "游历应显示事件、气运/风险与净收入"
 );
 focusReportSim.state.incomePerYear = 6;
 focusReportSim.state.flags.buy_spirit_field = true;
 const fieldReport = focusReportSim.focusReport();
 ok(
-  fieldReport.netIncome === 12 &&
+  fieldReport.netIncome === 19 &&
     fieldReport.text.includes("灵田 6") &&
     fieldReport.text.includes("维护 -1"),
   "灵田和维护应计入重心净收入显示"
@@ -538,8 +538,8 @@ focusReportSim.state.focus = "sect";
 const sectReport = focusReportSim.focusReport();
 ok(
   sectReport.text.includes("宗门贡献 +3/年") &&
-    sectReport.text.includes("当前外门") &&
-    sectReport.text.includes("差60贡献升内门"),
+    sectReport.text.includes("当前内门") &&
+    sectReport.text.includes("差180贡献升执事"),
   "宗门重心应显示贡献与下一阶进度"
 );
 focusReportSim.state.focus = "seclude";
@@ -902,15 +902,15 @@ sectSim.state.sect = "黄枫谷";
 sectSim.initSectRank();
 sectSim.state.focus = "sect";
 sectSim.state.lastStepYears = 2;
-sectSim.state.sectContrib = 60;
+sectSim.state.sectContrib = 180;
 sectSim.sectTick();
-ok(sectSim.state.sectPromo === 1, "达到内门门槛应进入晋升队列");
+ok(sectSim.state.sectPromo === 2, "达到执事门槛应进入晋升队列");
 sectSim.state.pending = { kind: "break" };
 ok(!sectSim.maybeSectPromotion(), "有 pending 时晋升不应覆盖");
 ok(sectSim.state.pending.kind === "break", "晋升不应替换突破 pending");
 sectSim.state.pending = null;
 ok(sectSim.maybeSectPromotion(), "空闲时应触发晋升事件");
-ok(sectSim.state.sectRank === 1, "晋升后应更新宗门职位");
+ok(sectSim.state.sectRank === 2, "晋升后应更新宗门职位");
 ok(sectSim.state.pending && sectSim.state.pending.id === "sect_promotion", "晋升应触发宗门事件");
 sectSim.state.pending = null;
 
@@ -937,6 +937,26 @@ ok(
   highSect.summary().sectRank && highSect.summary().sectContrib >= 0,
   "终局摘要应包含宗门职位与贡献"
 );
+
+/* 2026-10-29: 高境界宗门职级下限。 */
+const rankFloorFour = new Sim({ seed: 558, world: "human" });
+rankFloorFour.state.path = "cultivator";
+rankFloorFour.state.tier = 4;
+rankFloorFour.state.sect = "黄枫谷";
+rankFloorFour.initSectRank();
+ok(rankFloorFour.sectRankName() === "大长老", "人界元婴应至少为大长老");
+const rankFloorFive = new Sim({ seed: 559, world: "human" });
+rankFloorFive.state.path = "cultivator";
+rankFloorFive.state.tier = 5;
+rankFloorFive.state.sect = "黄枫谷";
+rankFloorFive.initSectRank();
+ok(rankFloorFive.sectRankName() === "太上长老", "人界化神应至少为太上长老");
+const rankFloorSpirit = new Sim({ seed: 560, world: "spirit" });
+rankFloorSpirit.state.path = "cultivator";
+rankFloorSpirit.state.tier = 8;
+rankFloorSpirit.state.sect = "天元宗";
+rankFloorSpirit.initSectRank();
+ok(rankFloorSpirit.sectRankName() === "大长老", "灵界大乘应至少为大长老");
 
 /* P0：RNG 可序列化、运行快照可恢复、选择轨迹可记录。 */
 const rngA = new XD.util.RNG(123456);

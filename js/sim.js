@@ -501,7 +501,9 @@
       const baseIncome = this.annualIncome();
       const passiveIncome = Number(s.incomePerYear) || 0;
       const upkeep = this.annualUpkeep();
-      const rank = D.SECT_RANKS[s.sectRank >= 0 ? s.sectRank : 0] || D.SECT_RANKS[0];
+      this.initSectRank();
+      const table = this.sectRankTable();
+      const rank = table[s.sectRank >= 0 ? s.sectRank : 0] || table[0];
       const sectShare = this.isSectMember()
         ? (Number(rank.share) || 0) * (s.focus === "sect" ? 1.35 : 1)
         : 0;
@@ -528,7 +530,7 @@
       }
       if (f.key === "sect" && this.isSectMember()) {
         const gain = this.sectContribPerYear();
-        const next = D.SECT_RANKS[(s.sectRank >= 0 ? s.sectRank : 0) + 1];
+        const next = this.sectRankTable()[(s.sectRank >= 0 ? s.sectRank : 0) + 1];
         parts.push(`宗门贡献 +${gain}/年`);
         parts.push(
           `当前${rank.name}${next ? ` · 差${Math.max(0, next.need - (s.sectContrib || 0))}贡献升${next.name}` : " · 已至最高"}`
@@ -703,20 +705,40 @@
       return false;
     }
 
+    sectRankTable() {
+      const s = this.state;
+      return (D.SECT_RANKS_BY_WORLD && D.SECT_RANKS_BY_WORLD[s.world]) || D.SECT_RANKS;
+    }
+
+    sectRankFloor() {
+      const s = this.state;
+      if (!this.isSectMember()) return -1;
+      const floors = (D.SECT_RANK_FLOORS && D.SECT_RANK_FLOORS[s.world]) || {};
+      let floor = 0;
+      for (const key of Object.keys(floors)) {
+        if (s.tier >= Number(key)) floor = Math.max(floor, Number(floors[key]) || 0);
+      }
+      return floor;
+    }
+
     sectRankName() {
       if (!this.isSectMember()) return "";
-      const rank = D.SECT_RANKS[this.state.sectRank];
+      const rank = this.sectRankTable()[this.state.sectRank];
       return rank ? rank.name : "";
     }
 
     initSectRank() {
       const s = this.state;
-      if (typeof s.sectRank !== "number" || !D.SECT_RANKS[s.sectRank]) {
+      const table = this.sectRankTable();
+      if (typeof s.sectRank !== "number" || !table[s.sectRank]) {
         s.sectRank = this.isSectMember() ? 0 : -1;
       }
       if (!this.isSectMember()) {
         s.sectRank = -1;
         s.sectContrib = 0;
+      } else {
+        const floor = this.sectRankFloor();
+        if (s.sectRank < floor) s.sectRank = floor;
       }
       if (typeof s.sectContrib !== "number") s.sectContrib = 0;
     }
@@ -727,7 +749,8 @@
       if (!this.isSectMember()) return;
       const stepYears = Math.max(1, s.lastStepYears || 1);
       const years = Math.min(8, stepYears); // 高境界用“每步预算”折算，避免一次性结算数百年
-      const rank = D.SECT_RANKS[s.sectRank] || D.SECT_RANKS[0];
+      const table = this.sectRankTable();
+      const rank = table[s.sectRank] || table[0];
       const shareBonus = s.focus === "sect" ? 1.35 : 1;
       s.stones += (rank.share || 0) * years * shareBonus;
       if (s.focus === "sect") {
@@ -735,9 +758,9 @@
         const gain = Math.round((2 + Math.floor(s.tier / 2)) * years * 0.5 * focusBonus);
         s.sectContrib += Math.min(40, Math.max(1, gain));
       }
-      let target = s.sectRank;
-      for (let i = target + 1; i < D.SECT_RANKS.length; i++) {
-        const next = D.SECT_RANKS[i];
+      let target = Math.max(s.sectRank, this.sectRankFloor());
+      for (let i = target + 1; i < table.length; i++) {
+        const next = table[i];
         if (s.sectContrib >= next.need && s.tier >= next.tierMin) target = i;
         else break;
       }
