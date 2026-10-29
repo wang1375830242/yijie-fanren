@@ -72,5 +72,5 @@ canon-regression: 441 checks passed
 pseudo-spirit=2
 natural-ascensions=9
 worst-repeat=2
-changelog-check: 8 releases, 126 changes, schema ok
+changelog-check: 8 releases, 127 changes, schema ok
 ```

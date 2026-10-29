@@ -41,7 +41,7 @@ guestbook-check: ok
 canon-regression: 441 checks passed
 220 runs, 0 issues
 natural-ascensions=9
-changelog-check: 8 releases, 126 changes
+changelog-check: 8 releases, 127 changes
 ```
 
 ## 仍然需要服务端的部分

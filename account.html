@@ -7,11 +7,11 @@
 <meta name="description" content="一介凡人账号：跨设备保存最近人生、留言身份与云端备份。">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="js/theme-init.js?v=20261028m"></script>
+<script src="js/theme-init.js?v=20261028n"></script>
 <link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/base.css?v=20261028m">
+<link rel="stylesheet" href="css/base.css?v=20261028n">
 <link rel="stylesheet" href="css/account.css">
-<link rel="stylesheet" href="css/day.css?v=20261028m">
+<link rel="stylesheet" href="css/day.css?v=20261028n">
 </head>
 <body class="account-page">
 <noscript><div class="noscript">账号页需要 JavaScript 才能使用。</div></noscript>
@@ -97,13 +97,30 @@
     <p class="account-note">云端保留本机最近 60 世、当前人生、传承、碑林阅读与灯数。账号只保存这些数据，不保存密码明文。</p>
     <details class="account-note">
       <summary>账号安全说明</summary>
-      <p>当前为 GitHub Pages 跨站 Token 方案，token 保存在本机 localStorage。不要把账号借给不信任的设备，也不要在页面中粘贴第三方脚本。</p>
+      <p>当前为 GitHub Pages 跨站 Token 方案，token 保存在本机 localStorage。不要把账号借给不值得信任的设备，也不要在页面中粘贴第三方脚本。</p>
     </details>
+
+    <section class="account-history" id="historyPanel" aria-label="我的修行记录">
+      <div class="history-head">
+        <div>
+          <p class="kicker">此身之外 · 旧世</p>
+          <h2>我的修行记录</h2>
+          <p class="history-sub" id="historySub">只属于当前账号，展示最近的人生。</p>
+        </div>
+        <button class="btn btn--sm" type="button" id="historyRefresh">刷新记录</button>
+      </div>
+      <div class="history-stats" id="historyStats" aria-label="修行概览"></div>
+      <div class="history-current" id="historyCurrent" hidden></div>
+      <div class="history-list" id="historyList"></div>
+      <p class="history-empty" id="historyEmpty" hidden>尚未开始第一世。<a href="play.html">去推演一局</a><span>完成一局后，这里会留下境界、寿数与结局。</span></p>
+      <div class="history-more-wrap"><button class="btn btn--sm" type="button" id="historyMore" hidden>加载更多</button></div>
+      <p class="history-note" id="historyNote"></p>
+    </section>
   </section>
 </main>
 
-<script src="js/common.js?v=20261028m"></script>
-<script src="js/account-sync.js?v=20261028m"></script>
-<script src="js/account.js?v=20261028m"></script>
+<script src="js/common.js?v=20261028n"></script>
+<script src="js/account-sync.js?v=20261028n"></script>
+<script src="js/account.js?v=20261028n"></script>
 </body>
 </html>

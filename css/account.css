@@ -27,3 +27,48 @@
 .account-note { color: var(--muted); font-size: 12px; line-height: 1.8; margin: 18px 0 0; }
 .account-note summary { cursor: pointer; color: var(--text); }
 @media (max-width: 640px) { .account-main { padding: 36px 16px 70px; } .account-panel { padding: 18px; } }
+
+
+/* 我的修行记录 */
+.account-history { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 24px; }
+.history-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.history-head h2 { font-size: 22px; font-weight: 400; margin: 0; letter-spacing: .1em; }
+.history-head .kicker { color: var(--gold); font-size: 11px; letter-spacing: .2em; margin: 0 0 8px; }
+.history-sub { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
+.history-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0; }
+.history-stat { border: 1px solid var(--line); background: var(--bg); padding: 12px; min-width: 0; }
+.history-stat span { display: block; color: var(--muted); font-size: 11px; }
+.history-stat b { display: block; margin-top: 5px; color: var(--gold); font-size: 19px; font-weight: 400; line-height: 1.3; overflow-wrap: anywhere; }
+.history-current { border: 1px solid #3d5a46; background: rgba(127, 165, 139, .08); padding: 12px 14px; display: grid; gap: 4px; margin: 0 0 14px; }
+.history-current-label { color: var(--jade); font-size: 11px; letter-spacing: .12em; }
+.history-current b { font-weight: 400; color: var(--text); }
+.history-current small { color: var(--muted); font-size: 11px; }
+.history-list { display: grid; gap: 10px; }
+.record-card { border: 1px solid var(--line); background: var(--bg); }
+.record-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 12px 14px 0; }
+.record-title { display: grid; gap: 4px; min-width: 0; }
+.record-title b { font-weight: 400; color: var(--gold); font-size: 15px; overflow-wrap: anywhere; }
+.record-title span { color: var(--muted); font-size: 12px; }
+.record-toggle { border: 1px solid var(--line); background: transparent; color: var(--muted); padding: 4px 9px; font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.record-toggle:hover { border-color: var(--jade); color: var(--jade); }
+.record-summary { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; padding: 8px 14px 12px; }
+.record-summary time { text-align: right; white-space: nowrap; }
+.record-detail { border-top: 1px solid var(--line); padding: 10px 14px 12px; }
+.record-detail-line { display: grid; grid-template-columns: 92px 1fr; gap: 10px; padding: 4px 0; font-size: 13px; }
+.record-detail-line > span { color: var(--muted); }
+.record-detail-line > b { font-weight: 400; color: var(--text); overflow-wrap: anywhere; }
+.record-deeds { display: grid; gap: 4px; }
+.record-deeds p { margin: 0; color: var(--text); line-height: 1.7; overflow-wrap: anywhere; }
+.history-empty { color: var(--muted); font-size: 13px; padding: 18px 0 8px; }
+.history-empty a { color: var(--gold); }
+.history-empty span { display: block; margin-top: 6px; font-size: 12px; }
+.history-more-wrap { text-align: center; margin-top: 14px; }
+.history-note { color: var(--muted); font-size: 11px; margin: 12px 0 0; }
+@media (max-width: 640px) {
+  .history-head { flex-direction: column; }
+  .history-head .btn { width: 100%; }
+  .history-stats { grid-template-columns: 1fr 1fr; }
+  .record-detail-line { grid-template-columns: 78px 1fr; }
+  .record-summary { flex-direction: column; gap: 3px; }
+  .record-summary time { text-align: left; }
+}

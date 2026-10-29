@@ -1,7 +1,7 @@
 {
-  "rounds": 199,
-  "steps": 5294,
-  "tokens": "1,997M",
+  "rounds": 200,
+  "steps": 5322,
+  "tokens": "2,007M",
   "updated": "2026-10-29",
   "note": "数据来自本地开发工作台，不是网站访客统计。页面每 15 秒自动刷新一次，文件更新后自动生效。",
   "autoRefreshSeconds": 15
