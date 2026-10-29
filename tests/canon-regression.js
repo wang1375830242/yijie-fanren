@@ -1679,6 +1679,23 @@ ok(!noArtTrib.some((c) => c.label.includes("本命法宝")), "没有本命法宝
 const artTrib = XD.EVENT_BY_ID.n_tribulation.choices({ tier: 3, cult: 92, artifact: { broken: false } });
 ok(artTrib.some((c) => c.label.includes("本命法宝")), "持有本命法宝时应出现法宝迎劫选项");
 
+/* 2026-10-29: build depth and karma event checks. */
+const deepBuild = new Sim({ seed: 997, world: "human" });
+deepBuild.state.sectPath = "jian";
+deepBuild.state.physique = { key: "hansui", name: "寒髓体", path: "jian" };
+deepBuild.state.physiqueAwakened = "nature";
+deepBuild.state.artifact = { key: "lei_mu", name: "雷击木剑胚", stage: 2, bond: 50, broken: false };
+ok(deepBuild.buildLevel() === 3, "体质觉醒应与道统/法宝形成三级 Build");
+ok(XD.EVENT_BY_ID.physique_awakening && XD.EVENT_BY_ID.physique_awakening.choices.length === 2, "体质觉醒事件应提供顺性/镇之选择");
+ok(XD.EVENT_BY_ID.karma_rival_return && XD.EVENT_BY_ID.karma_rival_return.when({ rivals: [{ alive: true, status: "present" }] }), "旧仇事件应能接到在世仇人");
+ok(XD.EVENT_BY_ID.karma_benefactor_return, "旧恩事件应存在");
+const bondSim = new Sim({ seed: 998, world: "human" });
+bondSim.bindArtifact("lei_mu");
+bondSim.state.cult = 100;
+bondSim.state.pending = { kind: "break", chance: 1 };
+bondSim.chooseBreak("push");
+ok(bondSim.state.artifact.bond >= 20, "破境应提升本命法宝 bond");
+
 /* 2026-10-29: legacy death-choice checks. */
 const legacyChoiceSim = new Sim({ seed: 994, world: "human" });
 legacyChoiceSim.state.artifact = { key: "lei_mu", name: "雷击木剑胚", stage: 1, broken: false };

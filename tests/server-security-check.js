@@ -148,6 +148,19 @@ async function run() {
   const other = await post("/api/auth/login", { username, password: "wrong-pass" });
   if (other.status !== 401) throw new Error(`wrong password should be 401, got ${other.status}`);
 
+  // Hall message ownership: authenticated author and own delete.
+  res = await post("/api/message", { id: "test-stele", text: "owned hall message" }, { Authorization: "Bearer " + account.token });
+  if (res.status !== 200) throw new Error(`hall message should be 200, got ${res.status}`);
+  const hallMessages = JSON.parse(res.body).messages || [];
+  const ownedHall = hallMessages[hallMessages.length - 1];
+  if (!ownedHall || ownedHall.userId !== account.user.id || ownedHall.name !== "QA") throw new Error("hall message should carry account identity");
+  res = await requestRaw(`/api/message/${ownedHall.id}/delete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + account.token },
+    body: "{}",
+  });
+  if (res.status !== 200) throw new Error(`own hall message delete should be 200, got ${res.status}`);
+
   // Corrupt hall state must fail closed instead of silently overwriting it.
   fs.writeFileSync(path.join(temp, "hall.json"), "{broken", "utf8");
   res = await requestRaw("/api/hall");

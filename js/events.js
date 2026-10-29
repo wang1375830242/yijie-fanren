@@ -2876,6 +2876,89 @@
     ],
   });
 
+  add({
+    id: "physique_awakening",
+    when: (s) => s.tier >= 2 && s.physique && s.physique.key !== "none" && !s.physiqueAwakened,
+    once: true,
+    w: 5,
+    title: "体质觉醒",
+    text: "经脉里那股与生俱来的异样终于醒了。你可以顺着它，也可以把它压回去。",
+    choices: [
+      { label: "顺其天性", effects: { physiqueAwaken: "nature", mood: 5, trait: { bold: 1 } }, outcome: "你不再压着它。那股力量顺着经脉走了一圈，像一条终于找到河道的水。" },
+      { label: "以法镇之", effects: { physiqueAwaken: "seal", insight: 4, mood: -2, trait: { calm: 1 } }, outcome: "你用了三个月把它锁回丹田。它安静了，但你知道它还在下面。" },
+    ],
+  });
+
+  add({
+    id: "sect_path_dan",
+    when: (s) => s.sectPath === "dan" && s.tier >= 2,
+    once: true, w: 4, title: "丹火",
+    text: "丹房的旧炉忽然自己燃了。炉底压着一张前人的火候批注，边角写着「不可贪快」。",
+    choices: [
+      { label: "按批注重炼", effects: { stones: 40, insight: 3, mood: 3 }, outcome: "这一炉丹成了。你把批注拓了一份，留在自己的洞府里。" },
+      { label: "试自己的火候", risk: { p: 0.55, text: "你炼出了更纯的一炉。", fail: { injury: 1, mood: -4 } }, effects: { stones: 80, cult: 3 }, outcome: "炉火变了颜色。你记下了这个火候，也记住了手背上的疤。" },
+    ],
+  });
+
+  add({
+    id: "sect_path_jian",
+    when: (s) => s.sectPath === "jian" && s.tier >= 2,
+    once: true, w: 4, title: "剑匣",
+    text: "剑冢深处传来一声轻响。你埋本命法宝的地方，多了一道没有主人的剑痕。",
+    choices: [
+      { label: "以剑意回应", effects: { artifactBond: 20, insight: 3, trait: { bold: 1 } }, outcome: "剑痕与你共鸣了一瞬。你的本命法宝在匣中轻轻震动。" },
+      { label: "把剑痕记下来", effects: { insight: 5, mood: 2 }, outcome: "你没有拔剑。那道剑痕留在纸上，比留在石上更久。" },
+    ],
+  });
+
+  add({
+    id: "sect_path_zhen",
+    when: (s) => s.sectPath === "zhen" && s.tier >= 2,
+    once: true, w: 4, title: "阵眼",
+    text: "护山大阵的阵眼出了一道细缝。执事说，修阵的人得先把自己的心放进去。",
+    choices: [
+      { label: "以身补阵", effects: { sectContrib: 15, insight: 4, injury: 1 }, outcome: "阵眼合上了。你在阵中坐了一夜，听见山门的风声变得很远。" },
+      { label: "改阵势", effects: { sectContrib: 8, insight: 3, mood: 3 }, outcome: "你把阵势改小了一寸。执事看了很久，最后只说了一句「可以」。" },
+    ],
+  });
+
+  add({
+    id: "sect_path_you",
+    when: (s) => s.sectPath === "you" && s.tier >= 2,
+    once: true, w: 4, title: "野路",
+    text: "山门外的野路上，一个没有门派的老修士正在埋锅。他抬头看你，说这条路很久没见人走了。",
+    choices: [
+      { label: "陪他喝一碗", effects: { mood: 6, luck: 3, insight: 2 }, outcome: "你们喝了一碗很淡的酒。他说，游侠不是没有家，是家在路上。" },
+      { label: "问他路通向哪", effects: { insight: 4, stones: 20 }, outcome: "他指了一个方向，又指了另一个。你后来走了更远的那个。" },
+    ],
+  });
+
+  add({
+    id: "karma_rival_return",
+    when: (s) => (s.rivals || []).some((r) => r && r.alive !== false && r.status !== "reconciled" && r.status !== "left"),
+    once: true, w: 6, title: "旧仇",
+    text: (s) => {
+      const r = (s.rivals || []).find((x) => x && x.alive !== false && x.status !== "reconciled" && x.status !== "left");
+      return `当年结下的仇，终于找上门来。来的人是${r ? r.name : "一个旧识"}。他没有带很多人，只带了一把刀。`;
+    },
+    choices: [
+      { label: "把话说开", effects: { rivalReconcile: true, mood: 5, karma: 2 }, outcome: "你们在雨里站了很久。刀没有拔出来，旧仇也没有变成新坟。" },
+      { label: "以命相搏", risk: { p: 0.45, text: "你赢了，旧仇到此为止。", fail: { death: true, cause: "死于旧仇" } }, effects: { karma: -4, stones: 30, trait: { ruthless: 1 } }, outcome: "你收刀时手在抖。从此再没人提那个名字。" },
+      { label: "避而不见", effects: { mood: -4, karma: -2 }, outcome: "你从后门走了。那人没有追，只在你门前留了一道刀痕。" },
+    ],
+  });
+
+  add({
+    id: "karma_benefactor_return",
+    when: (s) => (s.karma || 0) >= 15 && s.age >= 40 && s.flags.benefactor_seen,
+    once: true, w: 4, title: "旧恩",
+    text: "一个陌生人带着一小袋灵果来敲门。他说，很多年前你救过的人让他来还这份情。",
+    choices: [
+      { label: "收下灵果", effects: { stones: 25, mood: 4, karma: 1 }, outcome: "灵果很甜。你没有问那个人的名字，只把果核埋在了院角。" },
+      { label: "让他把东西带回去", effects: { mood: 6, insight: 2, karma: 3 }, outcome: "他愣了一下，最后笑着走了。你知道，这份人情还会在别处发芽。" },
+    ],
+  });
+
   XD.EVENTS = E;
   XD.EVENT_BY_ID = E.reduce((m, e) => ((m[e.id] = e), m), {});
 })();

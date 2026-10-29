@@ -383,3 +383,8 @@ body.hall-page {
     min-height: 240px;
   }
 }
+
+.hall-message { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.hall-message-name { display: block; margin-bottom: 3px; font-family: var(--kai); font-size: 11px; letter-spacing: .08em; color: var(--paper-muted); font-weight: 400; }
+.hall-message-delete { flex: none; border: 0; background: transparent; color: var(--paper-muted); font: inherit; font-size: 10px; letter-spacing: .08em; cursor: pointer; padding: 2px 0; }
+.hall-message-delete:hover, .hall-message-delete:focus-visible { color: #a34a3a; }

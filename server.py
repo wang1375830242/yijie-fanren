@@ -107,9 +107,34 @@ def load_state() -> dict:
         raise StateCorrupt("hall state is not an object")
     candles = raw.get("candles")
     messages = raw.get("messages")
+    normalized = {}
+    if isinstance(messages, dict):
+        for stele_id, bucket in messages.items():
+            if not isinstance(bucket, list):
+                continue
+            clean_bucket = []
+            for index, item in enumerate(bucket):
+                if isinstance(item, str):
+                    clean_bucket.append({
+                        "id": "legacy-" + hashlib.sha1((str(stele_id) + ":" + str(index) + ":" + item).encode("utf-8")).hexdigest()[:16],
+                        "text": item,
+                        "name": "",
+                        "userId": None,
+                        "createdAt": "",
+                    })
+                elif isinstance(item, dict) and isinstance(item.get("text"), str):
+                    clean_bucket.append({
+                        "id": str(item.get("id") or "legacy-" + hashlib.sha1((str(stele_id) + ":" + str(index) + ":" + item["text"]).encode("utf-8")).hexdigest()[:16]),
+                        "text": item["text"][:MAX_MESSAGE],
+                        "name": str(item.get("name") or "")[:MAX_MESSAGE],
+                        "userId": int(item["userId"]) if isinstance(item.get("userId"), int) else None,
+                        "createdAt": str(item.get("createdAt") or ""),
+                    })
+            if clean_bucket:
+                normalized[str(stele_id)] = clean_bucket[-MAX_MESSAGES_PER_STELE:]
     return {
         "candles": candles if isinstance(candles, dict) else {},
-        "messages": messages if isinstance(messages, dict) else {},
+        "messages": normalized,
     }
 
 
@@ -510,6 +535,26 @@ def guestbook_delete(message_id: int, user_id: int) -> bool:
             return cur.rowcount > 0
 
 
+def hall_message_id() -> str:
+    return "m-" + secrets.token_urlsafe(12)
+
+
+def hall_message_delete(message_id: str, user_id: int) -> bool:
+    with _LOCK:
+        state = load_state()
+        changed = False
+        for stele_id, bucket in state["messages"].items():
+            if not isinstance(bucket, list):
+                continue
+            kept = [m for m in bucket if not (isinstance(m, dict) and m.get("id") == message_id and m.get("userId") == user_id)]
+            if len(kept) != len(bucket):
+                state["messages"][stele_id] = kept
+                changed = True
+        if changed:
+            save_state(state)
+        return changed
+
+
 class Handler(SimpleHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     server_version = "YijieHall/1.1"
@@ -688,7 +733,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_OPTIONS(self):
         path = urlparse(self.path).path
-        if path not in ("/api/hall", "/api/candle", "/api/message", "/api/guestbook", "/api/visit", "/api/auth/me", "/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/recover", "/api/account/save"):
+        if path not in ("/api/hall", "/api/candle", "/api/message", "/api/guestbook", "/api/visit", "/api/auth/me", "/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/recover", "/api/account/save") and not re.fullmatch(r"/api/message/[^/]+/delete", path):
             self._json(404, {"error": "not found"})
             return
         self.send_response(204)
@@ -894,6 +939,24 @@ class Handler(SimpleHTTPRequestHandler):
                 return
             self._json(201, {"message": message})
             return
+        message_delete_match = re.fullmatch(r"/api/message/([^/]+)/delete", path)
+        if message_delete_match:
+            if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/json":
+                self._json(415, {"error": "json content type required"})
+                return
+            if not self._origin_allowed():
+                self._json(403, {"error": "origin not allowed"})
+                return
+            user = self.current_user()
+            if not user:
+                self._json(401, {"error": "login required"})
+                return
+            if not write_authorized(self.headers.get("X-Yijie-Write-Key", "")):
+                self._json(401, {"error": "write key required"})
+                return
+            ok = hall_message_delete(message_delete_match.group(1), user["id"])
+            self._json(200 if ok else 404, {"ok": ok})
+            return
         if path not in ("/api/candle", "/api/message"):
             self._json(404, {"error": "not found"})
             return
@@ -938,10 +1001,17 @@ class Handler(SimpleHTTPRequestHandler):
                 if not text:
                     self._json(400, {"error": "empty message"})
                     return
+                user = self.current_user()
                 bucket = state["messages"].get(stele_id, [])
                 if not isinstance(bucket, list):
                     bucket = []
-                bucket.append(text)
+                bucket.append({
+                    "id": hall_message_id(),
+                    "text": text,
+                    "name": (user["displayName"] if user else ""),
+                    "userId": user["id"] if user else None,
+                    "createdAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                })
                 state["messages"][stele_id] = bucket[-MAX_MESSAGES_PER_STELE:]
                 save_state(state)
                 self._json(200, {"messages": state["messages"][stele_id], "totalMessages": counts(state)["totalMessages"]})

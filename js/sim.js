@@ -150,6 +150,7 @@
         lastChainAge: -999,
         bottle,
         physique,
+        physiqueAwakened: null,
         artifact: null,
         flags: {},
         seen: {},
@@ -1062,6 +1063,7 @@
       const artifactDef = s.artifact && D.PLAYER_ARTIFACTS.find((x) => x.key === s.artifact.key);
       if (artifactDef && artifactDef.path === s.sectPath && !s.artifact.broken) level += 1;
       if (s.physique && s.physique.path === s.sectPath) level += 1;
+      if (s.physiqueAwakened && s.physique && s.physique.path === s.sectPath) level += 1;
       return level;
     }
 
@@ -1968,11 +1970,19 @@
       if (!effects) return;
       if (effects.artifactBroken && s.artifact) s.artifact.broken = true;
       if (effects.artifact && !s.artifact) this.bindArtifact(effects.artifact);
+      if (typeof effects.artifactBond === "number" && s.artifact && !s.artifact.broken) {
+        s.artifact.bond = clamp((s.artifact.bond || 0) + effects.artifactBond, 0, 100);
+        s.artifact.stage = Math.min(3, Math.floor(s.artifact.bond / 25));
+      }
+      if (effects.physiqueAwaken === "nature" || effects.physiqueAwaken === "seal") {
+        s.physiqueAwakened = effects.physiqueAwaken;
+      }
       if (typeof effects.cult === "number")
         s.cult = clamp(s.cult + effects.cult, 0, 100);
       if (typeof effects.mood === "number") s.mood = clamp(s.mood + effects.mood, 0, 100);
       if (typeof effects.karma === "number") {
         s.karma = clamp(s.karma + effects.karma, -100, 100);
+        if (effects.karma >= 5) s.flags.benefactor_seen = true;
         if (effects.karma !== 0) {
           s.karmaBook = Array.isArray(s.karmaBook) ? s.karmaBook : [];
           s.karmaBook.push({ age: s.age, value: effects.karma });
@@ -2223,7 +2233,10 @@
         s.injury = Math.max(0, (s.injury || 0) - 1);
         s.mood = clamp(s.mood + 10, 0, 100);
         s.maxAge = Math.max(s.maxAge, this.realmLife(s.tier));
-        if (s.artifact && !s.artifact.broken) s.artifact.stage = Math.min(3, (s.artifact.stage || 0) + 1);
+        if (s.artifact && !s.artifact.broken) {
+          s.artifact.bond = Math.min(100, (s.artifact.bond || 0) + 20);
+          s.artifact.stage = Math.min(3, Math.floor(s.artifact.bond / 25));
+        }
         const r = this.realm();
         this.pushLog("break", `天地灵气倒灌。你破境了——${r.name}。`, {
           title: "破境",
@@ -2481,6 +2494,7 @@
       if (!Array.isArray(sim.state.history)) sim.state.history = [];
       if (!sim.state.physique || typeof sim.state.physique !== "object") sim.state.physique = null;
       if (!sim.state.artifact || typeof sim.state.artifact !== "object") sim.state.artifact = null;
+      if (sim.state.artifact && typeof sim.state.artifact.bond !== "number") sim.state.artifact.bond = 0;
       sim.ensureChainState();
       sim.rng.setState(run.rng);
       sim.socialRng.setState(run.socialRng);
@@ -2538,7 +2552,7 @@
         place: s.place,
         bottle: false,
         physique: s.physique ? { key: s.physique.key, name: s.physique.name } : null,
-        artifact: s.artifact ? { key: s.artifact.key, name: s.artifact.name, stage: s.artifact.stage || 0, broken: !!s.artifact.broken } : null,
+        artifact: s.artifact ? { key: s.artifact.key, name: s.artifact.name, stage: s.artifact.stage || 0, bond: s.artifact.bond || 0, broken: !!s.artifact.broken } : null,
         wish: this.wishSummary(),
         legacy: this.legacySummary(),
         legendary: !!s.legendary,

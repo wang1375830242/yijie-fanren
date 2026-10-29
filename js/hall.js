@@ -17,11 +17,13 @@
   const apiUrl = (path) => API_BASE + path;
 
   async function postWrite(path, payload) {
-    return fetch(apiUrl(path), {
+    const options = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    });
+    };
+    if (U.auth && U.auth.session()) return U.auth.fetch(path, options);
+    return fetch(apiUrl(path), options);
   }
 
   /* 碑林里的无名碑：给新来的人一点可以看的东西 */
@@ -190,10 +192,34 @@
     const source = isPublic ? shared.candles : U.store.candles();
     return Object.values(source).reduce((sum, n) => sum + (Number(n) || 0), 0);
   }
+  function normalizeMessage(item) {
+    if (typeof item === "string") return { id: "", text: item, name: "", userId: null };
+    if (!item || typeof item !== "object") return null;
+    return {
+      id: String(item.id || ""),
+      text: String(item.text || ""),
+      name: String(item.name || ""),
+      userId: item.userId == null ? null : Number(item.userId),
+      createdAt: String(item.createdAt || ""),
+    };
+  }
+
   function messagesFor(id) {
-    const pub = isPublic ? shared.messages[id] || [] : [];
-    const local = MSG[id] || [];
-    return pub.concat(local.filter((m) => !pub.includes(m))).slice(-20);
+    const pub = (isPublic ? shared.messages[id] || [] : []).map(normalizeMessage).filter(Boolean);
+    const local = (MSG[id] || []).map(normalizeMessage).filter(Boolean);
+    const seen = new Set();
+    return pub.concat(local).filter((m) => {
+      const key = m.id || m.text;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(-20);
+  }
+
+  function messageHTML(message) {
+    const session = U.auth && U.auth.session();
+    const mine = !!(session && session.user && message.userId && session.user.id === message.userId);
+    return `<div class="hall-message"><div>${message.name ? `<b class="hall-message-name">${U.esc(message.name)}</b>` : ""}<span>${U.esc(message.text)}</span></div>${mine && message.id ? `<button class="hall-message-delete" type="button" data-delete-message="${U.esc(message.id)}">删除</button>` : ""}</div>`;
   }
 
   /* ---------- 汇总 ---------- */
@@ -394,7 +420,7 @@
     const msgs = messagesFor(x.id);
     $("smMsgs").innerHTML = msgs
       .slice(-6)
-      .map((m) => `<div>${U.esc(m)}</div>`)
+      .map((m) => messageHTML(m))
       .join("");
     $("smMsgInput").value = "";
     $("steleOverlay").hidden = false;
@@ -482,7 +508,7 @@
         $("smMsgInput").value = "";
         $("smMsgs").innerHTML = messagesFor(current.id)
           .slice(-6)
-          .map((m) => `<div>${U.esc(m)}</div>`)
+          .map((m) => messageHTML(m))
           .join("");
         U.toast("留在公共碑林了");
         return;
@@ -495,10 +521,25 @@
     $("smMsgInput").value = "";
     $("smMsgs").innerHTML = messagesFor(current.id)
       .slice(-6)
-      .map((m) => `<div>${U.esc(m)}</div>`)
+      .map((m) => messageHTML(m))
       .join("");
     U.toast("留在碑上了");
   }
+  $("smMsgs").addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-delete-message]");
+    if (!button) return;
+    if (!confirm("删除这条碑林留言？")) return;
+    try {
+      const res = await postWrite(`/api/message/${encodeURIComponent(button.dataset.deleteMessage)}/delete`, {});
+      if (!res.ok) throw new Error("delete failed");
+      await loadShared();
+      open(current);
+      U.toast("留言已删除");
+    } catch (err) {
+      U.toast("这条留言暂时删不掉");
+    }
+  });
+
   $("smMsgBtn").addEventListener("click", leave);
   $("smMsgInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") leave();
