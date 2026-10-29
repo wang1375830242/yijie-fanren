@@ -74,5 +74,5 @@
 - `account.html` 增加记录区域
 - `js/account.js` 从 `XD.account.snapshot()` 渲染
 - `css/account.css` 增加响应式卡片和折叠详情
-- 新增 `js/life-card.js`，账号页与终局使用同一套命格卡绘制逻辑
+- 新增 `js/life-card.js`，账号页按终局命格卡的字段与版式生成同款卡片；终局页原有逻辑保持不变
 - 不新增后端接口，不改变账号同步格式
