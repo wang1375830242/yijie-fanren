@@ -2159,3 +2159,11 @@ body:not(.in-life) #btnAuto {
     min-width: 0;
   }
 }
+
+.legacy-choices { margin-top: 16px; }
+.legacy-choice-title { color: var(--paper-muted); font-family: var(--kai); font-size: 11px; letter-spacing: .12em; margin: 0 0 8px; }
+#legacyChoiceList { display: grid; gap: 8px; }
+.legacy-choice { display: grid; gap: 4px; text-align: left; padding: 10px 12px; border: 1px solid var(--line-ink); background: transparent; color: var(--paper-ink); cursor: pointer; font: inherit; }
+.legacy-choice b { font-family: var(--kai); font-size: 14px; letter-spacing: .08em; }
+.legacy-choice span { color: var(--paper-muted); font-family: var(--kai); font-size: 11px; line-height: 1.7; }
+.legacy-choice:hover, .legacy-choice:focus-visible, .legacy-choice.is-active { border-color: var(--realm); background: rgba(127, 178, 155, .06); }

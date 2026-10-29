@@ -1679,6 +1679,20 @@ ok(!noArtTrib.some((c) => c.label.includes("本命法宝")), "没有本命法宝
 const artTrib = XD.EVENT_BY_ID.n_tribulation.choices({ tier: 3, cult: 92, artifact: { broken: false } });
 ok(artTrib.some((c) => c.label.includes("本命法宝")), "持有本命法宝时应出现法宝迎劫选项");
 
+/* 2026-10-29: legacy death-choice checks. */
+const legacyChoiceSim = new Sim({ seed: 994, world: "human" });
+legacyChoiceSim.state.artifact = { key: "lei_mu", name: "雷击木剑胚", stage: 1, broken: false };
+legacyChoiceSim.state.sectPath = "jian";
+legacyChoiceSim.state.karma = 20;
+const legacyChoices = legacyChoiceSim.legacyChoices();
+ok(legacyChoices.length >= 3 && legacyChoices.some((x) => x.key === "artifact") && legacyChoices.some((x) => x.key === "path"), "传承应提供道果/遗物/道统选项");
+const artifactChoice = legacyChoices.find((x) => x.key === "artifact");
+const artifactNext = new Sim({ seed: 995, world: "human", legacy: artifactChoice.legacy });
+ok(artifactNext.state.artifact && artifactNext.state.artifact.key === "lei_mu", "遗物传承应把本命法宝带入下一世");
+const pathChoice = legacyChoices.find((x) => x.key === "path");
+const pathNext = new Sim({ seed: 996, world: "human", legacy: pathChoice.legacy });
+ok(pathNext.state.sectPath === "jian", "道统传承应把道统带入下一世");
+
 /* 2026-10-28: strategy iteration checks. */
 const strategySim = new Sim({ seed: 990, world: "human" });
 strategySim.state.tier = 3;

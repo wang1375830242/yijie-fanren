@@ -34,7 +34,7 @@ engineering  工程
 
 ```js
 {
-  version: "1.1.1",
+  version: "1.1.2",
   date: "2026-10-24",
   title: "一页短标题",
   summary: "一句话说明这一版最重要的变化。",

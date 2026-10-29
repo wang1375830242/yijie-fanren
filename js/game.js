@@ -1263,6 +1263,39 @@
     box.hidden = false;
   }
 
+  function renderLegacyChoices() {
+    const box = $("legacyChoices");
+    const list = $("legacyChoiceList");
+    const note = $("legacyNote");
+    if (!box || !list || !sim) return;
+    const choices = sim.legacyChoices();
+    if (!choices.length) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    const activeKey = endSummary && endSummary.legacy ? endSummary.legacy.bequest : "dao";
+    list.innerHTML = choices
+      .map(
+        (choice) => `<button class="legacy-choice${choice.key === activeKey ? " is-active" : ""}" type="button" data-legacy-key="${U.esc(choice.key)}">
+          <b>${U.esc(choice.title)}</b><span>${U.esc(choice.desc)}</span>
+        </button>`
+      )
+      .join("");
+    list.querySelectorAll("[data-legacy-key]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const choice = choices.find((item) => item.key === button.dataset.legacyKey);
+        if (!choice) return;
+        endSummary.legacy = choice.legacy;
+        U.store.setLegacy(choice.legacy);
+        renderLegacy(choice.legacy);
+        list.querySelectorAll(".legacy-choice").forEach((item) => item.classList.toggle("is-active", item === button));
+        if (note) note.textContent = `已选择「${choice.title}」。仅下一世继承，不继承境界、修为与寿元。`;
+      });
+    });
+    if (note) note.textContent = "默认道果；可在上方改选。仅下一世继承，不继承境界、修为与寿元。";
+  }
+
   function endLife() {
     stopWhisper();
     clearTimeout(timer);
@@ -1390,6 +1423,7 @@
         .join("") || '<div class="deed"><span class="deed-age">—</span><span>这一世没有留下什么值得记下的事。</span></div>';
 
     renderLegacy(endSummary.legacy);
+    renderLegacyChoices();
     show("end");
   }
 

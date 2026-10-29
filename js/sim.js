@@ -229,6 +229,8 @@
         ward: raw.ward ? 1 : 0,
         bequest: ["dao", "artifact", "path", "karma"].includes(raw.bequest) ? raw.bequest : "dao",
         burden: ["", "injury", "debt"].includes(raw.burden) ? raw.burden : "",
+        artifactKey: typeof raw.artifactKey === "string" ? raw.artifactKey : null,
+        sectPath: ["dan", "jian", "zhen", "you"].includes(raw.sectPath) ? raw.sectPath : null,
         source: raw.source && typeof raw.source === "object" ? raw.source : null,
       };
     }
@@ -257,6 +259,9 @@
       s.karma = clamp(s.karma + legacy.karma, -100, 100);
       if (legacy.ward) s.ward = Math.max(s.ward, 1);
       if (legacy.burden === "debt") s.karma = clamp(s.karma - 5, -100, 100);
+      if (legacy.burden === "injury") s.injury = Math.max(s.injury || 0, 1);
+      if (legacy.artifactKey && !s.artifact) this.bindArtifact(legacy.artifactKey);
+      if (legacy.sectPath) s.sectPath = legacy.sectPath;
       return {
         v: 1,
         depth: legacy.depth,
@@ -315,6 +320,44 @@
           rivalNames,
         },
       };
+    }
+
+    legacyChoices() {
+      const s = this.state;
+      const base = this.legacySummary();
+      const choices = [
+        {
+          key: "dao",
+          title: "道果",
+          desc: "保留前世悟性、灵石与灵根余韵，不添新的负担。",
+          legacy: Object.assign({}, base, { bequest: "dao", burden: "" }),
+        },
+      ];
+      if (s.artifact && !s.artifact.broken) {
+        choices.push({
+          key: "artifact",
+          title: "遗物",
+          desc: "带走本命法宝的余烬，下一世自动温养；旧伤会跟着你。",
+          legacy: Object.assign({}, base, { bequest: "artifact", burden: "injury", artifactKey: s.artifact.key }),
+        });
+      }
+      if (s.sectPath) {
+        choices.push({
+          key: "path",
+          title: "道统",
+          desc: "下一世继承同一条道统；宗门会记着这笔旧账。",
+          legacy: Object.assign({}, base, { bequest: "path", burden: "debt", sectPath: s.sectPath }),
+        });
+      }
+      if (Math.abs(s.karma || 0) >= 10) {
+        choices.push({
+          key: "karma",
+          title: "因果",
+          desc: "把前世未了的人和事带下去；善缘或恶债都会找上门。",
+          legacy: Object.assign({}, base, { bequest: "karma", burden: s.karma < 0 ? "debt" : "" }),
+        });
+      }
+      return choices;
     }
 
     wishSummary() {
