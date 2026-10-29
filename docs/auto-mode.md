@@ -32,7 +32,7 @@
 ## 验收
 
 ```text
-canon-regression: 417 checks passed
+canon-regression: 425 checks passed
 220 runs, 0 issues
 changelog-check: 8 releases, 112 changes
 ```

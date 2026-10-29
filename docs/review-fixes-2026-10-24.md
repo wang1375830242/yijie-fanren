@@ -35,10 +35,10 @@
 
 ```text
 syntax-check: 21 js files ok
-a11y-check: 43 checks passed
-browser-smoke: 7 pages ok
+a11y-check: 47 checks passed
+browser-smoke: 8 pages ok
 guestbook-check: ok
-canon-regression: 417 checks passed
+canon-regression: 425 checks passed
 220 runs, 0 issues
 natural-ascensions=9
 changelog-check: 8 releases, 112 changes

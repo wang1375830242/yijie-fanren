@@ -2493,6 +2493,11 @@
       if (!Array.isArray(sim.state.log)) sim.state.log = [];
       if (!Array.isArray(sim.state.history)) sim.state.history = [];
       if (!sim.state.physique || typeof sim.state.physique !== "object") sim.state.physique = null;
+      if (sim.state.physique && !sim.state.physique.path) {
+        const def = D.PHYSIQUES.find((x) => x.key === sim.state.physique.key);
+        if (def) sim.state.physique = Object.assign({}, def, sim.state.physique);
+      }
+      if (typeof sim.state.physiqueAwakened !== "string") sim.state.physiqueAwakened = null;
       if (!sim.state.artifact || typeof sim.state.artifact !== "object") sim.state.artifact = null;
       if (sim.state.artifact && typeof sim.state.artifact.bond !== "number") sim.state.artifact.bond = 0;
       sim.ensureChainState();
