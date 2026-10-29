@@ -1940,12 +1940,12 @@
     choices: [
       {
         label: "以自身道基硬叩",
-        effects: { cult: -6, breakBonus: 10, insight: 4, mood: -3, flag: "dacheng_gate" },
+        effects: { cult: -6, breakBonus: 10, insight: 4, mood: -3, daoPrep: 2, flag: "dacheng_gate" },
         outcome: "你把道基压在门上，听见自己体内有什么东西轻轻裂开。门开了一线，雷云散了。",
       },
       {
         label: "借雷云淬体，再叩一次",
-        effects: { cult: -4, breakBonus: 8, mood: 2, flag: "dacheng_gate" },
+        effects: { cult: -4, breakBonus: 8, mood: 2, daoPrep: 1, flag: "dacheng_gate" },
         outcome: "你在雷云下坐了三年。再站起来时，骨头里还有雷声，但门槛已经矮了一截。",
       },
       {
@@ -1970,12 +1970,12 @@
     choices: [
       {
         label: "以法则开路",
-        effects: { cult: -6, breakBonus: 10, insight: 5, mood: -3, flag: "daluo_gate" },
+        effects: { cult: -6, breakBonus: 10, insight: 5, mood: -3, daoPrep: 2, flag: "daluo_gate" },
         outcome: "你把这一生悟出的法则按在镜面上。镜子碎了一条缝，缝后面是大罗。",
       },
       {
         label: "以功德叩门",
-        effects: { cult: -4, breakBonus: 8, karma: 5, flag: "daluo_gate" },
+        effects: { cult: -4, breakBonus: 8, karma: 5, daoPrep: 1, flag: "daluo_gate" },
         outcome: "你没有强破那面镜子，只是把救过的人、做过的事一件件放上去。镜子自己让开了。",
       },
       {
@@ -2002,12 +2002,12 @@
     choices: [
       {
         label: "认下恶念，亲手斩它",
-        effects: { cult: -8, mood: -8, karma: -4, insight: 4, flag: "sanshi_e" },
+        effects: { cult: -8, mood: -8, karma: -4, insight: 4, daoPrep: 2, flag: "sanshi_e" },
         outcome: "你一剑落下，血海没有退，反而安静了。原来恶尸不是别人，是你终于肯承认的那部分自己。",
       },
       {
         label: "任它砍一刀，把债认下",
-        effects: { cult: -10, mood: -4, karma: 2, insight: 3, flag: "sanshi_e" },
+        effects: { cult: -10, mood: -4, karma: 2, insight: 3, daoPrep: 1, flag: "sanshi_e" },
         outcome: "那一刀从肩头穿过去，你没有还手。恶尸看了你很久，慢慢散了。",
       },
       {
@@ -2034,12 +2034,12 @@
     choices: [
       {
         label: "斩去善尸，不让善念成为执念",
-        effects: { cult: -6, mood: -8, karma: -3, insight: 6, flag: "sanshi_shan" },
+        effects: { cult: -6, mood: -8, karma: -3, insight: 6, daoPrep: 2, flag: "sanshi_shan" },
         outcome: "剑落下去的时候，你听见很多人的声音一起消失。你仍然记得他们，只是不再被他们牵住。",
       },
       {
         label: "留下善念，带着伤过关",
-        effects: { cult: -4, mood: 2, karma: 3, insight: 3, flag: "sanshi_shan" },
+        effects: { cult: -4, mood: 2, karma: 3, insight: 3, daoPrep: 1, flag: "sanshi_shan" },
         outcome: "你没有斩。善尸化作一点微光，落在你的道袍上。往后的路会更重，但你还想带着它走。",
       },
       {
@@ -2068,12 +2068,12 @@
         label: "斩我",
         risk: { p: 0.55, bonus: 0, text: "你赢了。", fail: { death: true, cause: "陨于斩三尸" } },
         noRescue: true,
-        effects: { insight: 12, mood: -10, flag: "sanshi_wo" },
+        effects: { insight: 12, mood: -10, daoPrep: 3, flag: "sanshi_wo" },
         outcome: "你一剑斩下去，镜子里的人先笑了，然后碎了。门后没有声音，只有一条很长的路。",
       },
       {
         label: "把自我尸放逐进时空乱流",
-        effects: { cult: -8, insight: 8, mood: -4, flag: "sanshi_wo" },
+        effects: { cult: -8, insight: 8, mood: -4, daoPrep: -3, flag: "sanshi_wo" },
         outcome: "你没有杀它。你把它推进一道裂缝，连同它记得的那个你。门开了，但你知道它还会在某个地方看着你。",
       },
       {
@@ -2095,7 +2095,13 @@
       !s.flags.sanshi_closed,
     w: 60,
     title: "道祖之争",
-    text: "三尸已尽。道祖不是唯一的位置，但每一条大道走到尽头，都有一个位置。此刻，你面前那条路的尽头空着。你站在大罗天上，看见另外两道身影也在往这里来。",
+    text: (s) => {
+      const prep = Math.max(0, Math.min(10, Number(s.daoPrep) || 0));
+      const extra = prep > 0
+        ? `你这一路的准备，让这一争多了 ${prep}% 的成算。`
+        : "你没有为这一争准备什么，只能凭本心。";
+      return `三尸已尽。道祖不是唯一的位置，但每一条大道走到尽头，都有一个位置。此刻，你面前那条路的尽头空着。你站在大罗天上，看见另外两道身影也在往这里来。${extra}`;
+    },
     choices: [
       {
         label: "争",

@@ -121,6 +121,7 @@ ok(sanshiSim.forceMilestone(), "大罗后期应触发自我尸");
 ok(sanshiSim.state.pending && sanshiSim.state.pending.id === "i_sanshi_wo", "自我尸事件应正确");
 sanshiSim.choose(0);
 ok(sanshiSim.state.flags.sanshi_wo, "斩自我尸后应记录进度");
+ok(sanshiSim.state.daoPrep === 7, "三尸选择应累计道祖准备");
 ok(sanshiSim.forceMilestone(), "三尸尽后应触发道祖之争");
 ok(sanshiSim.state.pending && sanshiSim.state.pending.id === "i_daozu", "道祖事件应正确");
 
@@ -132,6 +133,7 @@ ok(dachengGate.forceMilestone(), "合体后期应触发大乘之门");
 ok(dachengGate.state.pending && dachengGate.state.pending.id === "i_dacheng_gate", "大乘之门应正确");
 dachengGate.choose(0);
 ok(dachengGate.state.flags.dacheng_gate, "大乘之门应记录已叩门");
+ok(dachengGate.state.daoPrep === 2, "大乘之门硬叩应增加道祖准备");
 
 const daluoGate = new Sim({ seed: 932, world: "immortal" });
 daluoGate.state.tier = 11;
@@ -141,6 +143,7 @@ ok(daluoGate.forceMilestone(), "太乙后期应触发大罗天");
 ok(daluoGate.state.pending && daluoGate.state.pending.id === "i_daluo_gate", "大罗天应正确");
 daluoGate.choose(0);
 ok(daluoGate.state.flags.daluo_gate, "大罗天应记录已叩门");
+ok(daluoGate.state.daoPrep === 2, "大罗天法则开路应增加道祖准备");
 
 /* 结局：分类、三幕回顾与终局摘要。 */
 const endingSim = new Sim({ seed: 602, world: "human" });
@@ -1614,6 +1617,21 @@ const daozuChance = capturedRisk("i_daozu", (sim) => {
   sim.state.flags.sanshi_wo = true;
 });
 ok(Math.abs(daozuChance - 0.45) < 1e-9, "道祖之争应使用显式 0.45 风险，而不是隐藏 +0.34");
+
+const daozuPrepChance = capturedRisk("i_daozu", (sim) => {
+  sim.state.tier = 12;
+  sim.state.cult = 90;
+  sim.state.luck = 50;
+  sim.state.focus = "cultivate";
+  sim.state.daoPrep = 10;
+  sim.state.flags.sanshi_e = true;
+  sim.state.flags.sanshi_shan = true;
+  sim.state.flags.sanshi_wo = true;
+});
+ok(Math.abs(daozuPrepChance - 0.55) < 1e-9, "道祖准备应直接提高道祖之争成算");
+const prepCap = new Sim({ seed: 983, world: "immortal" });
+prepCap.apply({ daoPrep: 30 });
+ok(prepCap.state.daoPrep === 10, "道祖准备总加成应封顶 10%");
 
 const mainlineFlag = new Sim({ seed: 982, world: "spirit" });
 mainlineFlag.state.tier = 5;

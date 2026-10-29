@@ -87,6 +87,7 @@
     addDetail(detail, "道号", life.daohao);
     addDetail(detail, "出身", life.origin ? [life.origin.place, life.origin.family].filter(Boolean).join(" · ") : "");
     addDetail(detail, "灵根", life.root ? life.root.name : "");
+    addDetail(detail, "道祖准备", life.daoPrep ? `+${Math.min(10, Math.round(Number(life.daoPrep)))}%` : "");
     addDetail(detail, "遗愿", life.wish ? life.wish.text : "");
     if (Array.isArray(life.deeds) && life.deeds.length) {
       const deeds = el("div", "record-detail-line");

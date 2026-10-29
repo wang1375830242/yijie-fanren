@@ -556,6 +556,7 @@
       const sanshi = [s.flags.sanshi_e, s.flags.sanshi_shan, s.flags.sanshi_wo].filter(Boolean).length;
       if (s.flags.sanshi_closed) tags.push("斩三尸 · 止步");
       else if (sanshi) tags.push(`斩三尸 · ${sanshi}/3`);
+      if (s.tier >= 11 && Number(s.daoPrep) > 0) tags.push(`道祖准备 +${Math.min(10, Math.round(Number(s.daoPrep)))}%`);
     }
     if (s.traits) {
       const traitLabels = {

@@ -107,6 +107,7 @@
         luck,
         breakBonus: 0,
         breakPrep: 0,
+        daoPrep: 0,
         injury: 0,
         sectPath: null,
         karmaBook: [],
@@ -1160,6 +1161,10 @@
       return Number(def && def.riskBonus) || 0;
     }
 
+    daoPrepBonus() {
+      return Math.max(0, Math.min(10, Number(this.state.daoPrep) || 0)) / 100;
+    }
+
     artifactBreakBonus() {
       const a = this.state.artifact;
       if (!a || a.broken) return 0;
@@ -1893,6 +1898,7 @@
             choice.risk.p +
               riskBonus +
               this.artifactRiskBonus() +
+              (s.pending && s.pending.id === "i_daozu" ? this.daoPrepBonus() : 0) +
               (s.luck - 50) * 0.002 +
               (Number(focus.luck) || 0) * 0.03 -
               (Number(focus.risk) || 0) * 0.02,
@@ -2098,6 +2104,7 @@
       if (typeof effects.maxAge === "number") s.maxAge += effects.maxAge;
       if (typeof effects.incomePerYear === "number") s.incomePerYear += effects.incomePerYear;
       if (typeof effects.breakBonus === "number") s.breakBonus += effects.breakBonus;
+      if (typeof effects.daoPrep === "number") s.daoPrep = clamp((Number(s.daoPrep) || 0) + effects.daoPrep, 0, 10);
       if (typeof effects.ward === "number") s.ward += effects.ward;
       if (typeof effects.cultRate === "number") s.cultRate += effects.cultRate;
       if (effects.flag) s.flags[effects.flag] = true;
@@ -2598,6 +2605,7 @@
       }
       if (typeof sim.state.physiqueAwakened !== "string") sim.state.physiqueAwakened = null;
       if (!sim.state.artifact || typeof sim.state.artifact !== "object") sim.state.artifact = null;
+      sim.state.daoPrep = clamp(Number(sim.state.daoPrep) || 0, 0, 10);
       if (sim.state.artifact && typeof sim.state.artifact.bond !== "number") sim.state.artifact.bond = 0;
       sim.ensureChainState();
       sim.rng.setState(run.rng);
@@ -2653,6 +2661,7 @@
         sect: s.sect,
         sectRank: this.sectRankName(),
         sectContrib: Math.round(s.sectContrib || 0),
+        daoPrep: Math.round(Number(s.daoPrep) || 0),
         place: s.place,
         bottle: false,
         physique: s.physique ? { key: s.physique.key, name: s.physique.name } : null,
