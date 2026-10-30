@@ -55,6 +55,7 @@ for (const file of [
   "js/chain-events.js",
   "js/canon-events.js",
   "js/sim.js",
+  "js/achievements.js",
   "js/canon.js",
 ]) {
   vm.runInThisContext(fs.readFileSync(path.join(ROOT, file), "utf8"), {
@@ -70,6 +71,39 @@ function ok(condition, message) {
   assert.ok(condition, message);
   checks++;
 }
+
+/* 成就定义与解锁判定。 */
+ok(XD.Achievements && XD.Achievements.DEFS.length === 18, "首版应固定为 18 个成就");
+const achievementLife = {
+  tier: 8,
+  world: "spirit",
+  startWorld: "human",
+  sect: "黄枫谷",
+  sectRankIndex: 4,
+  sectPath: "jian",
+  artifact: { key: "lei_mu", name: "雷击木剑胚" },
+  physiqueAwakened: "nature",
+  legendary: true,
+  flags: { sanshi_e: true, sanshi_shan: true, sanshi_wo: true },
+};
+const achievementResult = XD.Achievements.evaluate({
+  data: { v: 1, items: {} },
+  lives: [achievementLife, { tier: 1, world: "human", sectPath: "dan" }, { tier: 1, world: "human", sectPath: "zhen" }, { tier: 1, world: "human", sectPath: "you" }],
+  lineage: { total: 10 },
+});
+ok(achievementResult.unlocked.length >= 8, "高境界人生应一次解锁多项成就");
+ok(achievementResult.data.items.mahayana && achievementResult.data.items.spirit_guest, "大乘与灵界客应解锁");
+ok(achievementResult.data.items.sanshi_all && achievementResult.data.items.four_paths, "隐藏成就在满足条件后应解锁");
+const achievementRepeat = XD.Achievements.evaluate({
+  data: achievementResult.data,
+  lives: [achievementLife, { tier: 1, world: "human", sectPath: "dan" }, { tier: 1, world: "human", sectPath: "zhen" }, { tier: 1, world: "human", sectPath: "you" }],
+  lineage: { total: 10 },
+});
+ok(achievementRepeat.unlocked.length === 0, "成就重复结算不应重复解锁");
+ok(XD.Achievements.merge(
+  { v: 1, items: { qi: { at: "2026-01-02T00:00:00Z" } } },
+  { v: 1, items: { qi: { at: "2026-01-01T00:00:00Z" }, foundation: { at: "2026-02-01T00:00:00Z" } } }
+).items.qi.at === "2026-01-01T00:00:00Z", "合并成就应保留最早解锁时间");
 
 /* H1：后期境界不能被寿元硬锁死。 */
 for (const realm of D.REALMS.filter((realm) => realm.tier >= 3)) {

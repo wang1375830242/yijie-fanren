@@ -25,6 +25,7 @@
       lineage: U.store.lineage(),
       steles: U.store.steles(),
       candles: U.store.candles(),
+      achievements: U.store.achievements(),
     };
   }
 
@@ -56,6 +57,22 @@
     return { v: 1, total, streak, bestStreak: Math.max(number(left.bestStreak, 0), streak), entries };
   }
 
+  function mergeAchievements(a, b) {
+    const out = { v: 1, items: {} };
+    [a, b].forEach((source) => {
+      const items = source && source.v === 1 && source.items && typeof source.items === "object" ? source.items : {};
+      Object.keys(items).forEach((id) => {
+        const value = items[id];
+        if (!value || typeof value !== "object") return;
+        const at = typeof value.at === "string" ? value.at : "";
+        if (!out.items[id] || (at && (!out.items[id].at || at < out.items[id].at))) {
+          out.items[id] = { at };
+        }
+      });
+    });
+    return out;
+  }
+
   function mergeSnapshots(local, remote) {
     local = local && typeof local === "object" ? local : {};
     remote = remote && typeof remote === "object" ? remote : {};
@@ -82,6 +99,7 @@
       run,
       lineage: mergeLineage(local.lineage, remote.lineage),
       steles: Array.from(new Set([...(remote.steles || []), ...(local.steles || [])].filter((x) => typeof x === "string"))),
+      achievements: mergeAchievements(local.achievements, remote.achievements),
       candles,
     };
   }
@@ -94,6 +112,7 @@
     U.store.setLineage(snap.lineage || null);
     U.store.setSteles(Array.isArray(snap.steles) ? snap.steles : []);
     U.store.setCandles(snap.candles || {});
+    if (snap.achievements && snap.achievements.v === 1) U.store.setAchievements(snap.achievements);
   }
 
   function owner() {

@@ -76,3 +76,26 @@
 .record-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .record-actions .btn { font-size: 12px; }
 @media (max-width: 640px) { .record-actions .btn { width: 100%; } }
+
+
+/* 成就 */
+.account-achievements { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 24px; }
+.achievement-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.achievement-head h2 { font-size: 22px; font-weight: 400; margin: 0; letter-spacing: .1em; }
+.achievement-head .kicker { color: var(--gold); font-size: 11px; letter-spacing: .2em; margin: 0 0 8px; }
+.achievement-sub { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
+.achievement-count { color: var(--gold); font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.achievement-grid { display: grid; gap: 18px; margin-top: 18px; }
+.achievement-category h3 { color: var(--muted); font-size: 12px; font-weight: 400; letter-spacing: .12em; margin: 0 0 8px; }
+.achievement-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.achievement-card { border: 1px solid var(--line); background: var(--bg); padding: 10px 12px; min-width: 0; opacity: .58; }
+.achievement-card.is-unlocked { opacity: 1; border-color: #3d5a46; }
+.achievement-card b { display: block; color: var(--text); font-weight: 400; font-size: 13px; }
+.achievement-card.is-unlocked b { color: var(--gold); }
+.achievement-card span { display: block; color: var(--muted); font-size: 11px; line-height: 1.6; margin-top: 3px; }
+.achievement-card small { display: block; color: var(--muted); font-size: 10px; margin-top: 5px; }
+.achievement-card.is-hidden b { color: var(--muted); letter-spacing: .1em; }
+@media (max-width: 640px) {
+  .achievement-head { flex-direction: column; }
+  .achievement-list { grid-template-columns: 1fr; }
+}

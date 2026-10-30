@@ -2145,3 +2145,11 @@ body:not(.in-life) #btnAuto {
 .legacy-choice b { font-family: var(--kai); font-size: 14px; letter-spacing: .08em; }
 .legacy-choice span { color: var(--paper-muted); font-family: var(--kai); font-size: 11px; line-height: 1.7; }
 .legacy-choice:hover, .legacy-choice:focus-visible, .legacy-choice.is-active { border-color: var(--realm); background: rgba(127, 178, 155, .06); }
+
+
+/* 终局新成就 */
+.end-achievements { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 14px; }
+.end-achievements h3 { color: var(--muted); font-size: 12px; font-weight: 400; letter-spacing: .14em; margin: 0 0 10px; }
+.end-achievement { border: 1px solid #3d5a46; background: rgba(127, 165, 139, .07); padding: 9px 11px; margin-top: 6px; }
+.end-achievement b { display: block; color: var(--gold); font-weight: 400; font-size: 13px; }
+.end-achievement span { display: block; color: var(--muted); font-size: 11px; line-height: 1.6; margin-top: 3px; }

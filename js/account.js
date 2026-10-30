@@ -169,6 +169,41 @@
     $("historyNote").textContent = total > lives.length ? `账号共 ${total} 世；此处展示最近 ${lives.length} 世。` : "";
   }
 
+  function renderAchievements() {
+    if (!window.XD || !XD.Achievements) return;
+    const evaluated = XD.Achievements.evaluate({
+      lives: U.store.lives(),
+      lineage: U.store.lineage(),
+      current: null,
+    });
+    const data = evaluated.data;
+    const progress = XD.Achievements.progress(data);
+    const grid = $("achievementGrid");
+    if (!grid) return;
+    grid.textContent = "";
+    XD.Achievements.CATEGORIES.forEach((category) => {
+      const defs = XD.Achievements.DEFS.filter((def) => def.category === category);
+      const section = el("div", "achievement-category");
+      section.append(el("h3", "", `${category} · ${progress.categories[category].unlocked}/${progress.categories[category].total}`));
+      const list = el("div", "achievement-list");
+      defs.forEach((def) => {
+        const entry = data.items[def.id];
+        const unlocked = !!entry;
+        const hidden = !!def.hidden && !unlocked;
+        const card = el("div", `achievement-card${unlocked ? " is-unlocked" : ""}${hidden ? " is-hidden" : ""}`);
+        const title = el("b", "", hidden ? "???" : def.name);
+        const desc = el("span", "", hidden ? "未解锁的隐藏成就" : def.desc);
+        const meta = el("small", "", unlocked ? `已解锁 · ${dateText(entry.at)}` : "未解锁");
+        card.append(title, desc, meta);
+        list.append(card);
+      });
+      section.append(list);
+      grid.append(section);
+    });
+    $("achievementCount").textContent = `${progress.unlocked} / ${progress.total}`;
+    $("achievementSub").textContent = `账号级收集 · 已解锁 ${progress.unlocked} 个，不影响修为与战斗`;
+  }
+
   function showSigned(user) {
     currentUser = user;
     $("accountGuest").hidden = true;
@@ -177,6 +212,7 @@
     $("accountUser").textContent = "@" + user.username;
     $("accountAvatar").textContent = (user.displayName || user.username).slice(0, 1);
     renderHistory();
+    renderAchievements();
   }
 
   function showGuest() {
@@ -336,6 +372,7 @@
     $("syncStatus").classList.toggle("is-error", !!detail.error);
     if (detail.text && detail.text.indexOf("另一个账号") >= 0) $("importLocalBtn").hidden = false;
     renderHistory();
+    renderAchievements();
   });
   me();
 })();

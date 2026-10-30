@@ -167,6 +167,7 @@
       run: U.store.run(),
       lineage: U.store.lineage(),
       steles: U.store.steles(),
+      achievements: U.store.achievements(),
       exportedAt: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -198,6 +199,9 @@
       mergeLineage(data.lineage);
       mergeSteles(data.steles);
       mergeCandles(data.candles);
+      if (data.achievements && window.XD && XD.Achievements) {
+        U.store.setAchievements(XD.Achievements.merge(U.store.achievements(), data.achievements));
+      }
       const importedRun = cleanRun(data.run);
       if (importedRun) {
         if (!U.store.run() || confirm("导入会覆盖本机未完成的一世，继续吗？")) {

@@ -1202,6 +1202,23 @@
   /* ======================================================================
      终局
      ====================================================================== */
+  function renderEndAchievements(list) {
+    const box = $("endAchievements");
+    const target = $("endAchievementList");
+    if (!box || !target) return;
+    target.textContent = "";
+    if (!Array.isArray(list) || !list.length) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    list.forEach((def) => {
+      const row = U.el("div", { class: "end-achievement" });
+      row.append(U.el("b", { text: def.name }), U.el("span", { text: def.desc }));
+      target.append(row);
+    });
+  }
+
   function renderLegacy(legacy) {
     const box = $("legacyBox");
     if (!box || !legacy) return;
@@ -1314,6 +1331,16 @@
         : "这个浏览器不让保存记录。这一世不会留在碑林，但命格卡仍然可以带走。";
     }
 
+    let newAchievements = [];
+    if (XD.Achievements) {
+      const achievementResult = XD.Achievements.evaluate({
+        lives: U.store.lives(),
+        lineage: U.store.lineage(),
+        current: endSummary,
+      });
+      newAchievements = achievementResult.unlocked || [];
+    }
+
     const titles = {
       证道: "证 道",
       寿元耗尽: "坐 化",
@@ -1394,7 +1421,11 @@
 
     renderLegacy(endSummary.legacy);
     renderLegacyChoices();
+    renderEndAchievements(newAchievements);
     show("end");
+    newAchievements.filter((def) => def.rare).forEach((def) => {
+      setTimeout(() => toast(`成就解锁 · ${def.name}`), 280);
+    });
   }
 
   /* ======================================================================
