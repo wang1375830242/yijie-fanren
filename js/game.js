@@ -1845,6 +1845,20 @@
     });
   }
 
+  window.XD = window.XD || {};
+  window.XD.GameHooks = {
+    saveBeforeUpdate() {
+      if (!sim || !state || !state.alive) return true;
+      if (state.pending) {
+        toast("先处理当前选择，再更新页面");
+        return false;
+      }
+      const ok = saveRun(true);
+      if (!ok) toast("当前进度保存失败，先不要刷新");
+      return ok;
+    },
+  };
+
   document.addEventListener("DOMContentLoaded", () => {
     initBirth();
     bind();

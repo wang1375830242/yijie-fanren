@@ -34,14 +34,14 @@
 ## 测试
 
 ```text
-syntax-check: 21 js files ok
+syntax-check: 28 js files ok
 a11y-check: 47 checks passed
 browser-smoke: 8 pages ok
 guestbook-check: ok
 canon-regression: 462 checks passed
 220 runs, 0 issues
 natural-ascensions=9
-changelog-check: 10 releases, 135 changes
+changelog-check: 10 releases, 136 changes
 ```
 
 ## 仍然需要服务端的部分

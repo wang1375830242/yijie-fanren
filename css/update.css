@@ -1,0 +1,25 @@
+/* 更新提醒 */
+.update-banner {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border: 1px solid #3d5a46;
+  background: #141a17;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, .35);
+}
+.update-banner-copy { display: grid; gap: 4px; min-width: 0; }
+.update-banner-title { color: var(--gold); font-size: 13px; font-weight: 400; }
+.update-banner-notes { color: var(--muted); font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+.update-banner-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+.update-banner .btn { min-height: 30px; padding: 5px 10px; font-size: 11px; white-space: nowrap; }
+@media (max-width: 640px) {
+  .update-banner { left: 12px; right: 12px; bottom: 12px; max-width: none; flex-direction: column; align-items: stretch; }
+  .update-banner-actions { justify-content: flex-end; }
+}

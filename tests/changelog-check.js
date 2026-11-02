@@ -54,7 +54,17 @@ const latest = data.releases[0];
 assert(latest.version === pkg.version, `package.json 版本 ${pkg.version} 应等于最新版本 ${latest.version}`);
 assert(latest.date <= data.updatedAt, "updatedAt 不应早于最新版本日期");
 
+const versionFile = JSON.parse(fs.readFileSync(path.join(ROOT, "version.json"), "utf8"));
+assert(versionFile.version === pkg.version, "version.json 版本应与 package.json 一致");
+assert(typeof versionFile.build === "string" && versionFile.build, "version.json 缺少 build");
+const commonSource = fs.readFileSync(path.join(ROOT, "js/common.js"), "utf8");
+assert(commonSource.includes(`XD.VERSION = "${pkg.version}"`), "js/common.js 版本常量应与 package.json 一致");
+assert(commonSource.includes(`XD.BUILD = "${versionFile.build}"`), "js/common.js BUILD 应与 version.json 一致");
 const pageFiles = ["index.html", "play.html", "hall.html", "codex.html", "about.html"];
+pageFiles.forEach((file) => {
+  const source = fs.readFileSync(path.join(ROOT, file), "utf8");
+  assert(source.includes("js/update-check.js"), `${file} 缺少更新检测脚本`);
+});
 pageFiles.forEach((file) => {
   const source = fs.readFileSync(path.join(ROOT, file), "utf8");
   assert(source.includes("changelog.html"), `${file} 缺少更新页入口`);
