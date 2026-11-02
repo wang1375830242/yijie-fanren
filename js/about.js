@@ -168,6 +168,7 @@
       lineage: U.store.lineage(),
       steles: U.store.steles(),
       achievements: U.store.achievements(),
+      challenges: U.store.challenges(),
       exportedAt: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -201,6 +202,9 @@
       mergeCandles(data.candles);
       if (data.achievements && window.XD && XD.Achievements) {
         U.store.setAchievements(XD.Achievements.merge(U.store.achievements(), data.achievements));
+      }
+      if (data.challenges && window.XD && XD.Challenges) {
+        U.store.setChallenges(XD.Challenges.merge(U.store.challenges(), data.challenges));
       }
       const importedRun = cleanRun(data.run);
       if (importedRun) {

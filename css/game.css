@@ -2153,3 +2153,14 @@ body:not(.in-life) #btnAuto {
 .end-achievement { border: 1px solid #3d5a46; background: rgba(127, 165, 139, .07); padding: 9px 11px; margin-top: 6px; }
 .end-achievement b { display: block; color: var(--gold); font-weight: 400; font-size: 13px; }
 .end-achievement span { display: block; color: var(--muted); font-size: 11px; line-height: 1.6; margin-top: 3px; }
+
+
+/* 命格挑战 */
+.challenge-pick { display: grid; gap: 5px; margin: 0 0 12px; max-width: 520px; }
+.challenge-pick label { color: var(--muted); font-size: 12px; letter-spacing: .08em; }
+.challenge-pick select { background: var(--bg); border: 1px solid var(--line); color: var(--text); font: inherit; padding: 8px 10px; }
+.challenge-pick p { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 0; }
+.end-challenge { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 14px; }
+.end-challenge h3 { color: var(--muted); font-size: 12px; font-weight: 400; letter-spacing: .14em; margin: 0 0 8px; }
+.end-challenge p { color: var(--gold); font-size: 13px; margin: 0; }
+.end-challenge span { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }

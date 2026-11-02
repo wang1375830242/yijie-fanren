@@ -70,6 +70,7 @@
   const KEY_LINEAGE = "yijie.lineage.v1";
   const KEY_STELES = "yijie.steles.v1";
   const KEY_ACHIEVEMENTS = "yijie.achievements.v1";
+  const KEY_CHALLENGES = "yijie.challenges.v1";
 
   function read(key, fallback) {
     try {
@@ -193,6 +194,19 @@
     },
     clearAchievements() {
       write(KEY_ACHIEVEMENTS, { v: 1, items: {} });
+    },
+    challenges() {
+      const value = read(KEY_CHALLENGES, null);
+      if (!value || value.v !== 1 || !value.items || typeof value.items !== "object") {
+        return { v: 1, items: {} };
+      }
+      return value;
+    },
+    setChallenges(value) {
+      return write(KEY_CHALLENGES, value && value.v === 1 ? value : { v: 1, items: {} });
+    },
+    clearChallenges() {
+      write(KEY_CHALLENGES, { v: 1, items: {} });
     },
     prefs() {
       return read(KEY_PREFS, {});

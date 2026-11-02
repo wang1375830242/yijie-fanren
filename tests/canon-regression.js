@@ -54,8 +54,11 @@ for (const file of [
   "js/events-expanded.js",
   "js/chain-events.js",
   "js/canon-events.js",
+  "js/path-events.js",
+  "js/lineage-events.js",
   "js/sim.js",
   "js/achievements.js",
+  "js/challenges.js",
   "js/canon.js",
 ]) {
   vm.runInThisContext(fs.readFileSync(path.join(ROOT, file), "utf8"), {
@@ -104,6 +107,34 @@ ok(XD.Achievements.merge(
   { v: 1, items: { qi: { at: "2026-01-02T00:00:00Z" } } },
   { v: 1, items: { qi: { at: "2026-01-01T00:00:00Z" }, foundation: { at: "2026-02-01T00:00:00Z" } } }
 ).items.qi.at === "2026-01-01T00:00:00Z", "合并成就应保留最早解锁时间");
+
+/* 四道统中期事件。 */
+const pathEvents = XD.EVENTS.filter((event) => /^p_(jian|dan|zhen|you)_/.test(event.id));
+ok(pathEvents.length === 32, "四道统中期事件应固定为 32 条");
+ok(pathEvents.every((event) => /^p_(jian|dan|zhen|you)_/.test(event.id)), "道统事件 id 应可分类");
+ok(pathEvents.filter((event) => event.when({ world: "human", tier: 2, sectPath: "jian" })).length >= 8, "剑锋中期事件应在筑基后进入池");
+ok(!pathEvents[0].when({ world: "human", tier: 1, sectPath: "jian" }), "道统事件不应在炼气期提前触发");
+
+/* 命格挑战定义与判定。 */
+ok(XD.Challenges && XD.Challenges.DEFS.length === 10, "首版应有 10 个命格挑战");
+const challengeMortal = XD.Challenges.evaluate({
+  data: { v: 1, items: {} },
+  summary: { root: { key: "none" }, tier: 2, world: "human" },
+  lives: [],
+  lineage: { total: 1 },
+});
+ok(challengeMortal.unlocked.some((def) => def.id === "mortal_foundation"), "凡骨筑基挑战应可完成");
+const challengePaths = XD.Challenges.evaluate({
+  data: { v: 1, items: {} },
+  summary: null,
+  lives: [{ world: "human", sectPath: "dan" }, { world: "human", sectPath: "jian" }, { world: "human", sectPath: "zhen" }, { world: "human", sectPath: "you" }],
+  lineage: { total: 4 },
+});
+ok(challengePaths.unlocked.some((def) => def.id === "four_paths"), "四道归一挑战应可完成");
+ok(XD.Challenges.merge(
+  { v: 1, items: { ten_lives: { at: "2026-01-02T00:00:00Z" } } },
+  { v: 1, items: { ten_lives: { at: "2026-01-01T00:00:00Z" }, three_worlds: { at: "2026-02-01T00:00:00Z" } } }
+).items.ten_lives.at === "2026-01-01T00:00:00Z", "挑战合并应保留最早完成时间");
 
 /* H1：后期境界不能被寿元硬锁死。 */
 for (const realm of D.REALMS.filter((realm) => realm.tier >= 3)) {
@@ -1120,9 +1151,11 @@ ok(
 const echoSim = new Sim({ seed: 904, world: "human", legacy: echoLegacy });
 echoSim.state.age = 16;
 ok(echoSim.maybeLegacyEcho(), "有前世道果的十六岁应触发旧梦");
-ok(echoSim.state.pending && echoSim.state.pending.id === "legacy_echo", "旧梦事件应正确");
+ok(echoSim.state.pending && echoSim.state.pending.id === "legacy_echo_partner", "旧梦事件应按前世道侣选择变体");
 echoSim.choose(0);
 ok(echoSim.state.flags.legacy_echo_done, "旧梦选择应写入完成标记");
+ok(XD.LegacyEcho && typeof XD.LegacyEcho.pick === "function", "前世回响应提供变体选择器");
+ok(XD.EVENTS.filter((event) => event.id.startsWith("legacy_echo_")).length === 6, "前世回响应提供 6 个变体");
 const noEcho = new Sim({ seed: 905, world: "human" });
 noEcho.state.age = 16;
 ok(!noEcho.maybeLegacyEcho(), "没有前世道果不应触发旧梦");

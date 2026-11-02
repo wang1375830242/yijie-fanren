@@ -112,6 +112,23 @@
       pace = qPace;
     }
 
+    const qChallenge = params.get("challenge");
+    const challengeSelect = $("challengeSelect");
+    const challengeHint = $("challengeHint");
+    if (challengeSelect && XD.Challenges) {
+      challengeSelect.innerHTML = '<option value="">自由降生</option>' +
+        XD.Challenges.DEFS.map((def) => `<option value="${U.esc(def.id)}">${U.esc(def.name)}</option>`).join("");
+      if (qChallenge && XD.Challenges.byId[qChallenge]) challengeSelect.value = qChallenge;
+      const updateChallengeHint = () => {
+        const selected = XD.Challenges.byId[challengeSelect.value];
+        if (challengeHint) challengeHint.textContent = selected
+          ? `${selected.desc} · 固定 seed ${selected.seed}`
+          : "固定命格与 seed；完成记录会留在账号里。";
+      };
+      challengeSelect.addEventListener("change", updateChallengeHint);
+      updateChallengeHint();
+    }
+
     $("btnBirth").addEventListener("click", () => {
       if (rollingLife) return;
       rollingLife = true;
@@ -155,19 +172,23 @@
      ====================================================================== */
   function startLife(world) {
     const params = new URLSearchParams(location.search);
+    const challengeSelect = $("challengeSelect");
+    const challengeId = challengeSelect ? challengeSelect.value : params.get("challenge") || "";
+    const challenge = challengeId && XD.Challenges ? XD.Challenges.byId[challengeId] : null;
     const qSeed = params.get("seed");
-    const seed = qSeed ? Number(qSeed) >>> 0 : (Math.random() * 4294967295) >>> 0;
+    const seed = challenge ? challenge.seed : qSeed ? Number(qSeed) >>> 0 : (Math.random() * 4294967295) >>> 0;
     const modeEl = document.querySelector('input[name="mode"]:checked');
-    const storedLegacy = qSeed ? null : U.store.legacy();
+    const storedLegacy = challenge || qSeed ? null : U.store.legacy();
     const legacy = storedLegacy && !storedLegacy.usedBy ? storedLegacy : null;
     U.store.clearRun();
     runSaveWarned = false;
     sim = new XD.Sim({
       seed,
-      world,
-      mode: modeEl ? modeEl.value : "birth",
+      world: challenge ? challenge.world || world : world,
+      mode: challenge ? "birth" : modeEl ? modeEl.value : "birth",
       legacy,
     });
+    if (challenge) sim.state.challengeId = challenge.id;
     state = sim.state;
     if (legacy && U.store.markLegacyUsed) U.store.markLegacyUsed(seed);
     endSummary = null;
@@ -220,7 +241,7 @@
 
   function maybeResume() {
     const params = new URLSearchParams(location.search);
-    if (params.get("seed")) return;
+    if (params.get("seed") || params.get("challenge")) return;
     const run = U.store.run();
     if (!run) return;
     if (run.v !== 1 || !run.state || !run.state.alive) {
@@ -1219,6 +1240,29 @@
     });
   }
 
+  function renderEndChallenge(challengeId, completed, newChallenges) {
+    const box = $("endChallenge");
+    const text = $("endChallengeText");
+    if (!box || !text) return;
+    const active = challengeId && XD.Challenges ? XD.Challenges.byId[challengeId] : null;
+    const extra = Array.isArray(newChallenges) ? newChallenges.filter((def) => def.id !== challengeId) : [];
+    if (!active && !extra.length) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    if (active) {
+      text.textContent = completed
+        ? `挑战完成 · ${active.name}`
+        : `挑战未完成 · ${active.name}`;
+    }
+    if (extra.length) {
+      const line = document.createElement("span");
+      line.textContent = `另完成：${extra.map((def) => def.name).join("、")}`;
+      text.append(line);
+    }
+  }
+
   function renderLegacy(legacy) {
     const box = $("legacyBox");
     if (!box || !legacy) return;
@@ -1341,6 +1385,19 @@
       newAchievements = achievementResult.unlocked || [];
     }
 
+    let challengeCompleted = false;
+    let newChallenges = [];
+    if (XD.Challenges && endSummary.challengeId) {
+      const challengeResult = XD.Challenges.evaluate({
+        lives: U.store.lives(),
+        lineage: U.store.lineage(),
+        summary: endSummary,
+      });
+      newChallenges = challengeResult.unlocked || [];
+      const challengeProgress = XD.Challenges.progress(challengeResult.data);
+      challengeCompleted = !!challengeProgress.items[endSummary.challengeId] || newChallenges.some((def) => def.id === endSummary.challengeId);
+    }
+
     const titles = {
       证道: "证 道",
       寿元耗尽: "坐 化",
@@ -1422,7 +1479,9 @@
     renderLegacy(endSummary.legacy);
     renderLegacyChoices();
     renderEndAchievements(newAchievements);
+    renderEndChallenge(endSummary.challengeId, challengeCompleted, newChallenges);
     show("end");
+    if (challengeCompleted) setTimeout(() => toast("命格挑战完成"), 360);
     newAchievements.filter((def) => def.rare).forEach((def) => {
       setTimeout(() => toast(`成就解锁 · ${def.name}`), 280);
     });

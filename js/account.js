@@ -204,6 +204,64 @@
     $("achievementSub").textContent = `账号级收集 · 已解锁 ${progress.unlocked} 个，不影响修为与战斗`;
   }
 
+  function renderLineage() {
+    if (!window.XD) return;
+    const lineage = U.store.lineage();
+    const entries = (Array.isArray(lineage.entries) ? lineage.entries.slice() : []).sort((a, b) => (Number(b.no) || 0) - (Number(a.no) || 0));
+    const list = $("lineageList");
+    if (!list) return;
+    list.textContent = "";
+    $("lineageCount").textContent = `${Number(lineage.total) || entries.length} 世`;
+    $("lineageSub").textContent = `最近 ${entries.length} 世留痕 · 第 ${entries.length ? entries[entries.length - 1].no || "—" : "—"} 世至第 ${entries.length ? entries[0].no || "—" : "—"} 世`;
+    if (!entries.length) {
+      list.append(el("p", "lineage-empty", "还没有留下谱系。完成第一世后，这里会记住你的来处。"));
+      return;
+    }
+    entries.forEach((entry) => {
+      const card = el("article", "lineage-item");
+      const top = el("div", "lineage-top");
+      top.append(el("b", "", `第${entry.no || "—"}世 · ${entry.name || "无名"}`));
+      top.append(el("span", "", `${worldName(entry.world)} · ${entry.realm || "凡人"} · ${entry.age ? entry.age + "岁" : "—"}`));
+      card.append(top);
+      const meta = el("div", "lineage-meta");
+      meta.append(el("span", "", `结局：${entry.cause || "—"}`));
+      if (entry.sect) meta.append(el("span", "", `宗门：${entry.sect}`));
+      if (entry.partnerName) meta.append(el("span", "", `道侣：${entry.partnerName}`));
+      if (entry.discipleNames && entry.discipleNames.length) meta.append(el("span", "", `弟子：${entry.discipleNames.join("、")}`));
+      card.append(meta);
+      if (entry.wish && entry.wish.text) card.append(el("p", "lineage-wish", `遗愿：${entry.wish.text}`));
+      list.append(card);
+    });
+  }
+
+  function renderChallenges() {
+    if (!window.XD || !XD.Challenges) return;
+    const evaluated = XD.Challenges.evaluate({
+      lives: U.store.lives(),
+      lineage: U.store.lineage(),
+      summary: null,
+    });
+    const data = evaluated.data;
+    const progress = XD.Challenges.progress(data);
+    const list = $("challengeList");
+    if (!list) return;
+    list.textContent = "";
+    XD.Challenges.DEFS.forEach((def) => {
+      const entry = data.items[def.id];
+      const item = el("div", `challenge-item${entry ? " is-done" : ""}`);
+      item.append(el("b", "", def.name), el("span", "", def.desc));
+      item.append(el("small", "", entry ? `已完成 · ${dateText(entry.at)}` : "未完成"));
+      if (!entry) {
+        const link = el("a", "", "去挑战");
+        link.href = `play.html?challenge=${encodeURIComponent(def.id)}`;
+        item.append(link);
+      }
+      list.append(item);
+    });
+    $("challengeCount").textContent = `${progress.unlocked} / ${progress.total}`;
+    $("challengeSub").textContent = `固定命格与 seed · 已完成 ${progress.unlocked} 个，不影响修为`;
+  }
+
   function showSigned(user) {
     currentUser = user;
     $("accountGuest").hidden = true;
@@ -213,6 +271,8 @@
     $("accountAvatar").textContent = (user.displayName || user.username).slice(0, 1);
     renderHistory();
     renderAchievements();
+    renderChallenges();
+    renderLineage();
   }
 
   function showGuest() {
@@ -373,6 +433,8 @@
     if (detail.text && detail.text.indexOf("另一个账号") >= 0) $("importLocalBtn").hidden = false;
     renderHistory();
     renderAchievements();
+    renderChallenges();
+    renderLineage();
   });
   me();
 })();

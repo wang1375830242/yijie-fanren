@@ -161,6 +161,7 @@
         sceneUses: {},
         choiceTrace: [],
         legacy: null,
+        challengeId: null,
         focus: "cultivate",
         log: [],
         milestones: [],
@@ -1005,7 +1006,8 @@
         return false;
       }
       s.flags.legacy_echo_seen = true;
-      this.trigger("legacy_echo");
+      const echoId = window.XD && XD.LegacyEcho ? XD.LegacyEcho.pick(s) : "legacy_echo";
+      this.trigger(echoId);
       return true;
     }
     familyText(text) {
@@ -2606,6 +2608,7 @@
       if (typeof sim.state.physiqueAwakened !== "string") sim.state.physiqueAwakened = null;
       if (!sim.state.artifact || typeof sim.state.artifact !== "object") sim.state.artifact = null;
       sim.state.daoPrep = clamp(Number(sim.state.daoPrep) || 0, 0, 10);
+      sim.state.challengeId = typeof sim.state.challengeId === "string" ? sim.state.challengeId : null;
       if (sim.state.artifact && typeof sim.state.artifact.bond !== "number") sim.state.artifact.bond = 0;
       sim.ensureChainState();
       sim.rng.setState(run.rng);
@@ -2641,6 +2644,9 @@
         path: s.path,
         world: s.world,
         startWorld: s.startWorld,
+        challengeId: s.challengeId || null,
+        legacyUsed: !!s.legacy,
+        firstTierAge: (Array.isArray(s.tierHistory) ? s.tierHistory : []).find((item) => Number(item.tier) >= 2)?.age || 0,
         origin: s.origin,
         root: s.root,
         realm: this.displayRealm(),

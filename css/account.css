@@ -99,3 +99,28 @@
   .achievement-head { flex-direction: column; }
   .achievement-list { grid-template-columns: 1fr; }
 }
+
+
+/* 命格挑战 */
+.account-challenges { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 24px; }
+.challenge-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+.challenge-item { border: 1px solid var(--line); background: var(--bg); padding: 10px 12px; }
+.challenge-item.is-done { border-color: #3d5a46; background: rgba(127,165,139,.06); }
+.challenge-item b { display: block; color: var(--gold); font-weight: 400; font-size: 13px; }
+.challenge-item span { display: block; color: var(--muted); font-size: 11px; line-height: 1.6; margin-top: 3px; }
+.challenge-item small { display: block; color: var(--muted); font-size: 10px; margin-top: 5px; }
+.challenge-item a { display: inline-block; color: var(--jade); font-size: 11px; margin-top: 7px; text-decoration: none; }
+.challenge-item a:hover { text-decoration: underline; }
+@media (max-width: 640px) { .challenge-list { grid-template-columns: 1fr; } }
+
+
+/* 谱系 */
+.account-lineage { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 24px; }
+.lineage-list { display: grid; gap: 8px; margin-top: 16px; }
+.lineage-item { border-left: 1px solid var(--line); padding: 2px 0 2px 14px; }
+.lineage-top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.lineage-top b { color: var(--gold); font-weight: 400; font-size: 13px; }
+.lineage-top span { color: var(--muted); font-size: 11px; }
+.lineage-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 11px; margin-top: 3px; }
+.lineage-wish { color: var(--text); font-size: 12px; margin: 5px 0 0; }
+.lineage-empty { color: var(--muted); font-size: 12px; margin: 0; }

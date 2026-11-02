@@ -7,11 +7,11 @@
 <meta name="description" content="一介凡人账号：跨设备保存最近人生、留言身份与云端备份。">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="js/theme-init.js?v=20261028q"></script>
+<script src="js/theme-init.js?v=20261028r"></script>
 <link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/base.css?v=20261028q">
+<link rel="stylesheet" href="css/base.css?v=20261028r">
 <link rel="stylesheet" href="css/account.css">
-<link rel="stylesheet" href="css/day.css?v=20261028q">
+<link rel="stylesheet" href="css/day.css?v=20261028r">
 </head>
 <body class="account-page">
 <noscript><div class="noscript">账号页需要 JavaScript 才能使用。</div></noscript>
@@ -128,14 +128,39 @@
       </div>
       <div class="achievement-grid" id="achievementGrid"></div>
     </section>
+
+    <section class="account-challenges" id="challengePanel" aria-label="命格挑战">
+      <div class="achievement-head">
+        <div>
+          <p class="kicker">此身之外 · 另选一条路</p>
+          <h2>命格挑战</h2>
+          <p class="achievement-sub" id="challengeSub">固定命格与 seed 的特殊人生。</p>
+        </div>
+        <span class="achievement-count" id="challengeCount">0 / 10</span>
+      </div>
+      <div class="challenge-list" id="challengeList"></div>
+    </section>
+
+    <section class="account-lineage" id="lineagePanel" aria-label="前世谱系">
+      <div class="achievement-head">
+        <div>
+          <p class="kicker">此身之外 · 来处</p>
+          <h2>谱系</h2>
+          <p class="achievement-sub" id="lineageSub">最近二十世的来处与归途。</p>
+        </div>
+        <span class="achievement-count" id="lineageCount">0 世</span>
+      </div>
+      <div class="lineage-list" id="lineageList"></div>
+    </section>
   </section>
 </main>
 <canvas id="shareCanvas" width="1080" height="1350" hidden></canvas>
 
-<script src="js/common.js?v=20261028q"></script>
-<script src="js/account-sync.js?v=20261028q"></script>
-<script src="js/life-card.js?v=20261028q"></script>
-<script src="js/achievements.js?v=20261028q"></script>
-<script src="js/account.js?v=20261028q"></script>
+<script src="js/common.js?v=20261028r"></script>
+<script src="js/account-sync.js?v=20261028r"></script>
+<script src="js/life-card.js?v=20261028r"></script>
+<script src="js/achievements.js?v=20261028r"></script>
+<script src="js/challenges.js?v=20261028r"></script>
+<script src="js/account.js?v=20261028r"></script>
 </body>
 </html>
