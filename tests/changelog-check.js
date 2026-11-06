@@ -60,7 +60,7 @@ assert(typeof versionFile.build === "string" && versionFile.build, "version.json
 const commonSource = fs.readFileSync(path.join(ROOT, "js/common.js"), "utf8");
 assert(commonSource.includes(`XD.VERSION = "${pkg.version}"`), "js/common.js 版本常量应与 package.json 一致");
 assert(commonSource.includes(`XD.BUILD = "${versionFile.build}"`), "js/common.js BUILD 应与 version.json 一致");
-const pageFiles = ["index.html", "play.html", "hall.html", "codex.html", "about.html"];
+const pageFiles = ["index.html", "play.html", "life.html", "hall.html", "codex.html", "about.html"];
 pageFiles.forEach((file) => {
   const source = fs.readFileSync(path.join(ROOT, file), "utf8");
   assert(source.includes("js/update-check.js"), `${file} 缺少更新检测脚本`);

@@ -56,6 +56,10 @@ for (const file of [
   "js/canon-events.js",
   "js/path-events.js",
   "js/lineage-events.js",
+  "js/cause-events.js",
+  "js/tribulation-events.js",
+  "js/path-branch-events.js",
+  "js/late-expansion.js",
   "js/sim.js",
   "js/achievements.js",
   "js/challenges.js",
@@ -135,6 +139,42 @@ ok(XD.Challenges.merge(
   { v: 1, items: { ten_lives: { at: "2026-01-02T00:00:00Z" } } },
   { v: 1, items: { ten_lives: { at: "2026-01-01T00:00:00Z" }, three_worlds: { at: "2026-02-01T00:00:00Z" } } }
 ).items.ten_lives.at === "2026-01-01T00:00:00Z", "挑战合并应保留最早完成时间");
+
+/* 1.3.0：因果、天劫、道统分支与两界余波。 */
+const causeSim = new Sim({ seed: 7101, world: "human" });
+causeSim.state.legacyCause = { type: "karma", text: "还有一段因果没有了解。" };
+causeSim.state.age = 20;
+ok(causeSim.maybeCauseChain(), "因果链第一段应在二十岁触发");
+ok(causeSim.state.pending && causeSim.state.pending.id === "cause_karma_1", "因果链应使用 karma 第一步");
+causeSim.choose(0);
+ok(causeSim.state.causeStep === 1, "因果第一步应推进 causeStep");
+causeSim.state.age = 50;
+ok(causeSim.maybeCauseChain(), "因果链第二段应在五十岁触发");
+causeSim.choose(0);
+causeSim.state.age = 90;
+ok(causeSim.maybeCauseChain(), "因果链第三段应在九十岁触发");
+causeSim.choose(0);
+ok(causeSim.state.causeDone, "因果链第三段应完成并标记 causeDone");
+
+const tribSim = new Sim({ seed: 7102, world: "human" });
+tribSim.state.tier = 1;
+tribSim.state.cult = 100;
+ok(tribSim.maybeTribulation(), "筑基前应触发天劫事件");
+ok(tribSim.state.pending && tribSim.state.pending.id === "trib_2", "天劫事件 id 应正确");
+tribSim.choose(1);
+ok(tribSim.state.flags.trib_2, "天劫应记录已处理");
+
+const branchSim = new Sim({ seed: 7103, world: "human" });
+branchSim.state.tier = 4;
+branchSim.state.sectPath = "jian";
+ok(branchSim.maybePathBranch(), "元婴后应触发道统分支");
+ok(branchSim.state.pending && branchSim.state.pending.id === "branch_jian", "剑锋分支事件应正确");
+branchSim.choose(0);
+ok(branchSim.state.pathBranch === "jian_swordheart", "剑锋守心分支应写入 pathBranch");
+ok(branchSim.buildName().includes("剑心"), "道统名称应显示分支");
+
+ok(XD.EVENTS.filter((event) => /^s_exp_|^i_exp_/.test(event.id)).length === 6, "两界余波应补 6 条事件");
+ok(XD.EVENTS.filter((event) => /^branch_/.test(event.id)).length === 20, "道统分支应补 20 条事件");
 
 /* H1：后期境界不能被寿元硬锁死。 */
 for (const realm of D.REALMS.filter((realm) => realm.tier >= 3)) {
@@ -942,6 +982,7 @@ legacySource.state.stones = 100;
 legacySource.state.karma = 20;
 const legacyReward = legacySource.legacySummary();
 ok(legacyReward.v === 1 && legacyReward.depth === 1, "道果应带版本与世代");
+ok(legacyReward.cause && legacyReward.cause.type, "道果应把当前遗愿作为下一世因果");
 ok(legacyReward.insight > 0 && legacyReward.stones > 0, "道果应包含悟性与遗物");
 ok(legacyReward.ward === 1, "化神以上前世应留下护身玉符");
 ok(legacyReward.karma > 0, "善因应保留正向因果");
@@ -949,6 +990,7 @@ ok(legacyReward.karma > 0, "善因应保留正向因果");
 const legacyBaseline = new Sim({ seed: 333, world: "human" });
 const legacyNext = new Sim({ seed: 333, world: "human", legacy: legacyReward });
 ok(legacyNext.state.legacy && legacyNext.state.legacy.source, "下一世应记录道果来源");
+ok(legacyNext.state.legacyCause && legacyNext.state.legacyCause.type, "下一世应接到前世因果");
 ok(legacyNext.state.tier === legacyBaseline.state.tier, "道果不应继承境界");
 ok(legacyNext.state.age === legacyBaseline.state.age, "道果不应继承年龄");
 ok(legacyNext.state.maxAge === legacyBaseline.state.maxAge, "道果不应继承寿元");

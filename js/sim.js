@@ -110,6 +110,7 @@
         daoPrep: 0,
         injury: 0,
         sectPath: null,
+        pathBranch: null,
         karmaBook: [],
         ward: 0,
         cultRate: 0,
@@ -161,6 +162,9 @@
         sceneUses: {},
         choiceTrace: [],
         legacy: null,
+        legacyCause: null,
+        causeStep: 0,
+        causeDone: false,
         challengeId: null,
         focus: "cultivate",
         log: [],
@@ -235,6 +239,9 @@
         burden: ["", "injury", "debt"].includes(raw.burden) ? raw.burden : "",
         artifactKey: typeof raw.artifactKey === "string" ? raw.artifactKey : null,
         sectPath: ["dan", "jian", "zhen", "you"].includes(raw.sectPath) ? raw.sectPath : null,
+        cause: raw.cause && typeof raw.cause === "object" && typeof raw.cause.type === "string"
+          ? { type: raw.cause.type.slice(0, 20), text: String(raw.cause.text || "").slice(0, 160) }
+          : null,
         source: raw.source && typeof raw.source === "object" ? raw.source : null,
       };
     }
@@ -266,6 +273,7 @@
       if (legacy.burden === "injury") s.injury = Math.max(s.injury || 0, 1);
       if (legacy.artifactKey && !s.artifact) this.bindArtifact(legacy.artifactKey);
       if (legacy.sectPath) s.sectPath = legacy.sectPath;
+      if (legacy.cause && legacy.cause.type) s.legacyCause = { type: String(legacy.cause.type), text: String(legacy.cause.text || "") };
       return {
         v: 1,
         depth: legacy.depth,
@@ -310,6 +318,11 @@
         ward: s.tier >= 6 ? 1 : 0,
         bequest: s.artifact ? "artifact" : s.sectPath ? "path" : (s.karma || 0) >= 20 ? "karma" : "dao",
         burden: (s.injury || 0) >= 2 ? "injury" : (s.karma || 0) <= -20 ? "debt" : "",
+        cause: (() => {
+          if (s.legacyCause && !s.causeDone) return { type: s.legacyCause.type, text: s.legacyCause.text };
+          const wish = this.wishSummary();
+          return wish ? { type: wish.type, text: wish.text } : null;
+        })(),
         source: {
           name: s.name,
           seed: s.seed,
@@ -967,6 +980,15 @@
       return true;
     }
 
+    maybePathBranch() {
+      const s = this.state;
+      if (s.world !== "human" || s.pending || s.tier < 4 || !s.sectPath || s.pathBranch) return false;
+      const id = `branch_${s.sectPath}`;
+      if (s.seen[id] || !XD.EVENT_BY_ID[id]) return false;
+      this.trigger(id);
+      return true;
+    }
+
     maybePathFeature() {
       const s = this.state;
       if (s.world !== "human" || s.pending || s.tier < 2 || !s.sectPath) return false;
@@ -991,6 +1013,33 @@
         return false;
       }
       this.trigger("physique_awakening");
+      return true;
+    }
+
+    maybeTribulation() {
+      const s = this.state;
+      if (s.world !== "human" || s.pending || s.cult < 100 || !this.canBreak()) return false;
+      const target = s.tier + 1;
+      if (![2, 3, 4, 5].includes(target)) return false;
+      const id = `trib_${target}`;
+      if (!XD.EVENT_BY_ID[id] || s.flags[id]) return false;
+      s.flags[id] = true;
+      this.trigger(id);
+      return true;
+    }
+
+    maybeCauseChain() {
+      const s = this.state;
+      if (s.world !== "human" || !s.legacyCause || s.causeDone) return false;
+      const step = clamp(Number(s.causeStep) || 0, 0, 2);
+      const ages = [20, 50, 90];
+      if (step >= ages.length || s.age < ages[step]) return false;
+      const gate = `cause_step_${step + 1}`;
+      if (s.flags[gate]) return false;
+      const id = `cause_${s.legacyCause.type}_${step + 1}`;
+      if (!XD.EVENT_BY_ID[id]) return false;
+      s.flags[gate] = true;
+      this.trigger(id);
       return true;
     }
 
@@ -1153,7 +1202,18 @@
 
     buildName() {
       const path = D.SECT_PATHS.find((x) => x.key === this.state.sectPath);
-      return path ? path.name : "无道统";
+      const branches = {
+        jian_swordheart: "剑心",
+        jian_freepath: "无拘",
+        dan_heaven: "丹道",
+        dan_human: "济世",
+        zhen_guard: "守阵",
+        zhen_kill: "杀阵",
+        you_world: "远游",
+        you_home: "归乡",
+      };
+      const branch = branches[this.state.pathBranch];
+      return path ? `${path.name}${branch ? " · " + branch : ""}` : "无道统";
     }
 
     artifactRiskBonus() {
@@ -1461,6 +1521,7 @@
       if (!s.pending && this.forceMilestone()) return;
       // 突破
       if (!s.pending && s.cult >= 100 && this.canBreak()) {
+        if (this.maybeTribulation()) return;
         s.pending = { kind: "break", chance: this.breakChance() };
         return;
       }
@@ -1478,6 +1539,9 @@
       if (!s.pending && this.maybePathArtifact()) return;
       if (!s.pending && this.maybePathFeature()) return;
       if (!s.pending && this.maybePathAwakening()) return;
+      if (!s.pending && this.maybePathBranch()) return;
+      // 再一世：前世因果链，优先于普通回响
+      if (!s.pending && this.maybeCauseChain()) return;
       // 再一世：前世回响，一局最多一次
       if (!s.pending && this.maybeLegacyEcho()) return;
       // 随机事件
@@ -2107,6 +2171,9 @@
       if (typeof effects.incomePerYear === "number") s.incomePerYear += effects.incomePerYear;
       if (typeof effects.breakBonus === "number") s.breakBonus += effects.breakBonus;
       if (typeof effects.daoPrep === "number") s.daoPrep = clamp((Number(s.daoPrep) || 0) + effects.daoPrep, 0, 10);
+      if (typeof effects.causeStep === "number") s.causeStep = clamp(effects.causeStep, 0, 3);
+      if (effects.causeDone) s.causeDone = true;
+      if (typeof effects.pathBranch === "string" && effects.pathBranch) s.pathBranch = effects.pathBranch;
       if (typeof effects.ward === "number") s.ward += effects.ward;
       if (typeof effects.cultRate === "number") s.cultRate += effects.cultRate;
       if (effects.flag) s.flags[effects.flag] = true;
@@ -2609,6 +2676,10 @@
       if (!sim.state.artifact || typeof sim.state.artifact !== "object") sim.state.artifact = null;
       sim.state.daoPrep = clamp(Number(sim.state.daoPrep) || 0, 0, 10);
       sim.state.challengeId = typeof sim.state.challengeId === "string" ? sim.state.challengeId : null;
+      sim.state.legacyCause = sim.state.legacyCause && typeof sim.state.legacyCause === "object" ? sim.state.legacyCause : null;
+      sim.state.causeStep = clamp(Number(sim.state.causeStep) || 0, 0, 3);
+      sim.state.causeDone = !!sim.state.causeDone;
+      sim.state.pathBranch = typeof sim.state.pathBranch === "string" ? sim.state.pathBranch : null;
       if (sim.state.artifact && typeof sim.state.artifact.bond !== "number") sim.state.artifact.bond = 0;
       sim.ensureChainState();
       sim.rng.setState(run.rng);
@@ -2646,6 +2717,8 @@
         startWorld: s.startWorld,
         challengeId: s.challengeId || null,
         legacyUsed: !!s.legacy,
+        causeType: s.legacyCause ? s.legacyCause.type : null,
+        causeDone: !!s.causeDone,
         firstTierAge: (Array.isArray(s.tierHistory) ? s.tierHistory : []).find((item) => Number(item.tier) >= 2)?.age || 0,
         origin: s.origin,
         root: s.root,
@@ -2670,6 +2743,7 @@
         sectRankIndex: Number(s.sectRank) >= 0 ? Number(s.sectRank) : -1,
         sectContrib: Math.round(s.sectContrib || 0),
         sectPath: s.sectPath || null,
+        pathBranch: s.pathBranch || null,
         physiqueAwakened: s.physiqueAwakened || null,
         buildLevel: this.buildLevel(),
         buildName: this.buildName(),

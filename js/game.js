@@ -1361,6 +1361,8 @@
             : ""),
         discipleNames: (s.disciples || []).slice(0, 3).map((d) => d.name),
         wish: endSummary.wish,
+        causeType: endSummary.causeType,
+        causeDone: endSummary.causeDone,
         seed: endSummary.seed,
         ts: endSummary.ts,
       });
@@ -1779,6 +1781,17 @@
       if (e.target === $("shopOverlay")) closeShop();
     });
     $("btnShare").addEventListener("click", drawShareCard);
+    const btnLifeCode = $("btnLifeCode");
+    if (btnLifeCode) {
+      btnLifeCode.addEventListener("click", async () => {
+        const life = endSummary || (sim ? sim.summary() : null);
+        if (!life || !XD.LifeCode) return;
+        const url = XD.LifeCode.url(life);
+        const copied = await XD.LifeCode.copy(url);
+        if (copied) toast("人生短码已复制");
+        else if (window.prompt) window.prompt("复制这段人生短码：", url);
+      });
+    }
     window.addEventListener("pagehide", () => saveRun(true));
     document.addEventListener("xd:theme", () => {
       if (!sim || !state) return;

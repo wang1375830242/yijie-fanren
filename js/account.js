@@ -87,6 +87,7 @@
     addDetail(detail, "道号", life.daohao);
     addDetail(detail, "出身", life.origin ? [life.origin.place, life.origin.family].filter(Boolean).join(" · ") : "");
     addDetail(detail, "灵根", life.root ? life.root.name : "");
+    addDetail(detail, "道统", life.buildName || life.sectPath || "");
     addDetail(detail, "道祖准备", life.daoPrep ? `+${Math.min(10, Math.round(Number(life.daoPrep)))}%` : "");
     addDetail(detail, "遗愿", life.wish ? life.wish.text : "");
     if (Array.isArray(life.deeds) && life.deeds.length) {
@@ -118,6 +119,17 @@
         else setStatus("已取消分享。");
       });
       actions.append(download, share);
+      if (XD.LifeCode) {
+        const codeButton = el("button", "btn btn--sm", "复制人生短码");
+        codeButton.type = "button";
+        codeButton.addEventListener("click", async () => {
+          const url = XD.LifeCode.url(life);
+          const copied = await XD.LifeCode.copy(url);
+          if (copied) setStatus("人生短码已复制，可发给别人只读回放。");
+          else if (window.prompt) window.prompt("复制这段人生短码：", url);
+        });
+        actions.append(codeButton);
+      }
       detail.append(actions);
     }
     card.append(detail);
@@ -226,6 +238,8 @@
       const meta = el("div", "lineage-meta");
       meta.append(el("span", "", `结局：${entry.cause || "—"}`));
       if (entry.sect) meta.append(el("span", "", `宗门：${entry.sect}`));
+      const causeNames = { partner: "旧人", sect: "山门", ascend: "天门", karma: "因果", unfinished: "未完成" };
+      if (entry.causeType) meta.append(el("span", "", `因果：${causeNames[entry.causeType] || entry.causeType}${entry.causeDone ? " · 已了" : " · 未了"}`));
       if (entry.partnerName) meta.append(el("span", "", `道侣：${entry.partnerName}`));
       if (entry.discipleNames && entry.discipleNames.length) meta.append(el("span", "", `弟子：${entry.discipleNames.join("、")}`));
       card.append(meta);

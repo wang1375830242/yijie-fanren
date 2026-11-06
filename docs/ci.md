@@ -26,6 +26,7 @@ node tests/canon-regression.js
 node tests/build-reachability.js
 node tests/changelog-check.js
 node tests/update-check.js
+node tests/life-code-test.js
 ```
 
 项目仍然没有前端 npm 依赖、没有构建步骤，`package.json` 只提供测试脚本入口。`browser-smoke.js` 没有 Chrome 时会自动跳过。
@@ -64,14 +65,14 @@ node tests/update-check.js
 当前基线：
 
 ```text
-syntax-check: 28 js files ok
+syntax-check: 34 js files ok
 a11y-check: 47 checks passed
-browser-smoke: 8 pages ok
+browser-smoke: 9 pages ok
 guestbook-check: ok
-canon-regression: 462 checks passed
+canon-regression: 479 checks passed
 220 runs, 0 issues
 pseudo-spirit=2
 natural-ascensions=9
 worst-repeat=2
-changelog-check: 10 releases, 136 changes, schema ok
+changelog-check: 11 releases, 140 changes, schema ok
 ```

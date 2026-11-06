@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hans" data-realm="human">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>人生短码 · 一介凡人</title>
+<meta name="description" content="一介凡人的人生短码，只读回放一世修行。">
+<meta name="theme-color" content="#0b0f0b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<script src="js/theme-init.js?v=20261106a"></script>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css?v=20261106a">
+<link rel="stylesheet" href="css/update.css?v=20261106a">
+<link rel="stylesheet" href="css/day.css?v=20261106a">
+<style>
+.life-main { max-width: 780px; margin: 0 auto; padding: 60px 24px 90px; }
+.life-card { border: 1px solid var(--line); background: var(--bg); padding: 28px; }
+.life-card h1 { font-family: var(--kai); font-size: clamp(34px, 7vw, 64px); font-weight: 400; margin: 0 0 6px; }
+.life-card .sub { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+.life-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin: 22px 0; }
+.life-grid span { color: var(--muted); font-size: 12px; }
+.life-grid b { display: block; color: var(--text); font-weight: 400; font-size: 14px; margin-top: 2px; }
+.life-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.life-empty { color: var(--muted); padding: 40px 0; }
+@media (max-width: 560px) { .life-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-inner wrap">
+    <a class="brand" href="index.html">一介凡人</a>
+    <nav class="nav-links" aria-label="主导航">
+      <a href="index.html">首页</a>
+      <a href="hall.html">碑林</a>
+      <a href="changelog.html">更新</a>
+      <a href="play.html" class="btn btn--sm nav-cta">推演一世</a>
+    </nav>
+  </div>
+</header>
+<main class="life-main">
+  <section class="life-card" id="lifeCard">
+    <p class="kicker">一介凡人 · 人生短码</p>
+    <div id="lifeContent"><p class="life-empty">正在读取这一世……</p></div>
+  </section>
+</main>
+<canvas id="shareCanvas" width="1080" height="1350" hidden></canvas>
+<script src="js/common.js?v=20261106a"></script>
+<script src="js/update-check.js?v=20261106a"></script>
+<script src="js/achievements.js?v=20261106a"></script>
+<script src="js/challenges.js?v=20261106a"></script>
+<script src="js/life-code.js?v=20261106a"></script>
+<script src="js/life-card.js?v=20261106a"></script>
+<script src="js/life.js?v=20261106a"></script>
+</body>
+</html>

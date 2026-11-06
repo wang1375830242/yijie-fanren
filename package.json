@@ -1,10 +1,10 @@
 {
   "name": "yijie-fanren",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "description": "一介凡人 · 纯静态修仙人生模拟器",
   "scripts": {
-    "test": "node tests/syntax-check.js && node tests/a11y-check.js && node tests/browser-smoke.js && node tests/guestbook-check.js && node tests/import-check.js && node tests/server-security-check.js && node tests/canon-regression.js && node tests/build-reachability.js && node tests/changelog-check.js && node tests/update-check.js",
+    "test": "node tests/syntax-check.js && node tests/a11y-check.js && node tests/browser-smoke.js && node tests/guestbook-check.js && node tests/import-check.js && node tests/server-security-check.js && node tests/canon-regression.js && node tests/build-reachability.js && node tests/changelog-check.js && node tests/update-check.js && node tests/life-code-test.js",
     "audit:balance": "node tools/balance-audit.js"
   },
   "engines": {
