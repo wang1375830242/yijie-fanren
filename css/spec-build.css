@@ -1,0 +1,198 @@
+/* ==========================================================================
+   spec-build.css — “逐个组件生成 + 规格框 + 幽灵光标”特效样式
+   与 spec-build.js 配套使用，类名统一 sb- 前缀，避免污染宿主页面
+   ========================================================================== */
+
+.sb-ghost-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: var(--sb-z-ghost, 1);
+}
+.sb-ghost {
+  position: absolute;
+  border: 1px dashed rgba(255, 255, 255, .13);
+  border-radius: 4px;
+}
+
+/* ---------- 被生成的目标：未生成前隐藏 ---------- */
+.sb-ready [data-build] {
+  opacity: 0;
+  filter: blur(4px);
+  transition: opacity .3s ease, filter .3s ease;
+  will-change: opacity, filter;
+}
+.sb-ready [data-build].sb-building { opacity: .3; filter: blur(1.8px); }
+.sb-ready [data-build].sb-built    { opacity: 1;  filter: none; }
+
+/* ---------- 规格标注框 ---------- */
+.sb-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--sb-z-overlay, 20);
+}
+.sb-spec {
+  position: fixed;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  opacity: 0;
+  border: 1px solid rgba(91, 124, 250, .85);
+  box-shadow: 0 0 0 1px rgba(91, 124, 250, .08) inset;
+  transition:
+    top .16s cubic-bezier(.22, 1, .36, 1),
+    left .16s cubic-bezier(.22, 1, .36, 1),
+    width .16s cubic-bezier(.22, 1, .36, 1),
+    height .16s cubic-bezier(.22, 1, .36, 1),
+    opacity .12s;
+}
+.sb-spec.sb-on  { opacity: 1; }
+.sb-spec.sb-alt { border-color: rgba(255, 75, 75, .9); }
+.sb-spec i {
+  position: absolute;
+  width: 7px; height: 7px;
+  border: 1.5px solid currentColor;
+  background: var(--sb-bg, #0a0a0b);
+}
+.sb-spec i:nth-child(1) { top: -4px;    left: -4px;  }
+.sb-spec i:nth-child(2) { top: -4px;    right: -4px; }
+.sb-spec i:nth-child(3) { bottom: -4px; left: -4px;  }
+.sb-spec i:nth-child(4) { bottom: -4px; right: -4px; }
+.sb-spec .sb-tag {
+  position: absolute;
+  left: -1px; top: -19px;
+  white-space: nowrap;
+  font-family: var(--sb-mono, ui-monospace, Consolas, monospace);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #cfd6ff;
+  background: rgba(91, 124, 250, .14);
+  border: 1px solid rgba(91, 124, 250, .5);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.sb-spec.sb-alt .sb-tag {
+  color: #ffd0d0;
+  background: rgba(255, 75, 75, .13);
+  border-color: rgba(255, 75, 75, .5);
+}
+.sb-spec .sb-dim {
+  position: absolute;
+  right: 0; bottom: -19px;
+  font-family: var(--sb-mono, ui-monospace, Consolas, monospace);
+  font-size: 9.5px;
+  color: #9fb0ff;
+  background: rgba(10, 10, 11, .9);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.sb-spec .sb-dim::before {
+  content: "";
+  position: absolute;
+  left: -26px; top: 5px;
+  width: 20px;
+  border-top: 1px dashed rgba(91, 124, 250, .45);
+}
+
+/* ---------- 幽灵光标 ---------- */
+.sb-cursor-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: var(--sb-z-cursor, 25);
+}
+.sb-cursor {
+  position: absolute;
+  top: 0; left: 0;
+  opacity: 0;
+  will-change: transform;
+  transition: opacity .3s;
+}
+.sb-cursor svg { display: block; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55)); }
+.sb-cursor .sb-name {
+  position: absolute;
+  left: 14px; top: 16px;
+  white-space: nowrap;
+  font-family: var(--sb-mono, ui-monospace, Consolas, monospace);
+  font-size: 9px;
+  letter-spacing: .06em;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  color: #0a0a0b;
+  font-weight: 700;
+  transition: opacity .35s;
+}
+.sb-cursor.sb-settled .sb-name { opacity: 0; }
+.sb-cursor.sb-pulse::after {
+  content: "";
+  position: absolute;
+  left: 0; top: 0;
+  width: 22px; height: 22px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: .65;
+  animation: sb-ping .7s ease-out forwards;
+}
+@keyframes sb-ping { to { transform: scale(2.6); opacity: 0; } }
+
+/* ---------- 底部 HUD（可选） ---------- */
+.sb-hud {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 10px 8px 12px;
+  background: rgba(14, 14, 16, .92);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 8px;
+  font-family: var(--sb-mono, ui-monospace, Consolas, monospace);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  color: #a9a9a4;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
+  z-index: var(--sb-z-hud, 40);
+}
+.sb-hud .sb-dots { display: flex; gap: 3px; }
+.sb-hud .sb-dots i { width: 5px; height: 5px; border-radius: 50%; }
+.sb-hud .sb-bar {
+  width: 110px; height: 3px;
+  background: rgba(255, 255, 255, .12);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.sb-hud .sb-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: #d8d8d3;
+  transition: width .25s;
+}
+.sb-hud button {
+  all: unset;
+  cursor: pointer;
+  width: 20px; height: 20px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 4px;
+  color: #d8d8d3;
+  font-size: 9px;
+}
+.sb-hud button:hover { border-color: rgba(255, 255, 255, .4); }
+.sb-hud .sb-text-btn { cursor: pointer; color: #8f8f8a; }
+.sb-hud .sb-text-btn:hover { color: #e9e9e6; }
+
+/* ---------- 无障碍 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .sb-spec { transition: none; }
+  .sb-cursor-layer { display: none; }
+  .sb-ready [data-build] { opacity: 1; filter: none; transition: none; }
+}

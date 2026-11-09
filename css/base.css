@@ -854,6 +854,9 @@ html[data-theme="day"] .theme-overlay {
 .theme-grid--font {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+.theme-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .theme-choice,
 .font-choice {
   min-width: 0;
@@ -936,6 +939,7 @@ html[data-theme="day"] .theme-overlay {
     padding: 18px;
   }
   .theme-grid--two,
+  .theme-grid--three,
   .theme-grid--font {
     grid-template-columns: 1fr;
   }

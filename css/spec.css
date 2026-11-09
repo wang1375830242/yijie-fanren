@@ -1,0 +1,261 @@
+/* ==========================================================================
+   蓝图主题 · 参考 spec-build 的规格框、网格与标记感
+   只在 html[data-theme="spec"] 下生效，不改变默认夜间主题。
+   ========================================================================== */
+html[data-theme="spec"] {
+  --ink-950: #050d18;
+  --ink-900: #071322;
+  --ink-850: #0a1b2f;
+  --ink-800: #0d2239;
+  --ink-750: #112b46;
+  --ink-700: #163553;
+  --ink-600: #1e466b;
+  --ink-500: #2b5d88;
+
+  --paper: #dcebff;
+  --paper-2: #b9d3f2;
+  --paper-3: #86a8ce;
+  --paper-ink: #06101d;
+  --paper-muted: #6e91b8;
+
+  --text: #dcebff;
+  --text-soft: #b6cbe4;
+  --muted: #7e9fc4;
+  --muted-2: #6d8db0;
+
+  --jade: #5b7cfa;
+  --jade-2: #7f9cff;
+  --jade-3: #aec4ff;
+  --cinnabar: #ff5b4b;
+  --cinnabar-2: #ff7b6c;
+  --gold: #ffb454;
+  --gold-2: #ffd08a;
+
+  --realm: #7fb7ff;
+  --realm-soft: rgba(91, 124, 250, 0.16);
+  --realm-glow: rgba(91, 124, 250, 0.36);
+
+  --line: rgba(126, 159, 196, 0.24);
+  --line-2: rgba(126, 159, 196, 0.4);
+  --line-3: rgba(174, 196, 255, 0.58);
+  --line-ink: rgba(6, 16, 29, 0.3);
+
+  --mono: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --shadow-1: 0 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 18px 48px rgba(0, 0, 0, 0.5);
+  --shadow-3: 0 32px 90px rgba(0, 0, 0, 0.62);
+}
+
+html[data-theme="spec"][data-realm="human"],
+html[data-theme="spec"][data-realm="spirit"],
+html[data-theme="spec"][data-realm="immortal"],
+html[data-theme="spec"][data-realm="mortal"] {
+  --realm: #7fb7ff;
+  --realm-soft: rgba(91, 124, 250, 0.16);
+  --realm-glow: rgba(91, 124, 250, 0.36);
+}
+
+html[data-theme="spec"] body {
+  background:
+    radial-gradient(60vw 48vh at 78% -8%, rgba(91, 124, 250, 0.16), transparent 64%),
+    radial-gradient(44vw 40vh at 6% 18%, rgba(255, 91, 75, 0.08), transparent 62%),
+    #071322;
+  color: var(--text);
+}
+
+html[data-theme="spec"] body::before {
+  background-image:
+    linear-gradient(rgba(126, 159, 196, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 159, 196, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 1;
+}
+
+html[data-theme="spec"] body::after {
+  background:
+    repeating-linear-gradient(0deg, rgba(126, 159, 196, 0.035) 0 1px, transparent 1px 4px);
+  mix-blend-mode: screen;
+  opacity: 0.35;
+}
+
+html[data-theme="spec"] .nav.is-solid,
+html[data-theme="spec"] .nav-drawer,
+html[data-theme="spec"] .topbar,
+html[data-theme="spec"] .panel,
+html[data-theme="spec"] .theme-sheet,
+html[data-theme="spec"] .theme-choice,
+html[data-theme="spec"] .theme-fab,
+html[data-theme="spec"] .action-bar,
+html[data-theme="spec"] .record-card,
+html[data-theme="spec"] .achievement-card,
+html[data-theme="spec"] .challenge-item,
+html[data-theme="spec"] .lineage-item,
+html[data-theme="spec"] .account-panel,
+html[data-theme="spec"] .end-deeds,
+html[data-theme="spec"] .end-achievements,
+html[data-theme="spec"] .end-challenge,
+html[data-theme="spec"] .update-banner,
+html[data-theme="spec"] .toast,
+html[data-theme="spec"] .stats-panel,
+html[data-theme="spec"] .stats-login {
+  background: rgba(7, 19, 34, 0.86);
+  border-color: var(--line-2);
+  border-style: dashed;
+}
+
+html[data-theme="spec"] .panel::before,
+html[data-theme="spec"] .panel::after {
+  border-color: var(--line-3);
+}
+
+html[data-theme="spec"] h1,
+html[data-theme="spec"] h2,
+html[data-theme="spec"] h3 {
+  letter-spacing: 0.06em;
+}
+
+html[data-theme="spec"] .kicker,
+html[data-theme="spec"] .chapter-no,
+html[data-theme="spec"] .prompt-kicker,
+html[data-theme="spec"] .theme-kicker,
+html[data-theme="spec"] .theme-label,
+html[data-theme="spec"] .achievement-head .kicker {
+  color: var(--gold);
+  font-family: var(--mono);
+  letter-spacing: 0.16em;
+}
+
+html[data-theme="spec"] .btn {
+  border-style: dashed;
+  border-color: var(--line-2);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+
+html[data-theme="spec"] .btn:hover,
+html[data-theme="spec"] .btn:focus-visible {
+  border-color: var(--jade-2);
+  color: var(--jade-3);
+}
+
+html[data-theme="spec"] .btn--primary {
+  border-style: solid;
+  border-color: var(--cinnabar);
+  background: var(--cinnabar);
+  color: #fff8f4;
+}
+
+html[data-theme="spec"] .btn--primary:hover,
+html[data-theme="spec"] .btn--primary:focus-visible {
+  background: var(--cinnabar-2);
+  color: #fff;
+}
+
+html[data-theme="spec"] .theme-choice.is-active,
+html[data-theme="spec"] .font-choice.is-active {
+  border-color: var(--jade-2);
+  border-style: solid;
+  background: var(--realm-soft);
+  box-shadow: inset 0 0 0 1px rgba(127, 183, 255, 0.16);
+}
+
+html[data-theme="spec"] .theme-choice b,
+html[data-theme="spec"] .font-choice b {
+  color: var(--text);
+}
+
+html[data-theme="spec"] a {
+  color: var(--jade-3);
+}
+
+html[data-theme="spec"] input,
+html[data-theme="spec"] textarea,
+html[data-theme="spec"] select {
+  background: rgba(5, 13, 24, 0.7);
+  border-color: var(--line-2);
+  color: var(--text);
+}
+
+html[data-theme="spec"] .nav-links a:hover,
+html[data-theme="spec"] .nav-drawer a:hover {
+  color: var(--jade-2);
+}
+
+html[data-theme="spec"] .theme-fab {
+  border-color: var(--line-2);
+  color: var(--jade-3);
+  background: rgba(7, 19, 34, 0.9);
+}
+
+html[data-theme="spec"] .update-banner {
+  border-style: solid;
+  border-color: var(--jade);
+}
+
+html[data-theme="spec"] .update-apply {
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="spec"] body::after {
+    display: none;
+  }
+}
+
+
+/* 幽灵光标层 */
+.spec-cursor-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  overflow: hidden;
+  pointer-events: none;
+}
+.spec-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.92;
+  will-change: transform;
+}
+.spec-cursor svg {
+  display: block;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+}
+.spec-cursor-name {
+  position: absolute;
+  left: 14px;
+  top: 16px;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  color: #071322;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spec-cursor-layer { display: none; }
+}
+
+
+/* 逐组件生成期间先隐藏正文，避免未生成的组件直接露出 */
+html[data-theme="spec"] main { visibility: hidden; }
+html[data-theme="spec"].spec-build-done main { visibility: visible; }
+html[data-theme="spec"].sb-ready [data-build].sb-built { visibility: visible; }
+
+
+/* 顶部导航与页脚也先隐藏，等对应小区件生成 */
+html[data-theme="spec"] body > .nav,
+html[data-theme="spec"] body > .footer { visibility: hidden; }
+html[data-theme="spec"].spec-build-done body > .nav,
+html[data-theme="spec"].spec-build-done body > .footer { visibility: visible; }
+
+
+/* 卡片内部的小部件生成时，卡片背景一起显现 */
+html[data-theme="spec"].sb-ready .sb-parent-visible {
+  visibility: visible;
+  opacity: 1 !important;
+}

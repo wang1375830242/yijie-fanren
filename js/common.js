@@ -477,8 +477,12 @@
     document.dispatchEvent(new CustomEvent("xd:font", { detail: { font: key } }));
   }
 
+  function normalizeTheme(mode) {
+    return ["day", "spec"].includes(mode) ? mode : "night";
+  }
+
   function currentTheme() {
-    return document.documentElement.dataset.theme === "day" ? "day" : "night";
+    return normalizeTheme(document.documentElement.dataset.theme);
   }
 
   function currentFont() {
@@ -487,28 +491,30 @@
   }
 
   function applyTheme(mode) {
-    const day = mode === "day";
+    const key = normalizeTheme(mode);
+    const day = key === "day";
     const root = document.documentElement;
-    root.dataset.theme = day ? "day" : "night";
+    root.dataset.theme = key;
     root.style.colorScheme = day ? "light" : "dark";
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", day ? "#f7f4ec" : "#0b0f0b");
-    document.dispatchEvent(new CustomEvent("xd:theme", { detail: { theme: day ? "day" : "night" } }));
+    if (meta) meta.setAttribute("content", day ? "#f7f4ec" : key === "spec" ? "#06101d" : "#0b0f0b");
+    document.dispatchEvent(new CustomEvent("xd:theme", { detail: { theme: key } }));
     document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
       button.textContent = "主题";
       button.setAttribute("aria-label", "主题与字体设置");
       button.setAttribute("aria-haspopup", "dialog");
     });
     document.querySelectorAll("[data-theme-choice]").forEach((button) => {
-      const active = button.dataset.themeChoice === (day ? "day" : "night");
+      const active = button.dataset.themeChoice === key;
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", active ? "true" : "false");
     });
   }
 
   function setTheme(mode) {
-    applyTheme(mode);
-    store.setPref("theme", mode === "day" ? "day" : "night");
+    const key = normalizeTheme(mode);
+    applyTheme(key);
+    store.setPref("theme", key);
   }
 
   function setFont(font) {
@@ -545,12 +551,15 @@
         </header>
         <div class="theme-section">
           <p class="theme-label">明暗</p>
-          <div class="theme-grid theme-grid--two">
+          <div class="theme-grid theme-grid--three">
             <button class="theme-choice" type="button" data-theme-choice="night" aria-pressed="true">
               <b>夜间</b><span>墨色 · 玉光</span>
             </button>
             <button class="theme-choice" type="button" data-theme-choice="day" aria-pressed="false">
               <b>日间</b><span>暖白 · 纸面</span>
+            </button>
+            <button class="theme-choice" type="button" data-theme-choice="spec" aria-pressed="false">
+              <b>蓝图</b><span>规格 · 标记</span>
             </button>
           </div>
         </div>
@@ -575,7 +584,8 @@
       button.addEventListener("click", () => {
         setTheme(button.dataset.themeChoice);
         const status = themeOverlay.querySelector("[data-theme-status]");
-        if (status) status.textContent = `已切换到${button.dataset.themeChoice === "day" ? "日间" : "夜间"}主题。`;
+        const themeNames = { night: "夜间", day: "日间", spec: "蓝图" };
+        if (status) status.textContent = `已切换到${themeNames[button.dataset.themeChoice] || "夜间"}主题。`;
       });
     });
     themeOverlay.querySelectorAll("[data-font-choice]").forEach((button) => {
@@ -605,7 +615,8 @@
   }
 
   function toggleTheme() {
-    setTheme(currentTheme() === "day" ? "night" : "day");
+    const current = currentTheme();
+    setTheme(current === "night" ? "day" : current === "day" ? "spec" : "night");
   }
 
   function theme() {
@@ -674,6 +685,7 @@
     nav,
     setRealm,
     applyTheme,
+    normalizeTheme,
     applyFont,
     setFont,
     openThemePanel,
