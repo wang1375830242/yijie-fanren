@@ -109,6 +109,11 @@
         breakPrep: 0,
         daoPrep: 0,
         injury: 0,
+        daoBroken: false,
+        daoBrokenAt: null,
+        daoRepairStep: 0,
+        daoRepairStepAt: null,
+        daoScar: 0,
         sectPath: null,
         pathBranch: null,
         karmaBook: [],
@@ -1519,12 +1524,16 @@
       if (this.maybeAgeQuestion()) return;
       // 境界临界：强制剧情
       if (!s.pending && this.forceMilestone()) return;
+      // 道心试炼：先于冲关，给玩家守住道心的机会
+      if (!s.pending && this.maybeDaoHeart()) return;
       // 突破
       if (!s.pending && s.cult >= 100 && this.canBreak()) {
         if (this.maybeTribulation()) return;
         s.pending = { kind: "break", chance: this.breakChance() };
         return;
       }
+      // 道心破碎后，补心链优先于普通随机事件
+      if (!s.pending && this.maybeDaoHeartRepair()) return;
       // 宗门提拔排在突破之后，避免抢掉破境/里程碑的 pending
       if (!s.pending && this.maybeSectPromotion()) return;
       // 中期「残图」主线：按 flag 强制推进，避免被随机池淹没
@@ -1684,6 +1693,7 @@
 
     canBreak() {
       const s = this.state;
+      if (s.daoBroken) return false;
       const t = s.tier;
       // 5→6 需要先在灵界落地；仙界本地出生没有经过人界飞升，
       // 允许直接在仙界完成化神→炼虚的门槛，否则会永远卡在化神后期。
@@ -2138,6 +2148,15 @@
     apply(effects) {
       const s = this.state;
       if (!effects) return;
+      if (effects.daoBreak) this.breakDaoHeart();
+      if (typeof effects.daoRepairStep === "number") {
+        s.daoRepairStep = clamp(effects.daoRepairStep, 0, 2);
+        s.daoRepairStepAt = s.age;
+      }
+      if (effects.daoRepairDone) this.repairDaoHeart();
+      if (typeof effects.daoScar === "number") {
+        s.daoScar = clamp(effects.daoScar, 0, 2);
+      }
       if (effects.artifactBroken && s.artifact) s.artifact.broken = true;
       if (effects.artifact && !s.artifact) this.bindArtifact(effects.artifact);
       if (typeof effects.artifactBond === "number" && s.artifact && !s.artifact.broken) {
@@ -2353,8 +2372,90 @@
       s.mood = clamp(s.mood + 8, 0, 100);
     }
 
+    daoStatus() {
+      const s = this.state;
+      if (s.daoBroken) return "道心破碎";
+      if ((Number(s.daoScar) || 0) > 0) return "道心裂痕";
+      return "";
+    }
+
+    breakDaoHeart() {
+      const s = this.state;
+      if (s.daoBroken) return false;
+      s.daoBroken = true;
+      s.daoBrokenAt = s.age;
+      s.daoRepairStep = 0;
+      s.daoRepairStepAt = null;
+      s.daoScar = Math.max(1, Number(s.daoScar) || 0);
+      s.cult = Math.min(55, Number(s.cult) || 0);
+      s.mood = clamp((Number(s.mood) || 0) - 20, 15, 100);
+      s.injury = Math.min(3, (s.injury || 0) + 1);
+      s.breakBonus = 0;
+      s.breakWaits = 0;
+      s.breakPrep = 0;
+      s.flags.dao_broken = true;
+      s.flags.dao_repaired = false;
+      this.pushLog(
+        "system",
+        "道心破碎。你的境界没有跌落，但破境之路暂时封死了。",
+        { title: "道心破碎" }
+      );
+      return true;
+    }
+
+    repairDaoHeart() {
+      const s = this.state;
+      if (!s.daoBroken) return false;
+      s.daoBroken = false;
+      s.daoRepairStep = 2;
+      s.daoRepairStepAt = null;
+      s.daoScar = Math.max(1, Math.min(2, Number(s.daoScar) || 1));
+      s.mood = clamp((Number(s.mood) || 0) + 12, 15, 100);
+      s.flags.dao_broken = false;
+      s.flags.dao_repaired = true;
+      this.pushLog(
+        "system",
+        "道心重新立住了。裂痕还在，但你已经能继续往前走。",
+        { title: "补心" }
+      );
+      return true;
+    }
+
+    maybeDaoHeart() {
+      const s = this.state;
+      if (s.path !== "cultivator" || s.pending || s.daoBroken || s.tier < 2) return false;
+      const list = window.XD && Array.isArray(XD.DAO_HEART_EVENTS) ? XD.DAO_HEART_EVENTS : [];
+      const next = list.find(
+        (item) =>
+          /^dao_heart_/.test(item.id) &&
+          !s.seen[item.id] &&
+          s.tier >= item.tier &&
+          s.age >= item.age
+      );
+      if (!next) return false;
+      this.trigger(next.id);
+      return true;
+    }
+
+    maybeDaoHeartRepair() {
+      const s = this.state;
+      if (!s.daoBroken || s.pending) return false;
+      if (s.daoRepairStep === 0 && s.age >= (Number(s.daoBrokenAt) || 0) + 3 && !s.seen.dao_repair_1) {
+        this.trigger("dao_repair_1");
+        return true;
+      }
+      if (s.daoRepairStep === 1 && s.age >= (Number(s.daoRepairStepAt) || 0) + 5 && !s.seen.dao_repair_2) {
+        this.trigger("dao_repair_2");
+        return true;
+      }
+      return false;
+    }
+
     breakForecast() {
       const s = this.state;
+      if (s.daoBroken) {
+        return { base: 0, prep: 0, injury: 0, chance: 0, locked: true, reason: "道心破碎" };
+      }
       const base =
         0.78 -
         s.tier * 0.04 -
@@ -2366,7 +2467,7 @@
         this.artifactBreakBonus() +
         Math.min(s.breakBonus, 25) / 100 -
         (s.flags.demon ? 0.1 : 0) -
-        (s.flags.heart_scar ? 0.05 : 0);
+        Math.max(s.flags.heart_scar ? 0.05 : 0, (Number(s.daoScar) || 0) * 0.04);
       const prep = Math.min(3, Math.max(0, Number(s.breakPrep) || 0)) * 0.03;
       const injury = Math.min(3, Math.max(0, Number(s.injury) || 0)) * 0.03;
       const final = clamp(base + prep - injury, 0.12, 0.94);
@@ -2380,6 +2481,7 @@
     chooseBreak(action) {
       const s = this.state;
       if (!s.pending || s.pending.kind !== "break") return null;
+      if (s.daoBroken) return { status: "blocked", reason: "dao_broken" };
       const p = s.pending.chance;
       this.recordChoice("break", 0, { action });
       s.pending = null;
@@ -2401,6 +2503,7 @@
       if (success) {
         s.tier += 1;
         s.cult = 0;
+        s.daoScar = 0;
         s.breakBonus = 0;
         s.breakWaits = 0;
         s.breakPrep = 0;
@@ -2680,6 +2783,11 @@
       sim.state.causeStep = clamp(Number(sim.state.causeStep) || 0, 0, 3);
       sim.state.causeDone = !!sim.state.causeDone;
       sim.state.pathBranch = typeof sim.state.pathBranch === "string" ? sim.state.pathBranch : null;
+      sim.state.daoBroken = !!sim.state.daoBroken;
+      sim.state.daoBrokenAt = sim.state.daoBrokenAt != null && Number.isFinite(Number(sim.state.daoBrokenAt)) ? Number(sim.state.daoBrokenAt) : null;
+      sim.state.daoRepairStep = clamp(Number(sim.state.daoRepairStep) || 0, 0, 2);
+      sim.state.daoRepairStepAt = sim.state.daoRepairStepAt != null && Number.isFinite(Number(sim.state.daoRepairStepAt)) ? Number(sim.state.daoRepairStepAt) : null;
+      sim.state.daoScar = clamp(Number(sim.state.daoScar) || 0, 0, 2);
       if (sim.state.artifact && typeof sim.state.artifact.bond !== "number") sim.state.artifact.bond = 0;
       sim.ensureChainState();
       sim.rng.setState(run.rng);

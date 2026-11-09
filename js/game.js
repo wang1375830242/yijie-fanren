@@ -570,6 +570,8 @@
       immortal: "仙界",
     };
     tags.push(stageNames[sim.stage()]);
+    if (s.daoBroken) tags.push("道心破碎");
+    else if ((Number(s.daoScar) || 0) > 0) tags.push("道心裂痕");
     if (s.flags && s.flags.xutian && !s.flags.xutian_closed) {
       tags.push(s.flags.xutian_3_done ? "残图 · 已了" : s.flags.xutian_2_done ? "残图 · 入殿" : "残图 · 半图");
     }

@@ -5,8 +5,8 @@
   "use strict";
 
   const XD = (window.XD = window.XD || {});
-  XD.VERSION = "1.3.0";
-  XD.BUILD = "20261106a";
+  XD.VERSION = "1.3.1";
+  XD.BUILD = "20261109a";
 
   /* ---------- 随机 ---------- */
   function mulberry32(a) {
