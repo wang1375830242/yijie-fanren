@@ -463,6 +463,9 @@
           talent,
           nextAt: (w === "human" ? 12 : w === "spirit" ? 26 : 120) + rng.int(0, 12),
           maxAge: D.REALMS[tier].life,
+          age: this.state.age,
+          endedAt: null,
+          records: [{ age: this.state.age, text: `降生于${origin.place}` }],
           alive: true,
           fate: null,
         };
@@ -1111,8 +1114,20 @@
     recordChoice(kind, index, extra) {
       const s = this.state;
       if (!Array.isArray(s.choiceTrace)) s.choiceTrace = [];
+      const choice =
+        s.pending && Array.isArray(s.pending.choices) ? s.pending.choices[index] : null;
       const entry = Object.assign(
-        { age: s.age, tier: s.tier, kind, eventId: s.pending && s.pending.id, choice: index },
+        {
+          age: s.age,
+          tier: s.tier,
+          kind,
+          eventId: s.pending && s.pending.id,
+          eventTitle: s.pending && s.pending.title ? s.pending.title : "",
+          choice: index,
+          choiceLabel: choice && choice.label ? choice.label : "",
+          major: !!(s.pending && s.pending.major),
+          chain: !!(s.pending && s.pending.chain),
+        },
         extra || {}
       );
       s.choiceTrace.push(entry);
@@ -2029,6 +2044,8 @@
       }
       s.pending = null;
       this.apply(effects);
+      const lastTrace = Array.isArray(s.choiceTrace) ? s.choiceTrace[s.choiceTrace.length - 1] : null;
+      if (lastTrace && lastTrace.kind === "event") lastTrace.outcome = result.text || "";
       return result;
     }
 
@@ -2543,6 +2560,10 @@
       const s = this.state;
       s.peers.forEach((p) => {
         if (!p.alive) return;
+        if (!Array.isArray(p.records)) p.records = [];
+        p.age = s.age;
+        const beforeTier = p.tier;
+        const beforeWorld = p.world;
         if (p.world === "human" && p.tier >= 5) p.world = "spirit";
         if (p.world === "spirit" && p.tier >= 8) p.world = "immortal";
         let guard = 0;
@@ -2553,9 +2574,20 @@
           p.maxAge = Math.max(p.maxAge, D.REALMS[p.tier].life);
           guard++;
         }
+        if (p.tier !== beforeTier) {
+          p.records.push({ age: s.age, text: `破境至${D.REALMS[p.tier].name}` });
+          if (p.records.length > 4) p.records.shift();
+        }
+        if (p.world !== beforeWorld) {
+          p.records.push({ age: s.age, text: `去往${D.WORLD_META[p.world].name}` });
+          if (p.records.length > 4) p.records.shift();
+        }
         if (s.age >= p.maxAge || (s.age > 40 && this.rng.chance(0.004))) {
           p.alive = false;
+          p.endedAt = s.age;
           p.fate = s.age >= p.maxAge ? "坐化" : "陨落";
+          p.records.push({ age: s.age, text: p.fate });
+          if (p.records.length > 4) p.records.shift();
         }
       });
     }
@@ -2563,6 +2595,48 @@
     /* ---------------- 结束 ---------------- */
     isHardDeath(cause) {
       return /劫|天劫|走火入魔|空间乱流|道祖之争|寿元/.test(String(cause || ""));
+    }
+
+    lifeTexture() {
+      const s = this.state;
+      const entries = (Array.isArray(s.choiceTrace) ? s.choiceTrace : []).filter(
+        (entry) => entry && entry.kind === "event" && entry.choiceLabel && entry.eventId
+      );
+      if (!entries.length) return [];
+      const important = entries.filter((entry) => entry.major || entry.chain);
+      const source = important.length >= 3 ? important : entries;
+      const unique = [];
+      source.forEach((entry) => {
+        if (
+          !unique.some(
+            (item) =>
+              item.eventId === entry.eventId &&
+              item.age === entry.age &&
+              item.choice === entry.choice
+          )
+        ) {
+          unique.push(entry);
+        }
+      });
+      const indexes =
+        unique.length >= 3
+          ? [0, Math.floor((unique.length - 1) / 2), unique.length - 1]
+          : unique.map((_, index) => index);
+      return indexes
+        .filter((index, position) => indexes.indexOf(index) === position)
+        .map((index) => {
+          const entry = unique[index];
+          const realm = D.REALMS[entry.tier] || D.REALMS[0];
+          return {
+            age: Number(entry.age) || 0,
+            tier: Number(entry.tier) || 0,
+            realm: realm.name || "凡人",
+            title: String(entry.eventTitle || "一次抉择").slice(0, 28),
+            choice: String(entry.choiceLabel || "").slice(0, 48),
+            outcome: String(entry.outcome || "").replace(/\s+/g, " ").trim().slice(0, 88),
+          };
+        })
+        .filter((item) => item.choice);
     }
 
     buildActs() {
@@ -2838,6 +2912,20 @@
         epitaph: s.epitaph || "",
         finale: s.finale || null,
         deeds,
+        texture: this.lifeTexture(),
+        peerLives: (Array.isArray(s.peers) ? s.peers : []).map((peer) => ({
+          name: peer.name,
+          gender: peer.gender,
+          root: peer.root,
+          place: peer.place,
+          world: peer.world,
+          tier: Number(peer.tier) || 0,
+          realm: (D.REALMS[peer.tier] || D.REALMS[0]).name || "凡人",
+          age: peer.alive === false ? Number(peer.endedAt) || Number(peer.age) || 0 : Number(s.age) || 0,
+          alive: peer.alive !== false,
+          fate: peer.fate || "",
+          records: Array.isArray(peer.records) ? peer.records.slice(-3) : [],
+        })),
         partner: s.partner,
         partnerHistory: s.partnerHistory,
         disciples: s.disciples || [],

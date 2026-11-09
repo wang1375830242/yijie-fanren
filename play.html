@@ -14,14 +14,14 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0f0b">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="js/theme-init.js?v=20261109a"></script>
+<script src="js/theme-init.js?v=20261109b"></script>
 <link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/base.css?v=20261109a">
-<link rel="stylesheet" href="css/update.css?v=20261109a">
-<link rel="stylesheet" href="css/game.css?v=20261109a">
-<link rel="stylesheet" href="css/day.css?v=20261109a">
-<link rel="stylesheet" href="css/spec.css?v=20261109a">
-<link rel="stylesheet" href="css/spec-build.css?v=20261109a">
+<link rel="stylesheet" href="css/base.css?v=20261109b">
+<link rel="stylesheet" href="css/update.css?v=20261109b">
+<link rel="stylesheet" href="css/game.css?v=20261109b">
+<link rel="stylesheet" href="css/day.css?v=20261109b">
+<link rel="stylesheet" href="css/spec.css?v=20261109b">
+<link rel="stylesheet" href="css/spec-build.css?v=20261109b">
 </head>
 <body class="play">
 <noscript><div class="noscript">这个站点需要 JavaScript 才能推演一世。请开启后刷新。</div></noscript>
@@ -287,6 +287,10 @@
       <p class="end-epitaph" id="endEpitaph"></p>
       <p class="end-narrative" id="endNarrative"></p>
       <dl class="end-fields" id="endFields"></dl>
+      <div class="end-texture" id="endTexture" hidden>
+        <h3>这一生的纹理</h3>
+        <div id="endTextureList"></div>
+      </div>
       <div class="legacy-box" id="legacyBox" hidden>
         <div class="legacy-head">
           <span>道 果</span>
@@ -312,6 +316,10 @@
       <div class="end-deeds">
         <h3>生平数事</h3>
         <div id="endDeeds"></div>
+      </div>
+      <div class="end-peers" id="endPeers" hidden>
+        <h3>同世四人</h3>
+        <div id="endPeerList"></div>
       </div>
       <div class="end-achievements" id="endAchievements" hidden>
         <h3>此世新成就</h3>
@@ -377,29 +385,29 @@
 
 <canvas id="shareCanvas" width="1080" height="1350" hidden></canvas>
 
-<script src="js/common.js?v=20261109a"></script>
-<script src="js/update-check.js?v=20261109a"></script>
-<script src="js/spec-build.js?v=20261109a"></script>
-<script src="js/spec-theme.js?v=20261109a"></script>
-<script src="js/account-sync.js?v=20261109a"></script>
-<script src="js/data.js?v=20261109a"></script>
-<script src="js/events.js?v=20261109a"></script>
-<script src="js/events-expanded.js?v=20261109a"></script>
-<script src="js/chain-events.js?v=20261109a"></script>
-<script src="js/canon-events.js?v=20261109a"></script>
-<script src="js/path-events.js?v=20261109a"></script>
-<script src="js/lineage-events.js?v=20261109a"></script>
-<script src="js/cause-events.js?v=20261109a"></script>
-<script src="js/tribulation-events.js?v=20261109a"></script>
-<script src="js/path-branch-events.js?v=20261109a"></script>
-<script src="js/late-expansion.js?v=20261109a"></script>
-<script src="js/dao-heart-events.js?v=20261109a"></script>
-<script src="js/art.js?v=20261109a"></script>
-<script src="js/sim.js?v=20261109a"></script>
-<script src="js/audio.js?v=20261109a"></script>
-<script src="js/achievements.js?v=20261109a"></script>
-<script src="js/challenges.js?v=20261109a"></script>
-<script src="js/life-code.js?v=20261109a"></script>
-<script src="js/game.js?v=20261109a"></script>
+<script src="js/common.js?v=20261109b"></script>
+<script src="js/update-check.js?v=20261109b"></script>
+<script src="js/spec-build.js?v=20261109b"></script>
+<script src="js/spec-theme.js?v=20261109b"></script>
+<script src="js/account-sync.js?v=20261109b"></script>
+<script src="js/data.js?v=20261109b"></script>
+<script src="js/events.js?v=20261109b"></script>
+<script src="js/events-expanded.js?v=20261109b"></script>
+<script src="js/chain-events.js?v=20261109b"></script>
+<script src="js/canon-events.js?v=20261109b"></script>
+<script src="js/path-events.js?v=20261109b"></script>
+<script src="js/lineage-events.js?v=20261109b"></script>
+<script src="js/cause-events.js?v=20261109b"></script>
+<script src="js/tribulation-events.js?v=20261109b"></script>
+<script src="js/path-branch-events.js?v=20261109b"></script>
+<script src="js/late-expansion.js?v=20261109b"></script>
+<script src="js/dao-heart-events.js?v=20261109b"></script>
+<script src="js/art.js?v=20261109b"></script>
+<script src="js/sim.js?v=20261109b"></script>
+<script src="js/audio.js?v=20261109b"></script>
+<script src="js/achievements.js?v=20261109b"></script>
+<script src="js/challenges.js?v=20261109b"></script>
+<script src="js/life-code.js?v=20261109b"></script>
+<script src="js/game.js?v=20261109b"></script>
 </body>
 </html>

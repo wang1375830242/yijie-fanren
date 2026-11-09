@@ -679,7 +679,8 @@
     $("peersList").innerHTML = s.peers
       .map((p) => {
         const dead = !p.alive;
-        return `<div class="peer${dead ? " dead" : ""}"><div class="peer-name">${U.esc(p.name)}</div><div class="peer-meta">${U.esc(p.root)} · ${U.esc(p.place)}</div><div class="peer-realm">${dead ? U.esc(p.fate) : U.esc((D.REALMS[p.tier] || {}).name || "")}</div></div>`;
+        const age = dead && p.endedAt != null ? p.endedAt : p.age != null ? p.age : s.age;
+        return `<div class="peer${dead ? " dead" : ""}"><div class="peer-name">${U.esc(p.name)}</div><div class="peer-meta">${U.esc(p.root)} · ${U.esc(p.place)} · ${U.esc(age)}岁</div><div class="peer-realm">${dead ? U.esc(p.fate) : U.esc((D.REALMS[p.tier] || {}).name || "")}</div></div>`;
       })
       .join("");
 
@@ -1225,6 +1226,57 @@
   /* ======================================================================
      终局
      ====================================================================== */
+  function renderEndTexture() {
+    const box = $("endTexture");
+    const list = $("endTextureList");
+    if (!box || !list || !endSummary) return;
+    const items = Array.isArray(endSummary.texture) ? endSummary.texture : [];
+    if (!items.length) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    list.innerHTML = items
+      .map(
+        (item) =>
+          `<div class="texture-item">
+            <div class="texture-age">${U.esc(item.age)}岁 · ${U.esc(item.realm || "凡人")}</div>
+            <div class="texture-copy">
+              <b>${U.esc(item.title || "一次抉择")}</b>
+              <p>你选择了「${U.esc(item.choice || "")}」</p>
+              ${item.outcome ? `<small>${U.esc(item.outcome)}</small>` : ""}
+            </div>
+          </div>`
+      )
+      .join("");
+  }
+
+  function renderEndPeers() {
+    const box = $("endPeers");
+    const list = $("endPeerList");
+    if (!box || !list || !endSummary) return;
+    const peers = Array.isArray(endSummary.peerLives) ? endSummary.peerLives : [];
+    if (!peers.length) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    list.innerHTML = peers
+      .map((peer) => {
+        const stateText = peer.alive
+          ? `在世 · ${U.esc(peer.age)}岁`
+          : `已故 · ${U.esc(peer.age)}岁${peer.fate ? ` · ${U.esc(peer.fate)}` : ""}`;
+        const records = Array.isArray(peer.records) ? peer.records.slice(-2) : [];
+        return `<article class="end-peer${peer.alive ? "" : " is-dead"}">
+          <div class="end-peer-head"><b>${U.esc(peer.name)}</b><span>${stateText}</span></div>
+          <p class="end-peer-meta">${U.esc(peer.root)} · ${U.esc(peer.place)} · ${U.esc(worldName(peer.world))}</p>
+          <div class="end-peer-realm">${U.esc(peer.realm || "凡人")}</div>
+          ${records.length ? `<div class="end-peer-records">${records.map((record) => `<span>${U.esc(record.age)}岁 · ${U.esc(record.text)}</span>`).join("")}</div>` : ""}
+        </article>`;
+      })
+      .join("");
+  }
+
   function renderEndAchievements(list) {
     const box = $("endAchievements");
     const target = $("endAchievementList");
@@ -1480,6 +1532,8 @@
         )
         .join("") || '<div class="deed"><span class="deed-age">—</span><span>这一世没有留下什么值得记下的事。</span></div>';
 
+    renderEndTexture();
+    renderEndPeers();
     renderLegacy(endSummary.legacy);
     renderLegacyChoices();
     renderEndAchievements(newAchievements);
