@@ -988,6 +988,25 @@
       return true;
     }
 
+    maybeRogueIdentity() {
+      const s = this.state;
+      if (
+        s.world !== "human" ||
+        s.pending ||
+        s.tier < 2 ||
+        s.tier > 6 ||
+        s.sectPath ||
+        s.seen.rogue_path_choice ||
+        this.isSectMember() ||
+        s.sect !== "散修" ||
+        !XD.EVENT_BY_ID.rogue_path_choice
+      ) {
+        return false;
+      }
+      this.trigger("rogue_path_choice");
+      return !!s.pending;
+    }
+
     maybePathArtifact() {
       const s = this.state;
       if (
@@ -1580,6 +1599,8 @@
       if (!s.pending && this.maybeIdentityAnchors()) return;
       // 道统是 Build 的入口，做成稳定节点而不是随机池事件
       if (!s.pending && this.maybeSectIdentity()) return;
+      // 散修到筑基后给一次“野路问道”，不复制宗门四选一
+      if (!s.pending && this.maybeRogueIdentity()) return;
       // 道统确定后，优先给匹配器胚与一次道统身份事件
       if (!s.pending && this.maybePathArtifact()) return;
       if (!s.pending && this.maybePathFeature()) return;
@@ -2544,9 +2565,11 @@
       if (s.daoBroken) {
         return { base: 0, prep: 0, injury: 0, chance: 0, locked: true, reason: "道心破碎" };
       }
+      const lateBottleneck = s.tier === 4 ? 0.4 : 0;
       const base =
         0.78 -
         s.tier * 0.04 -
+        lateBottleneck -
         Math.max(0, s.tier - 8) * (s.startWorld === "immortal" ? 0.04 : 0.12) +
         s.mood * 0.0015 +
         s.insight * 0.0006 +

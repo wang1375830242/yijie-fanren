@@ -8,7 +8,7 @@
 
 ## 当前版本
 
-- `1.3.3`，build `20261111e`
+- `1.3.3`，build `20261111f`
 - 最近提交：`1.3.3`（本次提交）
 - 主要入口：`index.html` → `play.html` → 结局页
 
@@ -33,6 +33,8 @@
 - 结局页“同世四人”：展示同辈姓名、境界、年龄、已故/在世和最近路径。
 - 设计宣言、数值口径、AI 交接文档：见 `docs/README.md`。
 - 身世底牌/错认、自缚誓约、时代相位：新增 `js/replay-data.js`、`js/replay-events.js`。
+- 散修道统：`rogue_path_choice` + `maybeRogueIdentity`，仅人界散修筑基后一次，只开游侠。
+- 高境比例：元婴→化神 `breakForecast` 额外 -0.40，只卡这一层。
 - 核心推演、结局、图表、本地存档均可离线运行；后端只用于可选公共碑林/账号同步。
 - 开发工作台统计：`tools/update-dev-usage.js` + `.githooks/pre-commit`；首次安装运行 `npm run hooks:install`，提交前自动刷新并暂存 `assets/dev-usage.json` / `.js`。
 - 旧存档兼容：缺失道心与重开字段自动补默认值。
@@ -62,6 +64,8 @@ node tests/canon-regression.js
 node tests/dao-heart-test.js
 node tests/experience-test.js
 node tests/replay-test.js
+node tests/chart-test.js
+node tests/rogue-path-test.js
 node tests/changelog-check.js
 ```
 

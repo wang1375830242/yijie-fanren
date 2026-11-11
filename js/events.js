@@ -666,14 +666,40 @@
   });
 
   add({
+    id: "rogue_path_choice",
+    when: () => false,
+    once: true,
+    title: "野路问道",
+    text: "你已筑基，仍没有山门。坊市收摊时，一个背着旧剑的散修把一册缺页游记推到你面前。他说：没有山门，也可以有一条自己的路。只是这条路没有师父，也没有人为你收尸。",
+    choices: [
+      {
+        label: "走游侠的野路",
+        effects: { sectPath: "you" },
+        outcome: "你把游记收进怀里。第二天，你沿着一条没有路牌的小路出了城。",
+      },
+      {
+        label: "不立道统，继续做散修",
+        effects: { mood: 3, insight: 1, flag: "rogue_path_declined" },
+        outcome: "你把书还给他。他没有劝，只说：那就把眼前这条路走好。",
+      },
+    ],
+  });
+
+  add({
     id: "artifact_choice",
     when: (s) => s.tier >= 2 && s.tier <= 4 && !s.artifact && !s.flags.artifact_declined,
     w: 8,
     title: "本命法宝",
-    text: (s) =>
-      s.sectPath
-        ? `器堂按你的道统送来相合的器胚。老修士说，选哪件，往后就要拿命去养。`
-        : "筑基之后，你终于可以温养一件本命法宝。器堂的老修士把几件器胚摆在桌上。他说，选哪件，往后就要拿命去养。",
+    text: (s) => {
+      const inSect = s.sect && !/散修|散仙|凡俗|杂役|天渊城|北寒仙域|青芦苏氏/.test(s.sect);
+      if (s.sectPath && inSect) {
+        return "器堂按你的道统送来相合的器胚。老修士说，选哪件，往后就要拿命去养。";
+      }
+      if (s.sectPath) {
+        return "坊市的旧货摊上，摊主按你的道统翻出一件相合的器胚。他说，散修没有器堂，只有眼力和命。";
+      }
+      return "筑基之后，你终于可以温养一件本命法宝。器堂的老修士把几件器胚摆在桌上。他说，选哪件，往后就要拿命去养。";
+    },
     choices: (s) => {
       const defs = s.sectPath
         ? D.PLAYER_ARTIFACTS.filter((a) => a.path === s.sectPath)
@@ -2938,7 +2964,7 @@
     id: "sect_path_you",
     when: (s) => s.sectPath === "you" && s.tier >= 2,
     once: true, w: 4, title: "野路",
-    text: "山门外的野路上，一个没有门派的老修士正在埋锅。他抬头看你，说这条路很久没见人走了。",
+    text: "一条没有山门的野路上，一个老修士正在埋锅。他抬头看你，说这条路很久没见人走了。",
     choices: [
       { label: "陪他喝一碗", effects: { mood: 6, luck: 3, insight: 2 }, outcome: "你们喝了一碗很淡的酒。他说，游侠不是没有家，是家在路上。" },
       { label: "问他路通向哪", effects: { insight: 4, stones: 20 }, outcome: "他指了一个方向，又指了另一个。你后来走了更远的那个。" },

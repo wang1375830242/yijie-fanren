@@ -6,7 +6,7 @@
 
   const XD = (window.XD = window.XD || {});
   XD.VERSION = "1.3.3";
-  XD.BUILD = "20261111e";
+  XD.BUILD = "20261111f";
 
   /* ---------- 随机 ---------- */
   function mulberry32(a) {

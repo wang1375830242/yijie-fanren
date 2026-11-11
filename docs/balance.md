@@ -19,6 +19,8 @@
 | 时代修炼修正 | `js/replay-data.js` `PHASES` | 承平 1.0 / 兵灾 0.96 / 末法 0.9 / 灵潮 1.1 | 只做小幅修正，不做战力天梯 |
 | 誓约破誓代价 | `js/sim.js` `breakOath` | 心境 -18、道心裂痕 1、伤势 +1 | 不直接掉境界或死亡 |
 | 身世线索 | `js/sim.js` `maybeLifePremise` | 18 岁错认、55 岁真相 | 一世一次 |
+| 散修道统 | `js/sim.js` `maybeRogueIdentity` | 人界散修筑基后一次 | 只开游侠，不复制宗门四道统 |
+| 元婴→化神瓶颈 | `js/sim.js` `breakForecast` | -0.40 | 只卡这一层，寿元与后期节奏不动 |
 | 存活曲线 | `js/art.js` `survivalInfo` | 按寿元/境界/时代计算 | 纯前端、同一输入同一结果 |
 
 ## 约束
