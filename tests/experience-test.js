@@ -62,8 +62,8 @@ sim.state.choiceTrace = [
   { kind: "event", eventId: "e", eventTitle: "五", choiceLabel: "戊", age: 60, tier: 5, outcome: "五之后" },
 ];
 const texture = sim.lifeTexture();
-ok(texture.length === 3, "纹理最多取三条");
-ok(texture[0].title === "一" && texture[1].title === "三" && texture[2].title === "五", "纹理应取首/中/末，而不是按分数排序");
+ok(texture.length === 5, "纹理最多取五条");
+ok(texture.map((item) => item.title).join("") === "一二三四五", "纹理应覆盖首、四分之一、中、四分之三、末，而不是按分数排序");
 ok(texture.every((item) => item.age > 0 && item.choice), "纹理条目应包含年龄和选择");
 
 const peers = sim.state.peers;

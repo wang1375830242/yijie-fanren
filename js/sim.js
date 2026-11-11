@@ -2690,8 +2690,14 @@
         }
       });
       const indexes =
-        unique.length >= 3
-          ? [0, Math.floor((unique.length - 1) / 2), unique.length - 1]
+        unique.length > 5
+          ? [
+              0,
+              Math.round((unique.length - 1) * 0.25),
+              Math.round((unique.length - 1) * 0.5),
+              Math.round((unique.length - 1) * 0.75),
+              unique.length - 1,
+            ]
           : unique.map((_, index) => index);
       return indexes
         .filter((index, position) => indexes.indexOf(index) === position)
