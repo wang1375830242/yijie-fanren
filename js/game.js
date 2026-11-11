@@ -113,34 +113,94 @@
     }
 
     const qChallenge = params.get("challenge");
-    const challengeSelect = $("challengeSelect");
-    const challengeHint = $("challengeHint");
-    if (challengeSelect && XD.Challenges) {
-      challengeSelect.innerHTML = '<option value="">自由降生</option>' +
-        XD.Challenges.DEFS.map((def) => `<option value="${U.esc(def.id)}">${U.esc(def.name)}</option>`).join("");
-      if (qChallenge && XD.Challenges.byId[qChallenge]) challengeSelect.value = qChallenge;
-      const updateChallengeHint = () => {
-        const selected = XD.Challenges.byId[challengeSelect.value];
-        if (challengeHint) challengeHint.textContent = selected
-          ? `${selected.desc} · 固定 seed ${selected.seed}`
-          : "固定命格与 seed；完成记录会留在账号里。";
-      };
-      challengeSelect.addEventListener("change", updateChallengeHint);
-      updateChallengeHint();
+    const savedPrefs = U.store.prefs();
+    let challengeKey =
+      qChallenge && XD.Challenges && XD.Challenges.byId[qChallenge]
+        ? qChallenge
+        : savedPrefs.challenge || "";
+    let oathKey = savedPrefs.oath || "none";
+    const challengeChoices = $("challengeChoices");
+    const oathChoices = $("oathChoices");
+    const modesOverlay = $("modesOverlay");
+    const modesSummary = $("modesSummary");
+
+    function updateModesSummary() {
+      const challenge = challengeKey && XD.Challenges ? XD.Challenges.byId[challengeKey] : null;
+      const oath =
+        XD.REPLAY && XD.REPLAY.OATHS
+          ? XD.REPLAY.OATHS.find((item) => item.key === oathKey)
+          : null;
+      if (modesSummary) {
+        modesSummary.textContent = `${challenge ? challenge.name : "自由降生"} · ${oath ? oath.name : "不立誓"}`;
+      }
     }
 
-    const oathSelect = $("oathSelect");
-    const oathHint = $("oathHint");
-    if (oathSelect && XD.REPLAY && Array.isArray(XD.REPLAY.OATHS)) {
-      oathSelect.innerHTML = XD.REPLAY.OATHS.map(
-        (oath) => `<option value="${U.esc(oath.key)}">${U.esc(oath.name)}</option>`
-      ).join("");
-      const updateOathHint = () => {
-        const oath = XD.REPLAY.OATHS.find((item) => item.key === oathSelect.value);
-        if (oathHint) oathHint.textContent = oath ? oath.desc : "";
-      };
-      oathSelect.addEventListener("change", updateOathHint);
-      updateOathHint();
+    function buildModeChoices() {
+      if (challengeChoices && XD.Challenges) {
+        const list = [{ id: "", name: "自由降生", desc: "不固定命格与 seed，随缘推演。" }].concat(
+          XD.Challenges.DEFS.map((def) => ({ id: def.id, name: def.name, desc: def.desc }))
+        );
+        challengeChoices.innerHTML = list
+          .map(
+            (item) =>
+              `<button class="mode-card${item.id === challengeKey ? " is-active" : ""}" type="button" data-challenge="${U.esc(item.id)}"><b>${U.esc(item.name)}</b><span>${U.esc(item.desc)}</span></button>`
+          )
+          .join("");
+        challengeChoices.querySelectorAll("[data-challenge]").forEach((button) => {
+          button.addEventListener("click", () => {
+            challengeKey = button.dataset.challenge || "";
+            U.store.setPref("challenge", challengeKey);
+            challengeChoices.querySelectorAll("[data-challenge]").forEach((item) => {
+              item.classList.toggle("is-active", item === button);
+            });
+            updateModesSummary();
+          });
+        });
+      }
+      if (oathChoices && XD.REPLAY && Array.isArray(XD.REPLAY.OATHS)) {
+        oathChoices.innerHTML = XD.REPLAY.OATHS.map(
+          (oath) =>
+            `<button class="mode-card${oath.key === oathKey ? " is-active" : ""}" type="button" data-oath="${U.esc(oath.key)}"><b>${U.esc(oath.name)}</b><span>${U.esc(oath.desc)}</span></button>`
+        ).join("");
+        oathChoices.querySelectorAll("[data-oath]").forEach((button) => {
+          button.addEventListener("click", () => {
+            oathKey = button.dataset.oath || "none";
+            U.store.setPref("oath", oathKey);
+            oathChoices.querySelectorAll("[data-oath]").forEach((item) => {
+              item.classList.toggle("is-active", item === button);
+            });
+            updateModesSummary();
+          });
+        });
+      }
+    }
+
+    function openModes() {
+      buildModeChoices();
+      updateModesSummary();
+      if (modesOverlay) modesOverlay.hidden = false;
+      const close = $("modesClose");
+      if (close) close.focus();
+    }
+
+    function closeModes() {
+      if (modesOverlay) modesOverlay.hidden = true;
+      const button = $("btnModes");
+      if (button) button.focus();
+    }
+
+    buildModeChoices();
+    updateModesSummary();
+    const modesButton = $("btnModes");
+    if (modesButton) modesButton.addEventListener("click", openModes);
+    ["modesClose", "modesDone"].forEach((id) => {
+      const button = $(id);
+      if (button) button.addEventListener("click", closeModes);
+    });
+    if (modesOverlay) {
+      modesOverlay.addEventListener("click", (event) => {
+        if (event.target === modesOverlay) closeModes();
+      });
     }
 
     $("btnBirth").addEventListener("click", () => {
@@ -186,14 +246,12 @@
      ====================================================================== */
   function startLife(world) {
     const params = new URLSearchParams(location.search);
-    const challengeSelect = $("challengeSelect");
-    const challengeId = challengeSelect ? challengeSelect.value : params.get("challenge") || "";
+    const challengeId = params.get("challenge") || U.store.prefs().challenge || "";
     const challenge = challengeId && XD.Challenges ? XD.Challenges.byId[challengeId] : null;
     const qSeed = params.get("seed");
     const seed = challenge ? challenge.seed : qSeed ? Number(qSeed) >>> 0 : (Math.random() * 4294967295) >>> 0;
     const modeEl = document.querySelector('input[name="mode"]:checked');
-    const oathSelect = $("oathSelect");
-    const oath = oathSelect ? oathSelect.value : "none";
+    const oath = U.store.prefs().oath || "none";
     const storedLegacy = challenge || qSeed ? null : U.store.legacy();
     const legacy = storedLegacy && !storedLegacy.usedBy ? storedLegacy : null;
     U.store.clearRun();

@@ -102,4 +102,8 @@ ok(restored && restored.state.phase && restored.state.phase.key === "peace", "�
 ok(restored && restored.state.oath && restored.state.oath.key === "none", "旧存档应补默认誓约");
 ok(restored && restored.state.birthSecret === null, "旧存档应补默认身世");
 
+const playHtml = fs.readFileSync(path.join(ROOT, "play.html"), "utf8");
+ok(playHtml.includes("modesOverlay") && playHtml.includes("challengeChoices") && playHtml.includes("oathChoices"), "降生页应使用玩法合集");
+ok(!playHtml.includes("challengeSelect") && !playHtml.includes("oathSelect"), "降生页不应直接展示旧下拉框");
+
 console.log(`replay-test: ${checks} checks passed`);

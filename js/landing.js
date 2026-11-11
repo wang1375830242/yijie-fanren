@@ -28,6 +28,7 @@
   let pace = "mid";
   const go = $("slipGo");
 
+
   function refreshGo() {
     go.href = `play.html?world=${world}&pace=${pace}`;
   }

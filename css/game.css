@@ -2307,3 +2307,87 @@ body:not(.in-life) #btnAuto {
   font-size: 11px;
   line-height: 1.7;
 }
+
+
+/* 玩法合集 */
+.modes-entry {
+  display: grid;
+  gap: 5px;
+  min-width: 160px;
+}
+.modes-summary {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.modes-prompt {
+  width: min(760px, calc(100vw - 28px));
+  max-height: 86vh;
+  overflow: auto;
+}
+.modes-prompt h3 {
+  margin: 8px 0 20px;
+}
+.modes-section {
+  margin: 0 0 20px;
+}
+.modes-section h4 {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: .14em;
+}
+.modes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.mode-card {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.mode-card b {
+  color: var(--text-soft);
+  font-weight: 400;
+  letter-spacing: .06em;
+}
+.mode-card span {
+  color: var(--muted-2);
+  font-family: var(--kai);
+  font-size: 10.5px;
+  line-height: 1.6;
+}
+.mode-card:hover,
+.mode-card.is-active {
+  border-color: var(--realm);
+  background: rgba(126, 168, 143, .1);
+}
+.mode-card.is-active b {
+  color: var(--realm);
+}
+.modes-note {
+  margin: 0 0 16px;
+  color: var(--muted-2);
+  font-family: var(--kai);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.modes-done {
+  width: 100%;
+  justify-content: center;
+}
+@media (max-width: 520px) {
+  .modes-grid { grid-template-columns: 1fr; }
+}

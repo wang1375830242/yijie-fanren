@@ -14,14 +14,14 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0f0b">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="js/theme-init.js?v=20261111a"></script>
+<script src="js/theme-init.js?v=20261111b"></script>
 <link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/base.css?v=20261111a">
-<link rel="stylesheet" href="css/update.css?v=20261111a">
-<link rel="stylesheet" href="css/game.css?v=20261111a">
-<link rel="stylesheet" href="css/day.css?v=20261111a">
-<link rel="stylesheet" href="css/spec.css?v=20261111a">
-<link rel="stylesheet" href="css/spec-build.css?v=20261111a">
+<link rel="stylesheet" href="css/base.css?v=20261111b">
+<link rel="stylesheet" href="css/update.css?v=20261111b">
+<link rel="stylesheet" href="css/game.css?v=20261111b">
+<link rel="stylesheet" href="css/day.css?v=20261111b">
+<link rel="stylesheet" href="css/spec.css?v=20261111b">
+<link rel="stylesheet" href="css/spec-build.css?v=20261111b">
 </head>
 <body class="play">
 <noscript><div class="noscript">这个站点需要 JavaScript 才能推演一世。请开启后刷新。</div></noscript>
@@ -120,19 +120,12 @@
         </div>
       </fieldset>
 
-      <fieldset class="opt-group oath-group">
-        <legend>自缚誓约</legend>
-        <select id="oathSelect" class="oath-select"></select>
-        <p class="oath-hint" id="oathHint">不选则无誓；誓约只改变这一世的选择，不发数值奖励。</p>
-      </fieldset>
-
     </div>
 
     <div class="birth-cta">
-      <div class="challenge-pick">
-        <label for="challengeSelect">命格挑战</label>
-        <select id="challengeSelect"><option value="">自由降生</option></select>
-        <p id="challengeHint">固定命格与 seed；完成记录会留在账号里。</p>
+      <div class="modes-entry">
+        <button class="btn" id="btnModes" type="button">玩法合集</button>
+        <p class="modes-summary" id="modesSummary">自由降生 · 不立誓</p>
       </div>
       <button class="btn btn--primary" id="btnBirth" type="button">降 生</button>
       <p class="birth-legacy" id="birthLegacy" hidden></p>
@@ -344,6 +337,26 @@
 <!-- ======================================================================
      浮层
 ====================================================================== -->
+<div class="overlay" id="modesOverlay" hidden>
+  <div class="prompt modes-prompt" role="dialog" aria-modal="true" aria-labelledby="modesTitle">
+    <div class="prompt-head">
+      <p class="prompt-kicker">玩法合集</p>
+      <button class="prompt-peek" id="modesClose" type="button">关闭</button>
+    </div>
+    <h3 id="modesTitle">这一世怎么开始</h3>
+    <section class="modes-section">
+      <h4>降生方式</h4>
+      <div class="modes-grid" id="challengeChoices"></div>
+    </section>
+    <section class="modes-section">
+      <h4>自缚誓约</h4>
+      <div class="modes-grid" id="oathChoices"></div>
+    </section>
+    <p class="modes-note">命格挑战固定 seed；誓约只改变叙事与后果，不发数值奖励，也不做完成度。</p>
+    <button class="btn btn--primary modes-done" id="modesDone" type="button">就用这个玩法</button>
+  </div>
+</div>
+
 <div class="overlay" id="choiceOverlay" hidden>
   <div class="prompt" role="dialog" aria-modal="true" aria-labelledby="choiceTitle">
     <div class="prompt-head">
@@ -391,31 +404,31 @@
 
 <canvas id="shareCanvas" width="1080" height="1350" hidden></canvas>
 
-<script src="js/common.js?v=20261111a"></script>
-<script src="js/update-check.js?v=20261111a"></script>
-<script src="js/spec-build.js?v=20261111a"></script>
-<script src="js/spec-theme.js?v=20261111a"></script>
-<script src="js/account-sync.js?v=20261111a"></script>
-<script src="js/data.js?v=20261111a"></script>
-<script src="js/replay-data.js?v=20261111a"></script>
-<script src="js/events.js?v=20261111a"></script>
-<script src="js/events-expanded.js?v=20261111a"></script>
-<script src="js/chain-events.js?v=20261111a"></script>
-<script src="js/canon-events.js?v=20261111a"></script>
-<script src="js/path-events.js?v=20261111a"></script>
-<script src="js/lineage-events.js?v=20261111a"></script>
-<script src="js/cause-events.js?v=20261111a"></script>
-<script src="js/tribulation-events.js?v=20261111a"></script>
-<script src="js/path-branch-events.js?v=20261111a"></script>
-<script src="js/late-expansion.js?v=20261111a"></script>
-<script src="js/dao-heart-events.js?v=20261111a"></script>
-<script src="js/replay-events.js?v=20261111a"></script>
-<script src="js/art.js?v=20261111a"></script>
-<script src="js/sim.js?v=20261111a"></script>
-<script src="js/audio.js?v=20261111a"></script>
-<script src="js/achievements.js?v=20261111a"></script>
-<script src="js/challenges.js?v=20261111a"></script>
-<script src="js/life-code.js?v=20261111a"></script>
-<script src="js/game.js?v=20261111a"></script>
+<script src="js/common.js?v=20261111b"></script>
+<script src="js/update-check.js?v=20261111b"></script>
+<script src="js/spec-build.js?v=20261111b"></script>
+<script src="js/spec-theme.js?v=20261111b"></script>
+<script src="js/account-sync.js?v=20261111b"></script>
+<script src="js/data.js?v=20261111b"></script>
+<script src="js/replay-data.js?v=20261111b"></script>
+<script src="js/events.js?v=20261111b"></script>
+<script src="js/events-expanded.js?v=20261111b"></script>
+<script src="js/chain-events.js?v=20261111b"></script>
+<script src="js/canon-events.js?v=20261111b"></script>
+<script src="js/path-events.js?v=20261111b"></script>
+<script src="js/lineage-events.js?v=20261111b"></script>
+<script src="js/cause-events.js?v=20261111b"></script>
+<script src="js/tribulation-events.js?v=20261111b"></script>
+<script src="js/path-branch-events.js?v=20261111b"></script>
+<script src="js/late-expansion.js?v=20261111b"></script>
+<script src="js/dao-heart-events.js?v=20261111b"></script>
+<script src="js/replay-events.js?v=20261111b"></script>
+<script src="js/art.js?v=20261111b"></script>
+<script src="js/sim.js?v=20261111b"></script>
+<script src="js/audio.js?v=20261111b"></script>
+<script src="js/achievements.js?v=20261111b"></script>
+<script src="js/challenges.js?v=20261111b"></script>
+<script src="js/life-code.js?v=20261111b"></script>
+<script src="js/game.js?v=20261111b"></script>
 </body>
 </html>
