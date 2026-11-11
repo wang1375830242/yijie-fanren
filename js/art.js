@@ -196,32 +196,76 @@
   }
 
   /* ---------------- 存亡曲线 ---------------- */
-  function survivalChart(age, maxAge) {
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function survivalInfo(age, maxAge, opts) {
+    opts = opts || {};
+    const cap = Math.max(1, Number(maxAge) || 78);
+    const tier = clamp(Number(opts.tier) || 0, 0, 13);
+    const phase = opts.phase && opts.phase.key ? opts.phase.key : "peace";
+    const world = opts.world || "human";
+    const phaseHazard = { peace: 1, war: 1.16, decline: 1.08, surge: 0.95 }[phase] || 1;
+    const worldHazard = { human: 1, spirit: 0.95, immortal: 0.9 }[world] || 1;
+    const early = clamp(
+      0.065 +
+        (phase === "war" ? 0.045 : phase === "decline" ? 0.025 : phase === "surge" ? -0.01 : 0) -
+        Math.min(0.02, tier * 0.002),
+      0.025,
+      0.14
+    );
+    const shape = clamp(4.6 + tier * 0.18, 4.6, 7.2);
+    const scale = cap * 0.8;
+    const hazard = phaseHazard * worldHazard;
+    const survivalAt = (value) => {
+      const a = Math.max(0, Number(value) || 0);
+      const ratio = a / scale;
+      const old = Math.exp(-Math.pow(Math.max(0, ratio), shape));
+      const earlyLoss = early * (1 - Math.exp(-a / Math.max(6, cap * 0.08)));
+      return clamp((1 - earlyLoss) * Math.pow(old, hazard), 0, 1);
+    };
+    return {
+      cap,
+      pct: survivalAt(Math.min(cap, Math.max(0, Number(age) || 0))),
+      logAxis: cap > 1000,
+      survivalAt,
+      xAt(value) {
+        const a = Math.min(cap, Math.max(0, Number(value) || 0));
+        if (cap <= 1000) return a / cap;
+        return Math.log1p(a / 100) / Math.log1p(cap / 100);
+      },
+    };
+  }
+
+  function survivalChart(age, maxAge, opts) {
     const W = 280;
     const H = 84;
-    const cap = Math.max(120, Math.min(maxAge, age * 1.15, 6000));
+    const info = survivalInfo(age, maxAge, opts);
+    const cap = info.cap;
     const pts = [];
-    const N = 60;
+    const N = 72;
     for (let i = 0; i <= N; i++) {
       const a = (i / N) * cap;
-      const p = Math.exp(-Math.pow(a / 78, 1.35));
-      pts.push([(i / N) * W, H - p * (H - 8) - 2]);
+      const p = info.survivalAt(a);
+      pts.push([info.xAt(a) * W, H - p * (H - 8) - 2]);
     }
     const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
     const area = line + ` L${W} ${H} L0 ${H} Z`;
     const gid = "s" + Math.floor(Math.random() * 1e6);
-    const nowX = Math.min(W, (Math.min(age, cap) / cap) * W);
-    const nowY = H - Math.exp(-Math.pow(Math.min(age, cap) / 78, 1.35)) * (H - 8) - 2;
+    const nowX = info.xAt(age) * W;
+    const nowY = H - info.pct * (H - 8) - 2;
     return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">
       <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".22"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
       <line x1="0" y1="${H - 2}" x2="${W}" y2="${H - 2}" stroke="currentColor" stroke-width="0.5" opacity=".2"/>
+      <line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" stroke="currentColor" stroke-width="0.5" opacity=".08" stroke-dasharray="2 4"/>
       <line x1="0" y1="6" x2="${W}" y2="6" stroke="currentColor" stroke-width="0.5" opacity=".08"/>
       <path d="${area}" fill="url(#${gid})"/>
-      <path d="${line}" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".75"/>
+      <path d="${line}" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".78"/>
       <line x1="${nowX.toFixed(1)}" y1="4" x2="${nowX.toFixed(1)}" y2="${H - 2}" stroke="currentColor" stroke-width="0.7" opacity=".45" stroke-dasharray="2 3"/>
       <circle cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="2.2" fill="currentColor"/>
     </svg>`;
   }
 
-  XD.art = { dial, rootRing, rootValues, scene, survivalChart };
+  XD.art = { dial, rootRing, rootValues, scene, survivalChart, survivalInfo };
 })();

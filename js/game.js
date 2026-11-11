@@ -787,10 +787,20 @@
     }
 
     // 曲线
-    const chartKey = `${Math.floor(s.age / 10)}|${s.maxAge}`;
+    const chartKey = `${Math.floor(s.age / 10)}|${s.maxAge}|${s.tier}|${s.world}|${s.phase ? s.phase.key : ""}`;
     if (full || chartKey !== lastChartKey) {
-      $("chartBox").innerHTML = A.survivalChart(s.age, s.maxAge);
+      const chartOpts = { tier: s.tier, world: s.world, phase: s.phase };
+      const chartInfo = A.survivalInfo(s.age, s.maxAge, chartOpts);
+      $("chartBox").innerHTML = A.survivalChart(s.age, s.maxAge, chartOpts);
       $("chartBox").style.color = "var(--realm)";
+      const horizon =
+        chartInfo.cap >= 10000
+          ? `${(chartInfo.cap / 10000).toFixed(1)}万岁`
+          : `${Math.round(chartInfo.cap)}岁`;
+      const cap = $("chartCap");
+      if (cap) {
+        cap.textContent = `同批降生的一万人中，约 ${Math.round(chartInfo.pct * 100)}% 仍活着；按本世寿元与世道推演（0–${horizon}），是虚构模型，不是现实统计。`;
+      }
       lastChartKey = chartKey;
     }
 
