@@ -34,6 +34,7 @@
 - 设计宣言、数值口径、AI 交接文档：见 `docs/README.md`。
 - 身世底牌/错认、自缚誓约、时代相位：新增 `js/replay-data.js`、`js/replay-events.js`。
 - 核心推演、结局、图表、本地存档均可离线运行；后端只用于可选公共碑林/账号同步。
+- 开发工作台统计：`tools/update-dev-usage.js` + `.githooks/pre-commit`；首次安装运行 `npm run hooks:install`，提交前自动刷新并暂存 `assets/dev-usage.json` / `.js`。
 - 旧存档兼容：缺失道心与重开字段自动补默认值。
 
 ## 已知坑

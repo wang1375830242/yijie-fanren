@@ -1,0 +1,11 @@
+#!/bin/sh
+# 每次提交前刷新开发工作台统计；缺少缓存或 Node 时不阻塞提交。
+set -u
+if ! command -v node >/dev/null 2>&1; then
+  exit 0
+fi
+if ! node tools/update-dev-usage.js; then
+  exit 0
+fi
+git add assets/dev-usage.json assets/dev-usage.js 2>/dev/null || true
+exit 0
