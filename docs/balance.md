@@ -16,6 +16,9 @@
 | 补心第二段 | `maybeDaoHeartRepair` | 第一段后 5 年 | 触发 `dao_repair_2` |
 | 纹理条数 | `js/sim.js` `lifeTexture` | 最多 3 条 | 取首、中、末，不按分数选 |
 | 同世人数 | `js/sim.js` `buildPeers` | 4 人 | 按出生顺序展示，不按境界排序 |
+| 时代修炼修正 | `js/replay-data.js` `PHASES` | 承平 1.0 / 兵灾 0.96 / 末法 0.9 / 灵潮 1.1 | 只做小幅修正，不做战力天梯 |
+| 誓约破誓代价 | `js/sim.js` `breakOath` | 心境 -18、道心裂痕 1、伤势 +1 | 不直接掉境界或死亡 |
+| 身世线索 | `js/sim.js` `maybeLifePremise` | 18 岁错认、55 岁真相 | 一世一次 |
 
 ## 约束
 

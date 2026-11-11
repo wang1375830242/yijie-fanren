@@ -129,6 +129,20 @@
       updateChallengeHint();
     }
 
+    const oathSelect = $("oathSelect");
+    const oathHint = $("oathHint");
+    if (oathSelect && XD.REPLAY && Array.isArray(XD.REPLAY.OATHS)) {
+      oathSelect.innerHTML = XD.REPLAY.OATHS.map(
+        (oath) => `<option value="${U.esc(oath.key)}">${U.esc(oath.name)}</option>`
+      ).join("");
+      const updateOathHint = () => {
+        const oath = XD.REPLAY.OATHS.find((item) => item.key === oathSelect.value);
+        if (oathHint) oathHint.textContent = oath ? oath.desc : "";
+      };
+      oathSelect.addEventListener("change", updateOathHint);
+      updateOathHint();
+    }
+
     $("btnBirth").addEventListener("click", () => {
       if (rollingLife) return;
       rollingLife = true;
@@ -178,6 +192,8 @@
     const qSeed = params.get("seed");
     const seed = challenge ? challenge.seed : qSeed ? Number(qSeed) >>> 0 : (Math.random() * 4294967295) >>> 0;
     const modeEl = document.querySelector('input[name="mode"]:checked');
+    const oathSelect = $("oathSelect");
+    const oath = oathSelect ? oathSelect.value : "none";
     const storedLegacy = challenge || qSeed ? null : U.store.legacy();
     const legacy = storedLegacy && !storedLegacy.usedBy ? storedLegacy : null;
     U.store.clearRun();
@@ -187,6 +203,7 @@
       world: challenge ? challenge.world || world : world,
       mode: challenge ? "birth" : modeEl ? modeEl.value : "birth",
       legacy,
+      oath,
     });
     if (challenge) sim.state.challengeId = challenge.id;
     state = sim.state;
@@ -355,6 +372,9 @@
       ["体质", s.physique ? `${s.physique.name}${s.physiqueAwakened ? " · 觉醒" : ""}` : "凡体"],
       ["道统", sim.buildName ? sim.buildName() : "无道统"],
       ["Build", sim.buildLevel ? `${sim.buildLevel()} 级` : "—"],
+      ["时代", sim.phaseName ? sim.phaseName() : "承平"],
+      ["誓约", sim.oathName ? sim.oathName() : "不立誓"],
+      ["身世", s.secretRevealed && s.birthSecret ? s.birthSecret.name : "未明"],
       ["悟性", s.insight],
       ["气运", s.luck],
       ["寿元", s.maxAge + " 年"],
@@ -570,6 +590,9 @@
       immortal: "仙界",
     };
     tags.push(stageNames[sim.stage()]);
+    if (s.phase && s.phase.name) tags.push(`时代 · ${s.phase.name}`);
+    if (s.oath && s.oath.key !== "none") tags.push(`誓约 · ${s.oath.name}${s.oathBroken ? " · 已破" : ""}`);
+    if (s.secretRevealed && s.birthSecret) tags.push(`身世 · ${s.birthSecret.name}`);
     if (s.daoBroken) tags.push("道心破碎");
     else if ((Number(s.daoScar) || 0) > 0) tags.push("道心裂痕");
     if (s.flags && s.flags.xutian && !s.flags.xutian_closed) {
@@ -1506,6 +1529,9 @@
       ["道统", sim.buildName ? sim.buildName() : "无道统"],
       ["Build", sim.buildLevel ? `${sim.buildLevel()} 级` : "—"],
       ["本命法宝", s.artifact ? `${s.artifact.name}${s.artifact.broken ? " · 已碎" : ` · ${s.artifact.stage || 0} 重 · 共鸣 ${s.artifact.bond || 0}`}` : "未温养"],
+      ["时代", endSummary.phase ? endSummary.phase.name : "承平"],
+      ["誓约", endSummary.oath ? endSummary.oath.name + (endSummary.oath.broken ? " · 已破" : "") : "不立誓"],
+      ["身世", endSummary.birthSecret ? endSummary.birthSecret.name : "未明"],
       ["宗门", s.sect ? `${s.sect}${sim.sectRankName() ? " · " + sim.sectRankName() : ""}` : "散修"],
       ["道侣", partnerField],
       ["弟子", disciplineField],

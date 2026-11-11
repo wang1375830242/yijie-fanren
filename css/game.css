@@ -2288,3 +2288,22 @@ body:not(.in-life) #btnAuto {
     gap: 8px;
   }
 }
+
+
+/* 自缚誓约 */
+.oath-group { grid-column: 1 / -1; }
+.oath-select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font: inherit;
+  padding: 9px 10px;
+}
+.oath-hint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 11px;
+  line-height: 1.7;
+}

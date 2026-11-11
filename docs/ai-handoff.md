@@ -1,6 +1,6 @@
 # AI 交接文档
 
-最后更新：2026-11-09
+最后更新：2026-11-11
 
 ## 一句话
 
@@ -8,8 +8,8 @@
 
 ## 当前版本
 
-- `1.3.2`，build `20261109b`
-- 最近提交：`1.3.2`（本次提交）
+- `1.3.3`，build `20261111a`
+- 最近提交：`1.3.3`（本次提交）
 - 主要入口：`index.html` → `play.html` → 结局页
 
 ## 关键文件
@@ -21,6 +21,8 @@
 | `js/data.js` | 境界、灵根、物品、事件基础数据 |
 | `js/events*.js` | 普通事件与扩展事件 |
 | `js/dao-heart-events.js` | 5 个道心试炼 + 2 段补心 |
+| `js/replay-data.js` | 身世底牌、时代相位、自缚誓约数据 |
+| `js/replay-events.js` | 错认、身世真相、时代事件、誓约试炼 |
 | `js/changelog-data.js` | 玩家可感知更新的唯一来源 |
 | `play.html` / `css/game.css` | 游戏界面与结局页样式 |
 
@@ -30,7 +32,8 @@
 - 结局页“这一生的纹理”：从 `choiceTrace` 取首/中/末 3 条选择。
 - 结局页“同世四人”：展示同辈姓名、境界、年龄、已故/在世和最近路径。
 - 设计宣言、数值口径、AI 交接文档：见 `docs/README.md`。
-- 旧存档兼容：缺失道心字段自动补默认值。
+- 身世底牌/错认、自缚誓约、时代相位：新增 `js/replay-data.js`、`js/replay-events.js`。
+- 旧存档兼容：缺失道心与重开字段自动补默认值。
 
 ## 已知坑
 
@@ -56,6 +59,7 @@ node tests/browser-smoke.js
 node tests/canon-regression.js
 node tests/dao-heart-test.js
 node tests/experience-test.js
+node tests/replay-test.js
 node tests/changelog-check.js
 ```
 

@@ -114,6 +114,12 @@
         daoRepairStep: 0,
         daoRepairStepAt: null,
         daoScar: 0,
+        phase: null,
+        birthSecret: null,
+        secretStage: 0,
+        secretRevealed: false,
+        oath: null,
+        oathBroken: false,
         sectPath: null,
         pathBranch: null,
         karmaBook: [],
@@ -206,6 +212,18 @@
       this.state.legacy = this.applyLegacy(legacy);
 
       this.buildPeers();
+      const replay = (window.XD && XD.REPLAY) || {};
+      const phase = replay.PHASES && replay.PHASES.length ? rng.pick(replay.PHASES) : null;
+      const secret = replay.SECRETS && replay.SECRETS.length ? rng.pick(replay.SECRETS) : null;
+      const oathKey = opts && opts.oath ? String(opts.oath) : "none";
+      const oath = replay.OATHS && replay.OATHS.find((item) => item.key === oathKey) || {
+        key: "none",
+        name: "不立誓",
+        desc: "",
+      };
+      this.state.phase = phase ? Object.assign({}, phase) : { key: "peace", name: "承平", desc: "", cultMul: 1 };
+      this.state.birthSecret = secret ? Object.assign({}, secret) : null;
+      this.state.oath = Object.assign({}, oath);
       this.pushLog(
         "birth",
         world === "human"
@@ -1303,7 +1321,8 @@
           (f.cult || 1) *
           (1 + (s.cultRate || 0)) *
           (1 - Math.min(3, s.injury || 0) * 0.06) *
-          this.worldCultMul();
+          this.worldCultMul() *
+          (Number(s.phase && s.phase.cultMul) || 1);
         // 结丹以后给低灵根一条活路：速度仍受灵根影响，但不让寿元上限变成硬墙。
         const effectiveMul = s.tier >= 3 ? Math.max(mul, 0.55) : mul;
         s.cult = clamp(s.cult + base * effectiveMul, 0, 100);
@@ -1549,6 +1568,8 @@
       }
       // 道心破碎后，补心链优先于普通随机事件
       if (!s.pending && this.maybeDaoHeartRepair()) return;
+      // 身世错认 / 时代相位 / 自缚誓约
+      if (!s.pending && this.maybeLifePremise()) return;
       // 宗门提拔排在突破之后，避免抢掉破境/里程碑的 pending
       if (!s.pending && this.maybeSectPromotion()) return;
       // 中期「残图」主线：按 flag 强制推进，避免被随机池淹没
@@ -2174,6 +2195,11 @@
       if (typeof effects.daoScar === "number") {
         s.daoScar = clamp(effects.daoScar, 0, 2);
       }
+      if (typeof effects.secretStage === "number") {
+        s.secretStage = clamp(effects.secretStage, 0, 2);
+      }
+      if (effects.secretRevealed) s.secretRevealed = true;
+      if (effects.oathBreak) this.breakOath();
       if (effects.artifactBroken && s.artifact) s.artifact.broken = true;
       if (effects.artifact && !s.artifact) this.bindArtifact(effects.artifact);
       if (typeof effects.artifactBond === "number" && s.artifact && !s.artifact.broken) {
@@ -2464,6 +2490,51 @@
       if (s.daoRepairStep === 1 && s.age >= (Number(s.daoRepairStepAt) || 0) + 5 && !s.seen.dao_repair_2) {
         this.trigger("dao_repair_2");
         return true;
+      }
+      return false;
+    }
+
+    phaseName() {
+      return this.state.phase && this.state.phase.name ? this.state.phase.name : "承平";
+    }
+
+    oathName() {
+      return this.state.oath && this.state.oath.name ? this.state.oath.name : "不立誓";
+    }
+
+    breakOath() {
+      const s = this.state;
+      if (!s.oath || s.oath.key === "none" || s.oathBroken) return false;
+      s.oathBroken = true;
+      s.mood = clamp((Number(s.mood) || 0) - 18, 15, 100);
+      s.daoScar = Math.max(1, Number(s.daoScar) || 0);
+      s.injury = Math.min(3, (s.injury || 0) + 1);
+      s.flags.oath_broken = true;
+      this.pushLog("system", `你违背了「${s.oath.name}」的誓约。道心留下了一道裂痕。`, {
+        title: "破誓",
+      });
+      return true;
+    }
+
+    maybeLifePremise() {
+      const s = this.state;
+      if (s.pending) return false;
+      const fire = (id) => {
+        if (!window.XD || !XD.EVENT_BY_ID || !XD.EVENT_BY_ID[id]) return false;
+        this.trigger(id);
+        return !!s.pending;
+      };
+      if (s.birthSecret && s.secretStage === 0 && s.age >= 18 && !s.seen.identity_mistake) {
+        return fire("identity_mistake");
+      }
+      if (s.phase && s.age >= 25 && !s.seen.phase_turn) {
+        return fire("phase_turn");
+      }
+      if (s.oath && s.oath.key !== "none" && s.age >= 35 && !s.seen.oath_trial) {
+        return fire("oath_trial");
+      }
+      if (s.birthSecret && s.secretStage >= 1 && s.age >= 55 && !s.seen.identity_truth) {
+        return fire("identity_truth");
       }
       return false;
     }
@@ -2862,6 +2933,16 @@
       sim.state.daoRepairStep = clamp(Number(sim.state.daoRepairStep) || 0, 0, 2);
       sim.state.daoRepairStepAt = sim.state.daoRepairStepAt != null && Number.isFinite(Number(sim.state.daoRepairStepAt)) ? Number(sim.state.daoRepairStepAt) : null;
       sim.state.daoScar = clamp(Number(sim.state.daoScar) || 0, 0, 2);
+      if (!sim.state.phase || typeof sim.state.phase !== "object") {
+        sim.state.phase = { key: "peace", name: "承平", desc: "", cultMul: 1 };
+      }
+      if (!sim.state.birthSecret || typeof sim.state.birthSecret !== "object") sim.state.birthSecret = null;
+      sim.state.secretStage = clamp(Number(sim.state.secretStage) || 0, 0, 2);
+      sim.state.secretRevealed = !!sim.state.secretRevealed;
+      if (!sim.state.oath || typeof sim.state.oath !== "object") {
+        sim.state.oath = { key: "none", name: "不立誓", desc: "" };
+      }
+      sim.state.oathBroken = !!sim.state.oathBroken;
       if (sim.state.artifact && typeof sim.state.artifact.bond !== "number") sim.state.artifact.bond = 0;
       sim.ensureChainState();
       sim.rng.setState(run.rng);
@@ -2940,6 +3021,9 @@
         sectContrib: Math.round(s.sectContrib || 0),
         sectPath: s.sectPath || null,
         pathBranch: s.pathBranch || null,
+        phase: s.phase ? { key: s.phase.key, name: s.phase.name, desc: s.phase.desc || "" } : null,
+        birthSecret: s.secretRevealed && s.birthSecret ? { key: s.birthSecret.key, name: s.birthSecret.name, desc: s.birthSecret.desc || "" } : null,
+        oath: s.oath ? { key: s.oath.key, name: s.oath.name, broken: !!s.oathBroken } : null,
         physiqueAwakened: s.physiqueAwakened || null,
         buildLevel: this.buildLevel(),
         buildName: this.buildName(),
