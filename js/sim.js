@@ -18,6 +18,7 @@
       this.seed = (opts.seed >>> 0) || (Math.random() * 4294967295) >>> 0;
       this.rng = new U.RNG(this.seed);
       this.socialRng = new U.RNG((this.seed ^ 0x9e3779b9) >>> 0);
+      this.oldFriendRng = new U.RNG((this.seed ^ 0x85ebca6b) >>> 0);
       this.opts = opts;
       this.state = null;
       this.generate(opts);
@@ -147,6 +148,8 @@
         rivals: [],
         discipleHistory: [],
         rivalHistory: [],
+        oldFriends: [],
+        oldFriendReturns: 0,
         npcSeq: 0,
         npcStates: {
           parent: { key: "parent", present: false, alive: false, lastAt: 0 },
@@ -1544,6 +1547,118 @@
       }
     }
 
+    /* 旧人只在作出选择时写入，不从会被截断的 choiceTrace 反查。 */
+    rememberOldFriend(meta) {
+      if (!meta || typeof meta !== "object") return;
+      const s = this.state;
+      if (!Array.isArray(s.oldFriends)) s.oldFriends = [];
+      if (s.oldFriends.some((item) => item && item.kind === meta.kind)) return;
+      if (s.oldFriends.length >= 3 || (Number(s.oldFriendReturns) || 0) >= 1) return;
+      const source = meta.npcRole === "rival"
+        ? (s.rivals || []).find((item) => item && item.alive !== false) || (s.rivalHistory || []).slice(-1)[0]
+        : null;
+      const kind = ["refugee", "rival", "herbalist"].includes(meta.kind) ? meta.kind : null;
+      if (!kind) return;
+      const rng = this.oldFriendRng;
+      const name = source && source.name
+        ? String(source.name)
+        : `${rng.pick(D.SURNAMES)}${this.pickGivenName(rng, rng.chance(0.5) ? "男" : "女")}`;
+      const age = kind === "herbalist" ? Math.max(18, Math.min(62, s.age + rng.int(-10, 20))) : Math.max(12, s.age + rng.int(-5, 5));
+      const tier = kind === "herbalist" ? 0 : Math.max(1, Math.min(12, Number(source && source.tier) || s.tier || 1));
+      const life = (D.REALMS[tier] || D.REALMS[0]).life;
+      s.oldFriends.push({
+        id: `oldfriend-${kind}-${s.oldFriends.length + 1}`,
+        kind,
+        name: name.slice(0, 20),
+        metAt: Number(s.age) || 0,
+        originChoice: String(meta.choice || "").slice(0, 24),
+        originEvent: String(s.pending && s.pending.id || "").slice(0, 48),
+        age,
+        ageOffset: age - (Number(s.age) || 0),
+        tier,
+        world: String(source && source.world || s.world || "human"),
+        maxAge: Math.max(age + 1, life),
+        nextAt: Number(s.age) || 0,
+        dueAt: (Number(s.age) || 0) + (kind === "herbalist" ? rng.int(22, 42) : rng.int(26, 52)),
+        afterAt: (Number(s.age) || 0) + (kind === "herbalist" ? rng.int(60, 95) : rng.int(130, 260)),
+        variant: rng.int(0, 2),
+        alive: true,
+        status: "away",
+      });
+    }
+
+    oldFriendTick() {
+      const s = this.state;
+      if (!Array.isArray(s.oldFriends)) return;
+      for (const person of s.oldFriends) {
+        if (!person || ["done", "returning", "gone"].includes(person.status)) continue;
+        person.age = Math.max(0, (Number(s.age) || 0) + (Number(person.ageOffset) || 0));
+        if (person.age >= person.maxAge) {
+          person.alive = false;
+          person.endedAt = s.age;
+          person.fate = "寿尽";
+          person.status = "awaiting_return";
+          continue;
+        }
+        if (!person.alive) continue;
+        if (person.kind === "herbalist" || s.age < person.nextAt) continue;
+        const cap = Math.min(9, Math.max(0, s.tier + 1));
+        if (person.tier < cap) {
+          person.tier += 1;
+          person.maxAge = Math.max(person.maxAge, (D.REALMS[person.tier] || D.REALMS[0]).life);
+          if (person.tier >= 6 && person.world === "human") person.world = "spirit";
+          if (person.tier >= 9 && person.world === "spirit") person.world = "immortal";
+          const interval = Math.max(30, Math.round(((D.REALMS[person.tier] || D.REALMS[0]).need || 500) / 1.5));
+          person.nextAt = s.age + this.oldFriendRng.int(Math.round(interval * 0.65), Math.round(interval * 1.25));
+        } else {
+          person.nextAt = s.age + 9999;
+        }
+      }
+    }
+
+    maybeOldFriends() {
+      const s = this.state;
+      if (s.pending || !Array.isArray(s.oldFriends) || !s.oldFriends.length) return false;
+      if ((Number(s.oldFriendReturns) || 0) >= 1 || s.cult >= 90 || s.daoBroken) return false;
+      if ((Number(s.stepsSinceEvent) || 0) < 2 || s.age - (Number(s.lastChainAge) || -999) < 3) return false;
+      const candidate = s.oldFriends.find((person) =>
+        person && !["done", "returning", "gone"].includes(person.status) && s.age >= person.dueAt
+      );
+      if (!candidate) return false;
+      if (candidate.alive !== false && candidate.world !== s.world && s.age < candidate.afterAt) return false;
+      // 长时间没有合适窗口就让这段关系自然错过，不做无限追赶的倒计时。
+      if (s.age > candidate.dueAt + 240) {
+        candidate.status = "gone";
+        candidate.missedAt = s.age;
+        return false;
+      }
+      const id = `oldfriend_${candidate.kind}_return`;
+      if (!XD.EVENT_BY_ID[id]) return false;
+      candidate.returnForm = candidate.alive === false || candidate.kind === "herbalist" || candidate.world !== s.world ? "letter" : "visit";
+      candidate.status = "returning";
+      candidate.returnedAt = s.age;
+      this.oldFriendReturnId = candidate.id;
+      s.oldFriendReturns = 1;
+      this.trigger(id);
+      if (!s.pending) {
+        candidate.status = "gone";
+        s.oldFriendReturns = 0;
+        return false;
+      }
+      return true;
+    }
+
+    resolveOldFriend(resolution) {
+      const s = this.state;
+      const person = (s.oldFriends || []).find((item) => item && item.id === this.oldFriendReturnId)
+        || (s.oldFriends || []).find((item) => item && item.status === "returning");
+      if (!person) return;
+      person.status = "done";
+      person.resolution = String(resolution || "").slice(0, 32);
+      person.resolvedAt = s.age;
+      this.oldFriendReturnId = null;
+    }
+
     socialTick() {
       const s = this.state;
       if (!Array.isArray(s.disciples)) s.disciples = [];
@@ -1553,6 +1668,7 @@
       this.maybeCreateSocial();
       this.tickSocialList(s.disciples, "disciple");
       this.tickSocialList(s.rivals, "rival");
+      this.oldFriendTick();
     }
 
     afterStep() {
@@ -1610,6 +1726,8 @@
       if (!s.pending && this.maybeCauseChain()) return;
       // 再一世：前世回响，一局最多一次
       if (!s.pending && this.maybeLegacyEcho()) return;
+      // 故人回身：只在平静年份出现，不抢突破、主线与已有关系链。
+      if (!s.pending && this.maybeOldFriends()) return;
       // 随机事件
       if (!s.pending && this.rng.chance(this.eventChance())) {
         const ev = this.pickEvent();
@@ -1900,6 +2018,10 @@
         choices,
         major: !!ev.major,
         chain: !!ev.chain,
+        // 故人动态文本/结果读取触发当时的同一份数据，避免状态结算后错认另一位旧人。
+        oldFriend: ev.id && ev.id.indexOf("oldfriend_") === 0 && ev.id.endsWith("_return")
+          ? JSON.parse(JSON.stringify((s.oldFriends || []).find((item) => item && item.id === this.oldFriendReturnId) || null))
+          : null,
       };
     }
 
@@ -1997,6 +2119,10 @@
       }
 
       this.noteSceneUse(s.pending.sceneKey, choice);
+      // 只记成功走到后续人生里的旧人；若本选择转入生死险境，先不生成关系。
+      if (choice.oldFriend && !(choice.risk && choice.risk.fail && choice.risk.fail.death)) {
+        this.rememberOldFriend(choice.oldFriend);
+      }
       if (s.pending.id === "m_ascend") {
         s.flags.ascend_attempts = (Number(s.flags.ascend_attempts) || 0) + 1;
       }
@@ -2221,6 +2347,7 @@
       }
       if (effects.secretRevealed) s.secretRevealed = true;
       if (effects.oathBreak) this.breakOath();
+      if (effects.oldFriendResolution) this.resolveOldFriend(effects.oldFriendResolution);
       if (effects.artifactBroken && s.artifact) s.artifact.broken = true;
       if (effects.artifact && !s.artifact) this.bindArtifact(effects.artifact);
       if (typeof effects.artifactBond === "number" && s.artifact && !s.artifact.broken) {
@@ -2913,6 +3040,7 @@
         mode: this.opts.mode || "birth",
         rng: this.rng.getState(),
         socialRng: this.socialRng.getState(),
+        oldFriendRng: this.oldFriendRng.getState(),
         state,
         savedAt: new Date().toISOString(),
       };
@@ -2941,6 +3069,12 @@
       if (!sim.state.flags) sim.state.flags = {};
       if (!sim.state.seen) sim.state.seen = {};
       if (!Array.isArray(sim.state.choiceTrace)) sim.state.choiceTrace = [];
+      if (!Array.isArray(sim.state.oldFriends)) sim.state.oldFriends = [];
+      sim.state.oldFriendReturns = sim.state.oldFriends.some((item) => item && item.status === "done") ? 1 : 0;
+      // 自动存档会清掉 pending；恢复时旧人回归也一并取消，不用静态选项替换动态文本。
+      sim.state.oldFriends.forEach((item) => {
+        if (item && item.status === "returning") item.status = "away";
+      });
       if (!Array.isArray(sim.state.log)) sim.state.log = [];
       if (!Array.isArray(sim.state.history)) sim.state.history = [];
       if (!Array.isArray(sim.state.recentAmbientKeys)) sim.state.recentAmbientKeys = [];
@@ -2976,6 +3110,7 @@
       sim.ensureChainState();
       sim.rng.setState(run.rng);
       sim.socialRng.setState(run.socialRng);
+      sim.oldFriendRng.setState(run.oldFriendRng);
       return sim;
     }
 
@@ -3042,6 +3177,16 @@
         rivals: s.rivals || [],
         discipleHistory: s.discipleHistory || [],
         rivalHistory: s.rivalHistory || [],
+        oldFriends: (Array.isArray(s.oldFriends) ? s.oldFriends : []).map((person) => ({
+          kind: person.kind,
+          name: person.name,
+          metAt: person.metAt,
+          returnedAt: person.returnedAt || null,
+          resolution: person.resolution || "",
+          returnForm: person.returnForm || "",
+          alive: person.alive !== false,
+          status: person.status,
+        })),
         karma: s.karma,
         stones: s.stones,
         sect: s.sect,

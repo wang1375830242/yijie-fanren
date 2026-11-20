@@ -301,17 +301,20 @@
     choices: [
       {
         label: "拔剑，做个了断",
+        oldFriend: { kind: "rival", choice: "spared", npcRole: "rival" },
         risk: { p: 0.55, text: "最后一剑停在对方喉前半寸。", fail: { death: true, cause: "死于旧怨了断" } },
         effects: { mood: 8, karma: -3, rivalHostility: -100, rivalStatus: "reconciled", flag: "rival_chain_spared" },
         outcome: "你收剑入鞘。对方看了你很久，最后把剑扔下断崖，说：「算了。」",
       },
       {
         label: "把当年的事说开",
+        oldFriend: { kind: "rival", choice: "resolved", npcRole: "rival" },
         effects: { mood: 10, karma: 8, insight: 5, rivalHostility: -100, rivalStatus: "reconciled", flag: "rival_chain_resolved" },
         outcome: "你们从断崖上走下来时，天已经黑了。没有握手，但谁也没有再提旧账。",
       },
       {
         label: "转身离开，让风替我回答",
+        oldFriend: { kind: "rival", choice: "left", npcRole: "rival" },
         effects: { mood: 2, insight: 3, rivalHostility: -8, rivalStatus: "left", flag: "rival_chain_left" },
         outcome: "你转身下山。身后没有脚步声追来。很多年后你才知道，对方在那天离开了这片地方。",
       },

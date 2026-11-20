@@ -23,6 +23,7 @@
 | `js/dao-heart-events.js` | 5 个道心试炼 + 2 段补心 |
 | `js/replay-data.js` | 身世底牌、时代相位、自缚誓约数据 |
 | `js/replay-events.js` | 错认、身世真相、时代事件、誓约试炼 |
+| `js/old-friend-events.js` | 旧人回归：散修、宿敌、采药人后人 |
 | `js/changelog-data.js` | 玩家可感知更新的唯一来源 |
 | `play.html` / `css/game.css` | 游戏界面与结局页样式 |
 
@@ -35,6 +36,7 @@
 - 身世底牌/错认、自缚誓约、时代相位：新增 `js/replay-data.js`、`js/replay-events.js`。
 - 散修道统：`rogue_path_choice` + `maybeRogueIdentity`，仅人界散修筑基后一次，只开游侠。
 - 高境比例：元婴→化神 `breakForecast` 额外 -0.40，只卡这一层。
+- 故人回身：`oldFriends` 私有记录 + `maybeOldFriends`；一生最多一次，旧档无字段静默关闭。
 - 核心推演、结局、图表、本地存档均可离线运行；后端只用于可选公共碑林/账号同步。
 - 开发工作台统计：`tools/update-dev-usage.js` + `.githooks/pre-commit`；首次安装运行 `npm run hooks:install`，提交前自动刷新并暂存 `assets/dev-usage.json` / `.js`。
 - 旧存档兼容：缺失道心与重开字段自动补默认值。
@@ -66,6 +68,7 @@ node tests/experience-test.js
 node tests/replay-test.js
 node tests/chart-test.js
 node tests/rogue-path-test.js
+node tests/old-friend-test.js
 node tests/changelog-check.js
 ```
 

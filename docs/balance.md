@@ -22,6 +22,8 @@
 | 散修道统 | `js/sim.js` `maybeRogueIdentity` | 人界散修筑基后一次 | 只开游侠，不复制宗门四道统 |
 | 元婴→化神瓶颈 | `js/sim.js` `breakForecast` | -0.40 | 只卡这一层，寿元与后期节奏不动 |
 | 存活曲线 | `js/art.js` `survivalInfo` | 按寿元/境界/时代计算 | 纯前端、同一输入同一结果 |
+| 故人记录 | `js/sim.js` `rememberOldFriend` | 每世最多 3 人 | 只从实际选择写入，不显示公开清单 |
+| 故人回归 | `js/sim.js` `maybeOldFriends` | 每世最多 1 人 | 不抢突破/主线/关系链，不保证回报 |
 
 ## 约束
 

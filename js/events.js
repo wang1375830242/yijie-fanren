@@ -2382,17 +2382,20 @@
     choices: [
       {
         label: "收留三个月",
+        oldFriend: { kind: "refugee", choice: "shelter" },
         risk: { p: 0.28, text: "追兵没找到这里。他走的时候，把半块玉简留在了桌上。", fail: { death: true, cause: "被仇家堵在洞府" } },
         effects: { karma: 8, mood: -2, insight: 3 },
         outcome: "追兵没找到这里。他走的时候，把半块玉简留在了桌上。",
       },
       {
         label: "给他八十块灵石，让他走",
+        oldFriend: { kind: "refugee", choice: "paid" },
         effects: { stones: -80, karma: 2, mood: -1 },
         outcome: "他收了灵石，没有道谢。你知道他这一走，大概就再也见不到了。",
       },
       {
         label: "闭门不见",
+        oldFriend: { kind: "refugee", choice: "closed" },
         effects: { karma: -6, mood: -3 },
         outcome: "你在门后站了很久。脚步声远了，又停了。第二天门口有一小滩血。",
       },
