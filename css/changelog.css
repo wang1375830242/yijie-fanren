@@ -345,3 +345,74 @@
     transition: none;
   }
 }
+
+/* 一月纪：更新页顶部的特别篇入口 */
+.month-one-entry {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  max-width: 760px;
+  margin-top: 24px;
+  padding: 15px 18px;
+  border: 1px solid var(--line);
+  background: linear-gradient(110deg, rgba(134, 160, 131, 0.1), rgba(233, 227, 211, 0.025));
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.month-one-entry:hover,
+.month-one-entry:focus-visible {
+  border-color: var(--jade);
+  background: linear-gradient(110deg, rgba(134, 160, 131, 0.16), rgba(233, 227, 211, 0.04));
+}
+.month-one-kicker {
+  flex: 0 0 auto;
+  color: var(--cinnabar-2);
+  font-family: var(--kai);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+.month-one-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.month-one-copy strong {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+}
+.month-one-copy span {
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.month-one-arrow {
+  flex: 0 0 auto;
+  color: var(--jade);
+  font-family: var(--kai);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+@media (max-width: 600px) {
+  .month-one-entry {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-top: 20px;
+    padding: 14px 15px;
+  }
+  .month-one-kicker {
+    width: 100%;
+  }
+  .month-one-copy strong {
+    font-size: 20px;
+  }
+  .month-one-arrow {
+    margin-left: auto;
+  }
+}
