@@ -5,8 +5,8 @@
   "use strict";
 
   const XD = (window.XD = window.XD || {});
-  XD.VERSION = "1.3.5";
-  XD.BUILD = "20261124a";
+  XD.VERSION = "1.3.6";
+  XD.BUILD = "20261125a";
 
   /* ---------- 随机 ---------- */
   function mulberry32(a) {
@@ -398,22 +398,12 @@
     });
   }
 
-  function updateAccountNavLabel() {
-    const session = authSession();
-    const label = session && session.user ? (session.user.displayName || session.user.username || "账号") : "账号";
-    document.querySelectorAll('a[href="account.html"]').forEach((link) => {
-      if (!link.closest(".nav-links, .nav-drawer")) return;
-      link.textContent = label;
-      link.title = session ? `账号 · ${label}` : "账号";
-      link.classList.toggle("account-nav", !!session);
-    });
-  }
 
   function nav() {
     const bar = document.querySelector(".nav");
     const accountLink = document.createElement("a");
     accountLink.href = "account.html";
-    accountLink.textContent = "账号";
+    accountLink.textContent = "本机记录";
     const supportLink = document.createElement("a");
     supportLink.href = "support.html";
     supportLink.textContent = "赞助";
@@ -446,7 +436,6 @@
         toggle.focus();
       });
     }
-    updateAccountNavLabel();
   }
 
   /* ---------- 主题（三界气候） ---------- */
@@ -647,31 +636,6 @@
     immortal: 0.001,
   };
 
-  const AUTH_KEY = "yijie.auth.v1";
-  const API_BASE = typeof location !== "undefined" && location.hostname === "wang1375830242.github.io" ? "https://192.144.150.24" : "";
-  function authSession() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
-      return raw && typeof raw.token === "string" && raw.token ? raw : null;
-    } catch (err) { return null; }
-  }
-  function setAuthSession(session) {
-    if (!session || !session.token) { try { localStorage.removeItem(AUTH_KEY); } catch (err) {} return null; }
-    try { localStorage.setItem(AUTH_KEY, JSON.stringify(session)); } catch (err) {}
-    updateAccountNavLabel();
-    return session;
-  }
-  function clearAuthSession() {
-    try { localStorage.removeItem(AUTH_KEY); } catch (err) {}
-    updateAccountNavLabel();
-  }
-  async function authFetch(path, options) {
-    const session = authSession();
-    const headers = Object.assign({}, (options && options.headers) || {});
-    if (session) headers.Authorization = "Bearer " + session.token;
-    return fetch(API_BASE + path, Object.assign({}, options || {}, { headers }));
-  }
-
   XD.util = {
     RNG,
     store,
@@ -691,33 +655,17 @@
     openThemePanel,
     toggleTheme,
     WORLD_ODDS,
-    auth: { session: authSession, setSession: setAuthSession, clear: clearAuthSession, apiBase: API_BASE, fetch: authFetch },
   };
 
-  function trackVisit() {
-    if (!/^https?:$/.test(location.protocol)) return;
-    if (/^\/stats(\/|$)/.test(location.pathname)) return;
-    const path = (location.pathname.replace(/^\/yijie-fanren(?=\/|$)/, "") || "/").replace(/\/+$/, "") || "/";
-    const known = new Set(["/", "/index.html", "/play.html", "/hall.html", "/guestbook.html", "/codex.html", "/changelog.html", "/about.html"]);
-    if (!known.has(path)) return;
-    const apiBase = location.hostname === "wang1375830242.github.io" ? "https://192.144.150.24" : "";
-    try {
-      fetch(apiBase + "/api/visit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path }),
-        keepalive: true,
-        credentials: "omit",
-        mode: "cors",
-      }).catch(() => {});
-    } catch (err) {}
-  }
 
   /* ---------- 账号（GitHub Pages 跨站 Token 方案） ---------- */
   document.addEventListener("DOMContentLoaded", () => {
+    // 旧账号 token 不再使用；只清登录元数据，不碰人生与设置存档。
+    try {
+      ["yijie.auth.v1", "yijie.owner.v1", "yijie.sync.status.v1"].forEach((key) => localStorage.removeItem(key));
+    } catch (err) {}
     nav();
     theme();
     reveal();
-    trackVisit();
   });
 })();

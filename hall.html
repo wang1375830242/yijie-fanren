@@ -14,16 +14,16 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0f0b">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="js/theme-init.js?v=20261124a"></script>
+<script src="js/theme-init.js?v=20261125a"></script>
 <link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/base.css?v=20261124a">
-<link rel="stylesheet" href="css/update.css?v=20261124a">
+<link rel="stylesheet" href="css/base.css?v=20261125a">
+<link rel="stylesheet" href="css/update.css?v=20261125a">
 <link rel="stylesheet" href="css/landing.css">
-<link rel="stylesheet" href="css/game.css?v=20261124a">
-<link rel="stylesheet" href="css/hall.css?v=20261124a">
-<link rel="stylesheet" href="css/day.css?v=20261124a">
-<link rel="stylesheet" href="css/spec.css?v=20261124a">
-<link rel="stylesheet" href="css/spec-build.css?v=20261124a">
+<link rel="stylesheet" href="css/game.css?v=20261125a">
+<link rel="stylesheet" href="css/hall.css?v=20261125a">
+<link rel="stylesheet" href="css/day.css?v=20261125a">
+<link rel="stylesheet" href="css/spec.css?v=20261125a">
+<link rel="stylesheet" href="css/spec-build.css?v=20261125a">
 </head>
 <body class="hall-page">
 <noscript><div class="noscript">这个站点需要 JavaScript 才能打开碑林。请开启后刷新。</div></noscript>
@@ -33,7 +33,6 @@
     <a class="brand" href="index.html"><span class="seal">凡</span><span class="brand-name">一介凡人<em>碑林</em></span></a>
     <div class="nav-links">
       <a href="index.html">首页</a>
-      <a href="guestbook.html">留言板</a>
       <a href="codex.html">图鉴</a>
       <a href="changelog.html">更新</a>
       <a href="about.html">关于</a>
@@ -44,7 +43,6 @@
 </nav>
 <div class="nav-drawer">
   <a href="index.html">首页</a>
-  <a href="guestbook.html">留言板</a>
   <a href="codex.html">图鉴</a>
   <a href="changelog.html">更新</a>
   <a href="about.html">关于</a>
@@ -57,7 +55,7 @@
     <h1>碑林</h1>
     <p class="page-lede">
       这里安放着走到最后的人生。你可以在任何一座碑前点一盏灯，留一句话。
-      连上公共碑林后，灯与留言对所有访客可见；只打开静态文件时，它们只存在你的浏览器里。
+      碑林为纯本机模式：灯与留言只存在你的浏览器里，不上传服务器。
     </p>
     <div class="hall-stats">
       <span><b id="statTotal">0</b> 座碑</span>
@@ -66,7 +64,7 @@
       <span><b id="statStreak">0</b> 世连续</span>
       <span><b id="statCandles">0</b> 盏灯</span>
     </div>
-    <p class="hall-status" id="hallStatus">正在连接公共碑林…</p>
+    <p class="hall-status" id="hallStatus">本机碑林 · 灯与留言只保存在这个浏览器。</p>
   </div>
 </header>
 
@@ -104,7 +102,7 @@
       <span class="sm-flame" aria-hidden="true"></span>
     </div>
     <div class="sm-msg">
-      <input id="smMsgInput" maxlength="40" placeholder="留一句话。登录后会显示账号名，公共碑林连接后公开显示；自己的留言可删除。" aria-label="留言">
+      <input id="smMsgInput" maxlength="40" placeholder="留一句话。只保存在当前浏览器，不上传服务器。" aria-label="留言">
       <button class="btn btn--sm" id="smMsgBtn" type="button">留</button>
     </div>
     <div class="sm-msgs" id="smMsgs"></div>
@@ -124,13 +122,12 @@
   </div>
 </footer>
 
-<script src="js/common.js?v=20261124a"></script>
-<script src="js/update-check.js?v=20261124a"></script>
-<script src="js/spec-build.js?v=20261124a"></script>
-<script src="js/spec-theme.js?v=20261124a"></script>
-<script src="js/account-sync.js?v=20261124a"></script>
-<script src="js/data.js?v=20261124a"></script>
-<script src="js/canon.js?v=20261124a"></script>
-<script src="js/hall.js?v=20261124a"></script>
+<script src="js/common.js?v=20261125a"></script>
+<script src="js/update-check.js?v=20261125a"></script>
+<script src="js/spec-build.js?v=20261125a"></script>
+<script src="js/spec-theme.js?v=20261125a"></script>
+<script src="js/data.js?v=20261125a"></script>
+<script src="js/canon.js?v=20261125a"></script>
+<script src="js/hall.js?v=20261125a"></script>
 </body>
 </html>

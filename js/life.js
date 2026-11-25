@@ -46,7 +46,7 @@
         ${life.seed ? `<a class="btn" href="play.html?seed=${life.seed}">同 seed 再开一世</a>` : ""}
         <a class="btn" href="play.html">推演新的一世</a>
       </div>
-      <p class="history-note">这是只读短码，不包含完整人生日志；完整记录仍保存在原设备或账号中。</p>`;
+      <p class="history-note">这是只读短码，不包含完整人生日志；完整记录仍保存在原设备中。</p>`;
     document.getElementById("lifeDownload").addEventListener("click", () => {
       if (XD.LifeCard.download(life, canvas)) U.toast("命格卡已生成");
       else U.toast("命格卡生成失败");

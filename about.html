@@ -14,16 +14,16 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0f0b">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="js/theme-init.js?v=20261124a"></script>
+<script src="js/theme-init.js?v=20261125a"></script>
 <link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/base.css?v=20261124a">
-<link rel="stylesheet" href="css/update.css?v=20261124a">
+<link rel="stylesheet" href="css/base.css?v=20261125a">
+<link rel="stylesheet" href="css/update.css?v=20261125a">
 <link rel="stylesheet" href="css/landing.css">
-<link rel="stylesheet" href="css/hall.css?v=20261124a">
+<link rel="stylesheet" href="css/hall.css?v=20261125a">
 <link rel="stylesheet" href="css/about.css">
-<link rel="stylesheet" href="css/day.css?v=20261124a">
-<link rel="stylesheet" href="css/spec.css?v=20261124a">
-<link rel="stylesheet" href="css/spec-build.css?v=20261124a">
+<link rel="stylesheet" href="css/day.css?v=20261125a">
+<link rel="stylesheet" href="css/spec.css?v=20261125a">
+<link rel="stylesheet" href="css/spec-build.css?v=20261125a">
 </head>
 <body class="about-page">
 <noscript><div class="noscript">这个站点需要 JavaScript 才能正常显示。请开启后刷新。</div></noscript>
@@ -34,7 +34,6 @@
     <div class="nav-links">
       <a href="index.html">首页</a>
       <a href="hall.html">碑林</a>
-      <a href="guestbook.html">留言板</a>
       <a href="codex.html">图鉴</a>
       <a href="changelog.html">更新</a>
       <a class="btn btn--sm nav-cta" href="play.html">推演一世</a>
@@ -45,7 +44,6 @@
 <div class="nav-drawer">
   <a href="index.html">首页</a>
   <a href="hall.html">碑林</a>
-  <a href="guestbook.html">留言板</a>
   <a href="codex.html">图鉴</a>
   <a href="changelog.html">更新</a>
   <a href="play.html">推演一世</a>
@@ -57,7 +55,7 @@
     <h1>关于</h1>
     <p class="page-lede">
       这是一个把《凡人修仙传》的世界观拿来做人生模拟的小站。
-      不登录也能玩，没有充值，也没有必须完成的日常。你只会得到一世，然后看着它结束。
+      无需登录，没有充值，也没有必须完成的日常。你只会得到一世，然后看着它结束。
     </p>
   </div>
 </header>
@@ -128,15 +126,14 @@
     <section id="data">
       <h2>你的数据</h2>
       <p>
-        不登录时，人生记录只存在浏览器的 localStorage 里。换一台设备或浏览器就看不见；登录账号后，可以选择把最近人生同步到云端。
+        人生记录只存在当前浏览器的 localStorage 里。换一台设备或浏览器就看不见，也不会上传到服务器。
       </p>
       <p>
-        点灯和留言默认也只在本机。GitHub Pages 静态版公共碑林会连接自建服务器，
-        写入由 `server.py` 负责；公共碑林内容对所有访客可见。
+        点灯和留言也只保存在本机，不上传服务器。
         请不要写真实姓名、住址或其他个人信息。
       </p>
       <p>
-        如果你清空浏览器数据，本机的人生记录会一起消失；已经写进公共碑林的留言不会被一并删除。
+        如果你清空浏览器数据，本机的人生记录、点灯与留言会一起消失。
         这是代价，也是边界。
       </p>
       <div class="data-actions">
@@ -181,7 +178,7 @@
         会尽快处理。
       </p>
       <p class="tiny dim">
-        设计与实现：一介凡人 · 2026。前端为静态页面，公共数据使用自建服务器后台；无第三方字体与图片。
+        设计与实现：一介凡人 · 2026。前端为静态页面，游戏记录与碑林都在本机浏览器中处理；无第三方字体与图片。
       </p>
     </section>
   </article>
@@ -196,13 +193,12 @@
   </div>
 </footer>
 
-<script src="js/common.js?v=20261124a"></script>
-<script src="js/update-check.js?v=20261124a"></script>
-<script src="js/spec-build.js?v=20261124a"></script>
-<script src="js/spec-theme.js?v=20261124a"></script>
-<script src="js/account-sync.js?v=20261124a"></script>
-<script src="js/achievements.js?v=20261124a"></script>
-<script src="js/challenges.js?v=20261124a"></script>
-<script src="js/about.js?v=20261124a"></script>
+<script src="js/common.js?v=20261125a"></script>
+<script src="js/update-check.js?v=20261125a"></script>
+<script src="js/spec-build.js?v=20261125a"></script>
+<script src="js/spec-theme.js?v=20261125a"></script>
+<script src="js/achievements.js?v=20261125a"></script>
+<script src="js/challenges.js?v=20261125a"></script>
+<script src="js/about.js?v=20261125a"></script>
 </body>
 </html>

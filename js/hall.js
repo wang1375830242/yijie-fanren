@@ -12,20 +12,6 @@
   let isPublic = false;
   let apiWritable = false;
   const shared = { candles: {}, messages: {} };
-  const API_BASE =
-    location.hostname === "wang1375830242.github.io" ? "https://192.144.150.24" : "";
-  const apiUrl = (path) => API_BASE + path;
-
-  async function postWrite(path, payload) {
-    const options = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    };
-    if (U.auth && U.auth.session()) return U.auth.fetch(path, options);
-    return fetch(apiUrl(path), options);
-  }
-
   /* 碑林里的无名碑：给新来的人一点可以看的东西 */
   const ANON = [
     {
@@ -217,8 +203,7 @@
   }
 
   function messageHTML(message) {
-    const session = U.auth && U.auth.session();
-    const mine = !!(session && session.user && message.userId && session.user.id === message.userId);
+    const mine = false;
     return `<div class="hall-message"><div>${message.name ? `<b class="hall-message-name">${U.esc(message.name)}</b>` : ""}<span>${U.esc(message.text)}</span></div>${mine && message.id ? `<button class="hall-message-delete" type="button" data-delete-message="${U.esc(message.id)}">删除</button>` : ""}</div>`;
   }
 
@@ -346,41 +331,17 @@
     $("statCandles").textContent = U.fmt(totalCandles());
   }
 
-  function setStatus(ok) {
+  function setStatus() {
     const el = $("hallStatus");
     if (!el) return;
-    const writable = apiWritable;
-    el.textContent = ok
-      ? writable
-        ? "公共碑林已连接 · 灯与留言对所有访客可见。请不要写真实个人信息。"
-        : "公共碑林已连接（只读）· 点灯与留言需由 server.py 代写。"
-      : "本机模式 · 未连接公共碑林，灯与留言只保存在这个浏览器。";
-    el.classList.toggle("is-online", ok);
+    el.textContent = "本机碑林 · 灯与留言只保存在这个浏览器，不上传服务器。";
+    el.classList.remove("is-online");
   }
 
-  async function loadShared() {
-    // 公共碑林只使用自建服务器 API；不可用时退回本机模式。
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 2500);
-      const res = await fetch(apiUrl("/api/hall"), { cache: "no-store", signal: controller.signal });
-      clearTimeout(timer);
-      if (!res.ok) throw new Error("hall api failed");
-      const data = await res.json();
-      shared.candles = data.candles && typeof data.candles === "object" ? data.candles : {};
-      shared.messages = data.messages && typeof data.messages === "object" ? data.messages : {};
-      apiWritable = true;
-      isPublic = true;
-      setStatus(true);
-      render();
-      if (current) open(current.id);
-      return;
-    } catch (err) {
-      // API 不可用时退回本机模式。
-    }
-    apiWritable = false;
+  function loadShared() {
     isPublic = false;
-    setStatus(false);
+    apiWritable = false;
+    setStatus();
     render();
     if (current) open(current.id);
   }
@@ -469,23 +430,6 @@
 
   $("smLight").addEventListener("click", async () => {
     if (!current) return;
-    if (isPublic) {
-      try {
-        const res = await postWrite("/api/candle", { id: current.id });
-        if (!res.ok) throw new Error("candle failed");
-        const data = await res.json();
-        shared.candles[current.id] = Number(data.count) || 0;
-        $("smCandles").textContent = shared.candles[current.id] + " 盏";
-        const flame = $("smCandles").nextElementSibling;
-        if (flame) flame.classList.add("on");
-        updateStats();
-        render();
-        U.toast("灯亮了，所有来访的人都能看见");
-        return;
-      } catch (err) {
-        U.toast("公共碑林没有响应，这盏灯只记在本机");
-      }
-    }
     const n = U.store.light(current.id);
     $("smCandles").textContent = n + " 盏";
     const flame = $("smCandles").nextElementSibling;
@@ -499,23 +443,6 @@
     if (!current) return;
     const v = $("smMsgInput").value.trim();
     if (!v) return U.toast("写一句话再留");
-    if (isPublic) {
-      try {
-        const res = await postWrite("/api/message", { id: current.id, text: v });
-        if (!res.ok) throw new Error("message failed");
-        const data = await res.json();
-        shared.messages[current.id] = Array.isArray(data.messages) ? data.messages : [];
-        $("smMsgInput").value = "";
-        $("smMsgs").innerHTML = messagesFor(current.id)
-          .slice(-6)
-          .map((m) => messageHTML(m))
-          .join("");
-        U.toast("留在公共碑林了");
-        return;
-      } catch (err) {
-        U.toast("公共碑林没有响应，留言只存在本机");
-      }
-    }
     MSG[current.id] = (MSG[current.id] || []).concat(v).slice(-20);
     if (!saveMsg()) return U.toast("这个浏览器不让保存留言");
     $("smMsgInput").value = "";
@@ -525,21 +452,6 @@
       .join("");
     U.toast("留在碑上了");
   }
-  $("smMsgs").addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-delete-message]");
-    if (!button) return;
-    if (!confirm("删除这条碑林留言？")) return;
-    try {
-      const res = await postWrite(`/api/message/${encodeURIComponent(button.dataset.deleteMessage)}/delete`, {});
-      if (!res.ok) throw new Error("delete failed");
-      await loadShared();
-      open(current);
-      U.toast("留言已删除");
-    } catch (err) {
-      U.toast("这条留言暂时删不掉");
-    }
-  });
-
   $("smMsgBtn").addEventListener("click", leave);
   $("smMsgInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") leave();

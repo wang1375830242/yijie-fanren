@@ -8,8 +8,8 @@
 
 ## 当前版本
 
-- `1.3.5`，build `20261124a`
-- 最近提交：`1.3.5`（本次提交）
+- `1.3.6`，build `20261125a`
+- 最近提交：`1.3.6`（本次提交）
 - 主要入口：`index.html` → `play.html` → 结局页
 
 ## 关键文件
@@ -37,13 +37,13 @@
 - 散修道统：`rogue_path_choice` + `maybeRogueIdentity`，仅人界散修筑基后一次，只开游侠。
 - 高境比例：元婴→化神 `breakForecast` 额外 -0.40，只卡这一层。
 - 故人回身：`oldFriends` 私有记录 + `maybeOldFriends`；一生最多一次，旧档无字段静默关闭。
-- 核心推演、结局、图表、本地存档均可离线运行；后端只用于可选公共碑林/账号同步。
+- 核心推演、结局、图表、本地存档均可离线运行；不依赖后端，账号登录/同步已移除。
 - 开发工作台统计：`tools/update-dev-usage.js` + `.githooks/pre-commit`；首次安装运行 `npm run hooks:install`，提交前自动刷新并暂存 `assets/dev-usage.json` / `.js`。
 - 旧存档兼容：缺失道心与重开字段自动补默认值。
 
 ## 已知坑
 
-- `sim.js` 的 `summary()` 是结局、碑林、账号历史的共同出口；新增字段要考虑旧记录。
+- `sim.js` 的 `summary()` 是结局、碑林、本机记录历史的共同出口；新增字段要考虑旧记录。
 - `choiceTrace` 旧条目没有 `eventTitle/choiceLabel/outcome`，纹理必须容错隐藏。
 - 同辈只记路径节点，不做排名；不要按 tier 排序。
 - `breakForecast` 的 `chance` 下限是 0.12；道心破碎用 `locked` 单独表达，不要用 -100% 伪造。
